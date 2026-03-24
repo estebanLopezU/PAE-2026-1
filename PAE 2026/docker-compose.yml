@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: xroad-postgres
+    environment:
+      POSTGRES_DB: xroad_colombia
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - xroad-network
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: xroad-backend
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/xroad_colombia
+      DEBUG: "false"
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+    networks:
+      - xroad-network
+
+  # Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: xroad-frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+    networks:
+      - xroad-network
+
+networks:
+  xroad-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
