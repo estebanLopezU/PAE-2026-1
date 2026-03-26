@@ -8,6 +8,7 @@ import {
   Map, 
   ClipboardCheck, 
   FileText,
+  Brain,
   Menu,
   X
 } from 'lucide-react'
@@ -22,6 +23,7 @@ const navigation = [
   { nameKey: 'navigation.map', href: '/mapa', icon: Map },
   { nameKey: 'navigation.maturity', href: '/evaluacion', icon: ClipboardCheck },
   { nameKey: 'navigation.reports', href: '/reportes', icon: FileText },
+  { nameKey: 'Análisis IA', href: '/analisis-ia', icon: Brain },
 ]
 
 export default function Layout({ children }) {
