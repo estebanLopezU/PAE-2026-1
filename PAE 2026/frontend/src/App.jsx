@@ -7,6 +7,7 @@ import MatrizServicios from './pages/MatrizServicios'
 import MapaInteractivo from './pages/MapaInteractivo'
 import EvaluacionMadurez from './pages/EvaluacionMadurez'
 import Reportes from './pages/Reportes'
+import AnalisisIA from './pages/AnalisisIA'
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
             <Route path="/mapa" element={<MapaInteractivo />} />
             <Route path="/evaluacion" element={<EvaluacionMadurez />} />
             <Route path="/reportes" element={<Reportes />} />
+            <Route path="/analisis-ia" element={<AnalisisIA />} />
           </Routes>
         </Layout>
       </Router>
