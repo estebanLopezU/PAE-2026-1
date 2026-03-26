@@ -1,0 +1,1 @@
+import api from "./api";export const aiApi={analyzeSector:(s)=>api.get("/ai/analyze/sector/"+(s||"")),analyzeEntity:(e)=>api.get("/ai/analyze/entity/"+e),getClusterInsights:(s)=>api.get("/ai/clusters"+(s?"?sector_id="+s:"")),trainModels:(f)=>api.post("/ai/train?force_retrain="+f)}

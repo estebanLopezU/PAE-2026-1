@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from .endpoints import sectors, entities, services, maturity, dashboard, reports
+from .endpoints import sectors, entities, services, maturity, dashboard, reports, ai_analysis, interoperability
 
 api_router = APIRouter()
 
@@ -9,3 +9,5 @@ api_router.include_router(services.router, prefix="/services", tags=["Servicios"
 api_router.include_router(maturity.router, prefix="/maturity", tags=["Madurez"])
 api_router.include_router(dashboard.router, prefix="/dashboard", tags=["Dashboard"])
 api_router.include_router(reports.router, prefix="/reports", tags=["Reportes"])
+api_router.include_router(ai_analysis.router, prefix="/ai", tags=["Análisis IA"])
+api_router.include_router(interoperability.router, prefix="/interop", tags=["Interoperabilidad"])
