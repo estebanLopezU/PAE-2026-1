@@ -63,8 +63,8 @@ async def analyze_entity(
         'longitude': entity.longitude
     }
     
-    # Perform AI analysis using advanced engine
-    analysis = ai_analyzer.analyze_entity_advanced(entity_data)
+    # Perform AI analysis using AI analyzer
+    analysis = ai_analyzer.analyze_entity(entity_data)
     
     # Convert numpy types to native Python types
     analysis = convert_numpy_types(analysis)
