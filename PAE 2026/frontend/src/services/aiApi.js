@@ -1,1 +1,8 @@
-import api from "./api";export const aiApi={analyzeSector:(s)=>api.get("/ai/analyze/sector/"+(s||"")),analyzeEntity:(e)=>api.get("/ai/analyze/entity/"+e),getClusterInsights:(s)=>api.get("/ai/clusters"+(s?"?sector_id="+s:"")),trainModels:(f)=>api.post("/ai/train?force_retrain="+f)}
+import api from "./api";
+
+export const aiApi = {
+  analyzeSector: (sectorId) => api.post("/ai/analyze/sector", { sector_id: sectorId || null }),
+  analyzeEntity: (entityId) => api.post("/ai/analyze/entity", { entity_id: entityId }),
+  getClusterInsights: (sectorId) => api.get("/ai/clusters" + (sectorId ? "?sector_id=" + sectorId : "")),
+  trainModels: (forceRetrain) => api.post("/ai/train", { force_retrain: forceRetrain })
+};

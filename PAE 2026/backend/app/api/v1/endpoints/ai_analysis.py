@@ -7,7 +7,7 @@ from typing import List, Dict, Optional
 from ....database import get_db
 from ....models.entity import Entity
 from ....models.maturity import MaturityAssessment
-from ....services.ai_analyzer import ai_analyzer
+from ....services.ai_analyzer import ai_analyzer, convert_numpy_types
 from pydantic import BaseModel
 
 
@@ -32,8 +32,8 @@ async def analyze_entity(
     db: Session = Depends(get_db)
 ):
     """
-    Perform AI analysis on a specific entity
-    Returns maturity prediction, cluster assignment, and recommendations
+    Perform advanced AI analysis on a specific entity
+    Returns maturity prediction, cluster assignment, recommendations, and action plan
     """
     # Get entity
     entity = db.query(Entity).filter(Entity.id == request.entity_id).first()
@@ -56,11 +56,18 @@ async def analyze_entity(
         'xroad_status': entity.xroad_status,
         'services_count': len(entity.services) if entity.services else 0,
         'maturity_level': latest_assessment.overall_level if latest_assessment else 1,
-        'maturity_score': latest_assessment.overall_score if latest_assessment else 0
+        'maturity_score': latest_assessment.overall_score if latest_assessment else 0,
+        'description': entity.notes,
+        'address': entity.address,
+        'latitude': entity.latitude,
+        'longitude': entity.longitude
     }
     
-    # Perform AI analysis
-    analysis = ai_analyzer.analyze_entity(entity_data)
+    # Perform AI analysis using advanced engine
+    analysis = ai_analyzer.analyze_entity_advanced(entity_data)
+    
+    # Convert numpy types to native Python types
+    analysis = convert_numpy_types(analysis)
     
     return {
         "success": True,
@@ -108,8 +115,11 @@ async def analyze_sector(
             'maturity_score': latest_assessment.overall_score if latest_assessment else 0
         })
     
-    # Generate sector insights
+    # Generate sector insights (using advanced method if available)
     insights = ai_analyzer.generate_sector_insights(entities_data)
+    
+    # Convert numpy types to native Python types
+    insights = convert_numpy_types(insights)
     
     return {
         "success": True,
@@ -267,6 +277,9 @@ async def get_cluster_insights(
     clusterer.fit(entities_data)
     insights = clusterer.get_cluster_insights(entities_data)
     
+    # Convert numpy types to native Python types
+    insights = convert_numpy_types(insights)
+    
     return {
         "success": True,
         "total_entities": len(entities_data),
@@ -308,6 +321,9 @@ async def predict_maturity(
     
     # Predict maturity
     prediction = ai_analyzer.maturity_predictor.predict(entity_data)
+    
+    # Convert numpy types to native Python types
+    prediction = convert_numpy_types(prediction)
     
     return {
         "success": True,
