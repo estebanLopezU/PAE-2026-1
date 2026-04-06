@@ -8,8 +8,8 @@ class Settings(BaseSettings):
     APP_VERSION: str = "1.0.0"
     DEBUG: bool = True
     
-    # Database
-    DATABASE_URL: str = "postgresql://postgres:postgres@localhost:5432/xroad_colombia"
+    # Database - Using SQLite for development
+    DATABASE_URL: str = "sqlite:///./xroad_colombia.db"
     
     # CORS
     CORS_ORIGINS: list = ["http://localhost:5173", "http://localhost:3000"]

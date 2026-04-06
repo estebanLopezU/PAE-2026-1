@@ -101,62 +101,63 @@ export default function MatrizServicios() {
         {protocols.map(proto => {
           const count = services.filter(s => s.protocol === proto).length
           return (
-            <div key={proto} className="bg-white rounded-lg shadow p-4">
+            <div key={proto} className="data-card">
               <div className="text-sm font-medium text-gray-500">{proto}</div>
-              <div className="mt-1 text-2xl font-semibold text-gray-900">{count}</div>
+              <div className="mt-2 text-3xl font-bold text-gray-900">{count}</div>
+              <div className="mt-2 flex items-center text-xs text-gray-500">
+                <div className={`w-2 h-2 rounded-full mr-2 ${
+                  proto === 'REST' ? 'bg-blue-500' :
+                  proto === 'SOAP' ? 'bg-purple-500' : 'bg-green-500'
+                }`}></div>
+                Servicios {proto}
+              </div>
             </div>
           )
         })}
-        <div className="bg-white rounded-lg shadow p-4">
+        <div className="data-card">
           <div className="text-sm font-medium text-gray-500">Total Servicios</div>
-          <div className="mt-1 text-2xl font-semibold text-gray-900">{services.length}</div>
+          <div className="mt-2 text-3xl font-bold text-gray-900">{services.length}</div>
+          <div className="mt-2 flex items-center text-xs text-gray-500">
+            <div className="w-2 h-2 rounded-full bg-primary-500 mr-2"></div>
+            Todos los protocolos
+          </div>
         </div>
       </div>
 
       {/* Services Matrix */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      <div className="table-scientific">
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="data-table">
+            <thead>
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Servicio
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Entidad
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Categoría
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Protocolo
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Estado
-                </th>
+                <th>Servicio</th>
+                <th>Entidad</th>
+                <th>Categoría</th>
+                <th>Protocolo</th>
+                <th>Estado</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody>
               {services.map((service) => (
-                <tr key={service.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
+                <tr key={service.id}>
+                  <td>
                     <div>
-                      <div className="text-sm font-medium text-gray-900">{service.name}</div>
-                      <div className="text-sm text-gray-500">{service.code}</div>
+                      <div className="font-semibold text-gray-900">{service.name}</div>
+                      <div className="text-sm text-gray-500 mt-1">{service.code}</div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {service.entity_name}
+                  <td>
+                    <span className="text-gray-700 font-medium">{service.entity_name}</span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {service.category || '-'}
+                  <td>
+                    <span className="text-gray-600">{service.category || '-'}</span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td>
                     <span className={clsx('status-badge', protocolColors[service.protocol])}>
                       {service.protocol}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td>
                     <span className={clsx(
                       'status-badge',
                       service.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'

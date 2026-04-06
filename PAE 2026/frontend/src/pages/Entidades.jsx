@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
-import { Plus, Search, Edit, Trash2, Eye } from 'lucide-react'
+import { Search, Eye, Plus } from 'lucide-react'
 import { entitiesApi, sectorsApi } from '../services/api'
+import { useAuth } from '../contexts/AuthContext'
 import clsx from 'clsx'
 
 const xroadStatusLabels = {
@@ -30,6 +31,7 @@ const maturityLevelColors = {
 }
 
 export default function Entidades() {
+  const { canCreate } = useAuth()
   const [entities, setEntities] = useState([])
   const [sectors, setSectors] = useState([])
   const [loading, setLoading] = useState(true)
@@ -86,17 +88,6 @@ export default function Entidades() {
     setPagination(prev => ({ ...prev, page: 1 }))
   }
 
-  const handleDelete = async (id) => {
-    if (window.confirm('¿Está seguro de eliminar esta entidad?')) {
-      try {
-        await entitiesApi.delete(id)
-        fetchEntities()
-      } catch (error) {
-        console.error('Error deleting entity:', error)
-      }
-    }
-  }
-
   const totalPages = Math.ceil(pagination.total / pagination.pageSize)
 
   if (loading) {
@@ -109,19 +100,25 @@ export default function Entidades() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-start">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Entidades</h1>
-          <p className="mt-1 text-sm text-gray-500">Gestión de entidades públicas del ecosistema X-Road</p>
+          <p className="mt-1 text-sm text-gray-500">Visualización de entidades públicas del ecosistema X-Road</p>
         </div>
-        <button className="btn btn-primary">
-          <Plus className="h-4 w-4 mr-2" />
-          Nueva Entidad
-        </button>
+        {canCreate() && (
+          <button className="btn btn-primary flex items-center gap-2">
+            <Plus className="h-4 w-4" />
+            Crear Entidad
+          </button>
+        )}
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-lg shadow p-4">
+      <div className="data-card">
+        <div className="mb-4">
+          <h3 className="text-lg font-semibold text-gray-900">Filtros de Búsqueda</h3>
+          <p className="text-sm text-gray-500">Encuentre entidades específicas usando los filtros</p>
+        </div>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
           <div>
             <label className="form-label">Buscar</label>
@@ -177,7 +174,7 @@ export default function Entidades() {
       </div>
 
       {/* Table */}
-      <div className="table-container">
+      <div className="table-scientific">
         <table className="data-table">
           <thead>
             <tr>
@@ -195,12 +192,16 @@ export default function Entidades() {
               <tr key={entity.id}>
                 <td>
                   <div>
-                    <div className="font-medium text-gray-900">{entity.name}</div>
-                    <div className="text-sm text-gray-500">{entity.acronym} • NIT: {entity.nit}</div>
+                    <div className="font-semibold text-gray-900">{entity.name}</div>
+                    <div className="text-sm text-gray-500 mt-1">{entity.acronym} • NIT: {entity.nit}</div>
                   </div>
                 </td>
-                <td>{entity.sector_name}</td>
-                <td>{entity.department || '-'}</td>
+                <td>
+                  <span className="text-gray-700 font-medium">{entity.sector_name}</span>
+                </td>
+                <td>
+                  <span className="text-gray-600">{entity.department || '-'}</span>
+                </td>
                 <td>
                   <span className={clsx('status-badge', xroadStatusColors[entity.xroad_status])}>
                     {xroadStatusLabels[entity.xroad_status]}
@@ -211,22 +212,17 @@ export default function Entidades() {
                     <span className={clsx('status-badge', maturityLevelColors[entity.maturity_level], 'text-white')}>
                       {maturityLevelLabels[entity.maturity_level]}
                     </span>
-                  ) : '-'}
+                  ) : (
+                    <span className="text-gray-400 text-sm">Sin evaluar</span>
+                  )}
                 </td>
-                <td>{entity.services_count || 0}</td>
                 <td>
-                  <div className="flex space-x-2">
-                    <button className="text-primary-600 hover:text-primary-900">
+                  <span className="font-semibold text-gray-900">{entity.services_count || 0}</span>
+                </td>
+                <td>
+                  <div className="flex space-x-3">
+                    <button className="p-2 text-primary-600 hover:text-primary-900 hover:bg-primary-50 rounded-lg transition-all duration-200">
                       <Eye className="h-4 w-4" />
-                    </button>
-                    <button className="text-gray-600 hover:text-gray-900">
-                      <Edit className="h-4 w-4" />
-                    </button>
-                    <button 
-                      className="text-red-600 hover:text-red-900"
-                      onClick={() => handleDelete(entity.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
                     </button>
                   </div>
                 </td>

@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts'
+import { Plus } from 'lucide-react'
 import { maturityApi, entitiesApi, dashboardApi } from '../services/api'
-import clsx from 'clsx'
+import { useAuth } from '../contexts/AuthContext'
 
 const maturityLevelLabels = {
   1: 'Inicial',
@@ -43,37 +44,13 @@ const criteriaDescriptions = {
 }
 
 export default function EvaluacionMadurez() {
+  const { canCreate } = useAuth()
   const [assessments, setAssessments] = useState([])
   const [entities, setEntities] = useState([])
   const [loading, setLoading] = useState(true)
   const [selectedEntity, setSelectedEntity] = useState(null)
   const [radarData, setRadarData] = useState(null)
   const [error, setError] = useState(null)
-  const [activeTab, setActiveTab] = useState('view') // 'view' | 'create' | 'edit'
-  const [successMessage, setSuccessMessage] = useState('')
-  
-  // Form state for creating/editing assessments
-  const [formData, setFormData] = useState({
-    entity_id: '',
-    overall_level: 1,
-    overall_score: 0,
-    legal_domain_score: 0,
-    organizational_domain_score: 0,
-    semantic_domain_score: 0,
-    technical_domain_score: 0,
-    has_api_documentation: 0,
-    uses_standard_protocols: 0,
-    has_data_quality: 0,
-    has_security_standards: 0,
-    has_interoperability_policy: 0,
-    has_trained_personnel: 0,
-    assessor_name: '',
-    assessor_notes: '',
-    recommendations: ''
-  })
-  const [formErrors, setFormErrors] = useState({})
-  const [submitting, setSubmitting] = useState(false)
-  const [editingAssessment, setEditingAssessment] = useState(null)
 
   useEffect(() => {
     fetchData()
@@ -141,137 +118,6 @@ export default function EvaluacionMadurez() {
     }
   }
 
-  const handleCriteriaChange = (field, value) => {
-    const newCriteria = {
-      ...formData,
-      [field]: parseInt(value)
-    }
-    
-    const maturity = calculateMaturity({
-      api_documentation: newCriteria.has_api_documentation,
-      standard_protocols: newCriteria.uses_standard_protocols,
-      data_quality: newCriteria.has_data_quality,
-      security_standards: newCriteria.has_security_standards,
-      interoperability_policy: newCriteria.has_interoperability_policy,
-      trained_personnel: newCriteria.has_trained_personnel
-    })
-    
-    const domainScores = calculateDomainScores({
-      api_documentation: newCriteria.has_api_documentation,
-      uses_standard_protocols: newCriteria.uses_standard_protocols,
-      has_data_quality: newCriteria.has_data_quality,
-      has_security_standards: newCriteria.has_security_standards,
-      has_interoperability_policy: newCriteria.has_interoperability_policy,
-      trained_personnel: newCriteria.has_trained_personnel
-    })
-    
-    setFormData({
-      ...newCriteria,
-      overall_score: maturity.score,
-      overall_level: maturity.level,
-      ...domainScores
-    })
-  }
-
-  const handleInputChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
-    if (formErrors[field]) {
-      setFormErrors(prev => ({ ...prev, [field]: null }))
-    }
-  }
-
-  const validateForm = () => {
-    const errors = {}
-    if (!formData.entity_id) errors.entity_id = 'Seleccione una entidad'
-    if (!formData.assessor_name.trim()) errors.assessor_name = 'Ingrese el nombre del evaluador'
-    
-    setFormErrors(errors)
-    return Object.keys(errors).length === 0
-  }
-
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    if (!validateForm()) return
-    
-    setSubmitting(true)
-    try {
-      if (editingAssessment) {
-        await maturityApi.updateAssessment(editingAssessment.id, formData)
-        setSuccessMessage('Evaluación actualizada exitosamente')
-      } else {
-        await maturityApi.createAssessment(formData)
-        setSuccessMessage('Evaluación creada exitosamente')
-      }
-      
-      // Reset form
-      setFormData({
-        entity_id: '',
-        overall_level: 1,
-        overall_score: 0,
-        legal_domain_score: 0,
-        organizational_domain_score: 0,
-        semantic_domain_score: 0,
-        technical_domain_score: 0,
-        has_api_documentation: 0,
-        uses_standard_protocols: 0,
-        has_data_quality: 0,
-        has_security_standards: 0,
-        has_interoperability_policy: 0,
-        has_trained_personnel: 0,
-        assessor_name: '',
-        assessor_notes: '',
-        recommendations: ''
-      })
-      setEditingAssessment(null)
-      setActiveTab('view')
-      fetchData()
-      
-      setTimeout(() => setSuccessMessage(''), 3000)
-    } catch (error) {
-      console.error('Error saving assessment:', error)
-      setError(error.response?.data?.detail || 'Error al guardar la evaluación')
-    } finally {
-      setSubmitting(false)
-    }
-  }
-
-  const handleEdit = (assessment) => {
-    setEditingAssessment(assessment)
-    setFormData({
-      entity_id: assessment.entity_id,
-      overall_level: assessment.overall_level,
-      overall_score: assessment.overall_score,
-      legal_domain_score: assessment.legal_domain_score,
-      organizational_domain_score: assessment.organizational_domain_score,
-      semantic_domain_score: assessment.semantic_domain_score,
-      technical_domain_score: assessment.technical_domain_score,
-      has_api_documentation: assessment.has_api_documentation,
-      uses_standard_protocols: assessment.uses_standard_protocols,
-      has_data_quality: assessment.has_data_quality,
-      has_security_standards: assessment.has_security_standards,
-      has_interoperability_policy: assessment.has_interoperability_policy,
-      has_trained_personnel: assessment.has_trained_personnel,
-      assessor_name: assessment.assessor_name || '',
-      assessor_notes: assessment.assessor_notes || '',
-      recommendations: assessment.recommendations || ''
-    })
-    setActiveTab('create')
-  }
-
-  const handleDelete = async (assessmentId) => {
-    if (!confirm('¿Está seguro de eliminar esta evaluación?')) return
-    
-    try {
-      await maturityApi.deleteAssessment(assessmentId)
-      setSuccessMessage('Evaluación eliminada exitosamente')
-      fetchData()
-      setTimeout(() => setSuccessMessage(''), 3000)
-    } catch (error) {
-      console.error('Error deleting assessment:', error)
-      setError('Error al eliminar la evaluación')
-    }
-  }
-
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -333,279 +179,20 @@ export default function EvaluacionMadurez() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Evaluación de Madurez</h1>
           <p className="mt-1 text-sm text-gray-500">
-            Análisis del nivel de madurez según el Marco de Interoperabilidad del MinTIC
+            Visualización del nivel de madurez según el Marco de Interoperabilidad del MinTIC
           </p>
         </div>
-        <button
-          onClick={() => {
-            setActiveTab(activeTab === 'create' ? 'view' : 'create')
-            setEditingAssessment(null)
-            setFormData({
-              entity_id: '',
-              overall_level: 1,
-              overall_score: 0,
-              legal_domain_score: 0,
-              organizational_domain_score: 0,
-              semantic_domain_score: 0,
-              technical_domain_score: 0,
-              has_api_documentation: 0,
-              uses_standard_protocols: 0,
-              has_data_quality: 0,
-              has_security_standards: 0,
-              has_interoperability_policy: 0,
-              has_trained_personnel: 0,
-              assessor_name: '',
-              assessor_notes: '',
-              recommendations: ''
-            })
-          }}
-          className={clsx(
-            "px-4 py-2 rounded-lg text-sm font-medium transition-colors",
-            activeTab === 'create'
-              ? "bg-gray-200 text-gray-700 hover:bg-gray-300"
-              : "bg-primary-600 text-white hover:bg-primary-700"
-          )}
-        >
-          {activeTab === 'create' ? 'Cancelar' : 'Nueva Evaluación'}
-        </button>
+        {canCreate() && (
+          <button className="btn btn-primary flex items-center gap-2">
+            <Plus className="h-4 w-4" />
+            Crear Evaluación
+          </button>
+        )}
       </div>
 
-      {/* Success Message */}
-      {successMessage && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-              </svg>
-            </div>
-            <div className="ml-3">
-              <p className="text-sm font-medium text-green-800">{successMessage}</p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Tabs */}
-      <div className="border-b border-gray-200">
-        <nav className="-mb-px flex space-x-8">
-          <button
-            onClick={() => setActiveTab('view')}
-            className={clsx(
-              "py-2 px-1 border-b-2 font-medium text-sm",
-              activeTab === 'view'
-                ? "border-primary-500 text-primary-600"
-                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-            )}
-          >
-            Ver Evaluaciones
-          </button>
-          <button
-            onClick={() => setActiveTab('create')}
-            className={clsx(
-              "py-2 px-1 border-b-2 font-medium text-sm",
-              activeTab === 'create'
-                ? "border-primary-500 text-primary-600"
-                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-            )}
-          >
-            {editingAssessment ? 'Editar Evaluación' : 'Crear Evaluación'}
-          </button>
-        </nav>
-      </div>
-
-      {/* Create/Edit Form */}
-      {activeTab === 'create' && (
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-6">
-            {editingAssessment ? 'Editar Evaluación de Madurez' : 'Nueva Evaluación de Madurez'}
-          </h2>
-          
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Entity Selection */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Entidad <span className="text-red-500">*</span>
-              </label>
-              <select
-                value={formData.entity_id}
-                onChange={(e) => handleInputChange('entity_id', e.target.value)}
-                className={clsx(
-                  "w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500",
-                  formErrors.entity_id && "border-red-300 focus:border-red-500 focus:ring-red-500"
-                )}
-                disabled={editingAssessment}
-              >
-                <option value="">Seleccione una entidad...</option>
-                {entities.map(entity => (
-                  <option key={entity.id} value={entity.id}>{entity.name}</option>
-                ))}
-              </select>
-              {formErrors.entity_id && (
-                <p className="mt-1 text-sm text-red-600">{formErrors.entity_id}</p>
-              )}
-            </div>
-
-            {/* Assessor Info */}
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Evaluador <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={formData.assessor_name}
-                  onChange={(e) => handleInputChange('assessor_name', e.target.value)}
-                  className={clsx(
-                    "w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500",
-                    formErrors.assessor_name && "border-red-300 focus:border-red-500 focus:ring-red-500"
-                  )}
-                  placeholder="Nombre del evaluador"
-                />
-                {formErrors.assessor_name && (
-                  <p className="mt-1 text-sm text-red-600">{formErrors.assessor_name}</p>
-                )}
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Notas del Evaluador
-                </label>
-                <textarea
-                  value={formData.assessor_notes}
-                  onChange={(e) => handleInputChange('assessor_notes', e.target.value)}
-                  rows={2}
-                  className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
-                  placeholder="Observaciones adicionales..."
-                />
-              </div>
-            </div>
-
-            {/* Maturity Criteria Assessment */}
-            <div>
-              <h3 className="text-md font-medium text-gray-900 mb-4">Criterios de Evaluación</h3>
-              <p className="text-sm text-gray-500 mb-4">
-                Evalúe cada criterio de 0 (no cumple) a 4 (cumple completamente)
-              </p>
-              
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                {Object.entries(criteriaLabels).map(([key, label]) => (
-                  <div key={key} className="border rounded-lg p-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {label}
-                    </label>
-                    <p className="text-xs text-gray-500 mb-3">{criteriaDescriptions[key]}</p>
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="range"
-                        min="0"
-                        max="4"
-                        value={formData[key === 'api_documentation' ? 'has_api_documentation' : 
-                               key === 'standard_protocols' ? 'uses_standard_protocols' :
-                               key === 'data_quality' ? 'has_data_quality' :
-                               key === 'security_standards' ? 'has_security_standards' :
-                               key === 'interoperability_policy' ? 'has_interoperability_policy' :
-                               'has_trained_personnel']}
-                        onChange={(e) => handleCriteriaChange(
-                          key === 'api_documentation' ? 'has_api_documentation' : 
-                          key === 'standard_protocols' ? 'uses_standard_protocols' :
-                          key === 'data_quality' ? 'has_data_quality' :
-                          key === 'security_standards' ? 'has_security_standards' :
-                          key === 'interoperability_policy' ? 'has_interoperability_policy' :
-                          'has_trained_personnel',
-                          e.target.value
-                        )}
-                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                      />
-                      <span className="text-sm font-medium text-gray-900 w-8 text-center">
-                        {formData[key === 'api_documentation' ? 'has_api_documentation' : 
-                                key === 'standard_protocols' ? 'uses_standard_protocols' :
-                                key === 'data_quality' ? 'has_data_quality' :
-                                key === 'security_standards' ? 'has_security_standards' :
-                                key === 'interoperability_policy' ? 'has_interoperability_policy' :
-                                'has_trained_personnel']}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Calculated Results */}
-            <div className="bg-gray-50 rounded-lg p-6">
-              <h3 className="text-md font-medium text-gray-900 mb-4">Resultados Calculados</h3>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                <div className="text-center">
-                  <div className="text-3xl font-bold" style={{ color: maturityLevelColors[formData.overall_level] }}>
-                    {formData.overall_score}%
-                  </div>
-                  <div className="text-sm text-gray-500">Puntuación General</div>
-                </div>
-                <div className="text-center">
-                  <div 
-                    className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium text-white"
-                    style={{ backgroundColor: maturityLevelColors[formData.overall_level] }}
-                  >
-                    Nivel {formData.overall_level}: {maturityLevelLabels[formData.overall_level]}
-                  </div>
-                  <div className="text-sm text-gray-500 mt-1">Nivel de Madurez</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-lg font-semibold text-gray-900">
-                    {formData.legal_domain_score.toFixed(0)}% / {formData.organizational_domain_score.toFixed(0)}% / {formData.semantic_domain_score.toFixed(0)}% / {formData.technical_domain_score.toFixed(0)}%
-                  </div>
-                  <div className="text-sm text-gray-500">Legal / Org / Sem / Téc</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Recommendations */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Recomendaciones
-              </label>
-              <textarea
-                value={formData.recommendations}
-                onChange={(e) => handleInputChange('recommendations', e.target.value)}
-                rows={3}
-                className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
-                placeholder="Recomendaciones para mejorar la madurez..."
-              />
-            </div>
-
-            {/* Submit Button */}
-            <div className="flex justify-end space-x-3">
-              <button
-                type="button"
-                onClick={() => {
-                  setActiveTab('view')
-                  setEditingAssessment(null)
-                }}
-                className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
-              >
-                Cancelar
-              </button>
-              <button
-                type="submit"
-                disabled={submitting}
-                className={clsx(
-                  "px-4 py-2 rounded-md text-sm font-medium text-white",
-                  submitting
-                    ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-primary-600 hover:bg-primary-700"
-                )}
-              >
-                {submitting ? 'Guardando...' : (editingAssessment ? 'Actualizar Evaluación' : 'Crear Evaluación')}
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
-
-      {/* View Tab */}
-      {activeTab === 'view' && (
-        <>
-          {/* Entity Selector for Visualization */}
-          <div className="bg-white rounded-lg shadow p-4">
+      <>
+        {/* Entity Selector for Visualization */}
+        <div className="bg-white rounded-lg shadow p-4">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
                 <label className="form-label">Seleccionar Entidad para Visualizar</label>
@@ -708,78 +295,57 @@ export default function EvaluacionMadurez() {
           )}
 
           {/* Assessments Table */}
-          <div className="bg-white rounded-lg shadow overflow-hidden">
+          <div className="table-scientific">
             <div className="px-6 py-4 border-b border-gray-200">
-              <h3 className="text-lg font-medium text-gray-900">Evaluaciones Recientes</h3>
+              <h3 className="text-lg font-semibold text-gray-900">Evaluaciones Recientes</h3>
             </div>
             {assessments.length === 0 ? (
               <div className="px-6 py-12 text-center">
                 <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
-                <h3 className="mt-2 text-sm font-medium text-gray-900">No hay evaluaciones</h3>
+                <h3 className="mt-2 text-sm font-semibold text-gray-900">No hay evaluaciones</h3>
                 <p className="mt-1 text-sm text-gray-500">No se encontraron evaluaciones de madurez registradas.</p>
                 <div className="mt-6">
-                  <button
-                    onClick={() => setActiveTab('create')}
-                    className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700"
-                  >
-                    <svg className="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                    </svg>
-                    Crear Primera Evaluación
-                  </button>
+                  <p className="text-sm text-gray-500">
+                    No se encontraron evaluaciones de madurez registradas.
+                  </p>
                 </div>
               </div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+                <table className="data-table">
+                  <thead>
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Entidad</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nivel</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Score</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Evaluador</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
+                      <th>Entidad</th>
+                      <th>Nivel</th>
+                      <th>Score</th>
+                      <th>Fecha</th>
+                      <th>Evaluador</th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody>
                     {assessments.map((assessment) => (
-                      <tr key={assessment.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          {assessment.entity_name}
+                      <tr key={assessment.id}>
+                        <td>
+                          <span className="font-semibold text-gray-900">{assessment.entity_name}</span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td>
                           <span
-                            className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium text-white"
+                            className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold text-white"
                             style={{ backgroundColor: maturityLevelColors[assessment.overall_level] }}
                           >
                             {maturityLevelLabels[assessment.overall_level]}
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {assessment.overall_score}%
+                        <td>
+                          <span className="font-semibold text-gray-900">{assessment.overall_score}%</span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {new Date(assessment.assessment_date).toLocaleDateString()}
+                        <td>
+                          <span className="text-gray-600">{new Date(assessment.assessment_date).toLocaleDateString()}</span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {assessment.assessor_name}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                          <button
-                            onClick={() => handleEdit(assessment)}
-                            className="text-primary-600 hover:text-primary-900 mr-3"
-                          >
-                            Editar
-                          </button>
-                          <button
-                            onClick={() => handleDelete(assessment.id)}
-                            className="text-red-600 hover:text-red-900"
-                          >
-                            Eliminar
-                          </button>
+                        <td>
+                          <span className="text-gray-600">{assessment.assessor_name}</span>
                         </td>
                       </tr>
                     ))}
@@ -819,8 +385,7 @@ export default function EvaluacionMadurez() {
               </div>
             </div>
           )}
-        </>
-      )}
+      </>
     </div>
   )
 }

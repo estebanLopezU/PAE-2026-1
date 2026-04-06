@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { Eye, EyeOff, User, Shield } from 'lucide-react'
+import { Eye, EyeOff, User, Shield, Volume2, VolumeX } from 'lucide-react'
 
 export default function LoginPage() {
   const navigate = useNavigate()
@@ -26,6 +26,46 @@ export default function LoginPage() {
   
   // Login loading state
   const [showLoginLoading, setShowLoginLoading] = useState(false)
+  
+  // Audio state
+  const [isPlaying, setIsPlaying] = useState(false)
+  const audioRef = useRef(null)
+  
+  // Initialize audio
+  useEffect(() => {
+    // Create audio element with a pleasant ambient sound
+    // Using a royalty-free ambient track
+    audioRef.current = new Audio('https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=lofi-study-112191.mp3')
+    audioRef.current.loop = true
+    audioRef.current.volume = 0.3
+    
+    // Load audio
+    audioRef.current.load()
+    
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause()
+        audioRef.current = null
+      }
+    }
+  }, [])
+  
+  // Toggle audio playback
+  const toggleAudio = async () => {
+    if (!audioRef.current) return
+    
+    if (isPlaying) {
+      audioRef.current.pause()
+      setIsPlaying(false)
+    } else {
+      try {
+        await audioRef.current.play()
+        setIsPlaying(true)
+      } catch (err) {
+        console.error('Error playing audio:', err)
+      }
+    }
+  }
   
   // Load fonts for loading screen
   useEffect(() => {
@@ -953,7 +993,97 @@ export default function LoginPage() {
           0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.5; }
           50%       { transform: scale(1.4) rotate(20deg); opacity: 1; }
         }
+        
+        /* Sound Toggle Button */
+        .sound-toggle {
+          position: absolute;
+          top: 20px;
+          right: 20px;
+          width: 44px;
+          height: 44px;
+          border-radius: 50%;
+          background: rgba(0, 212, 255, 0.1);
+          border: 1px solid rgba(0, 212, 255, 0.3);
+          color: #00d4ff;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.3s ease;
+          z-index: 15;
+          backdrop-filter: blur(10px);
+        }
+        
+        .sound-toggle:hover {
+          background: rgba(0, 212, 255, 0.2);
+          border-color: rgba(0, 212, 255, 0.5);
+          box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+          transform: scale(1.1);
+        }
+        
+        .sound-toggle.playing {
+          background: rgba(0, 212, 255, 0.2);
+          animation: soundPulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes soundPulse {
+          0%, 100% { box-shadow: 0 0 10px rgba(0, 212, 255, 0.2); }
+          50% { box-shadow: 0 0 25px rgba(0, 212, 255, 0.5); }
+        }
+        
+        /* Sound waves animation */
+        .sound-waves {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 100%;
+          height: 100%;
+          border-radius: 50%;
+          pointer-events: none;
+        }
+        
+        .sound-wave {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          width: 20px;
+          height: 20px;
+          border: 1px solid rgba(0, 212, 255, 0.4);
+          border-radius: 50%;
+          transform: translate(-50%, -50%);
+          animation: waveExpand 1.5s ease-out infinite;
+        }
+        
+        .sound-wave:nth-child(1) { animation-delay: 0s; }
+        .sound-wave:nth-child(2) { animation-delay: 0.5s; }
+        .sound-wave:nth-child(3) { animation-delay: 1s; }
+        
+        @keyframes waveExpand {
+          0% { width: 20px; height: 20px; opacity: 1; }
+          100% { width: 60px; height: 60px; opacity: 0; }
+        }
       `}</style>
+
+      {/* Sound Toggle Button */}
+      <button 
+        className={`sound-toggle ${isPlaying ? 'playing' : ''}`}
+        onClick={toggleAudio}
+        title={isPlaying ? 'Silenciar música' : 'Activar música ambiental'}
+      >
+        {isPlaying ? (
+          <>
+            <div className="sound-waves">
+              <div className="sound-wave"></div>
+              <div className="sound-wave"></div>
+              <div className="sound-wave"></div>
+            </div>
+            <Volume2 size={20} />
+          </>
+        ) : (
+          <VolumeX size={20} />
+        )}
+      </button>
 
       <canvas id="net" ref={canvasRef} />
 
