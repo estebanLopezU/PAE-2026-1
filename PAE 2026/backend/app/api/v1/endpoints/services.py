@@ -1,10 +1,13 @@
+from typing import Any, Dict, List, Optional
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from typing import List, Optional
+
 from ....database import get_db
 from ....models.service import Service
 from ....models.entity import Entity
 from ....schemas.service import Service as ServiceSchema, ServiceCreate, ServiceUpdate, ServiceList
+from ....security import require_admin
 
 router = APIRouter()
 
@@ -57,7 +60,11 @@ def get_service(service_id: int, db: Session = Depends(get_db)):
 
 
 @router.post("/", response_model=ServiceSchema, status_code=201)
-def create_service(service: ServiceCreate, db: Session = Depends(get_db)):
+def create_service(
+    service: ServiceCreate,
+    db: Session = Depends(get_db),
+    current_user: Dict[str, Any] = Depends(require_admin),
+):
     """Create a new service"""
     # Verify entity exists
     entity = db.query(Entity).filter(Entity.id == service.entity_id).first()
@@ -80,7 +87,12 @@ def create_service(service: ServiceCreate, db: Session = Depends(get_db)):
 
 
 @router.put("/{service_id}", response_model=ServiceSchema)
-def update_service(service_id: int, service: ServiceUpdate, db: Session = Depends(get_db)):
+def update_service(
+    service_id: int,
+    service: ServiceUpdate,
+    db: Session = Depends(get_db),
+    current_user: Dict[str, Any] = Depends(require_admin),
+):
     """Update a service"""
     db_service = db.query(Service).filter(Service.id == service_id).first()
     if not db_service:
@@ -98,7 +110,11 @@ def update_service(service_id: int, service: ServiceUpdate, db: Session = Depend
 
 
 @router.delete("/{service_id}", status_code=204)
-def delete_service(service_id: int, db: Session = Depends(get_db)):
+def delete_service(
+    service_id: int,
+    db: Session = Depends(get_db),
+    current_user: Dict[str, Any] = Depends(require_admin),
+):
     """Delete a service"""
     db_service = db.query(Service).filter(Service.id == service_id).first()
     if not db_service:

@@ -1,6 +1,7 @@
 import axios from 'axios'
 
 const API_BASE_URL = '/api/v1'
+const ACCESS_TOKEN_KEY = 'xroad_access_token'
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -8,6 +9,20 @@ const api = axios.create({
     'Content-Type': 'application/json',
   },
 })
+
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem(ACCESS_TOKEN_KEY)
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
+  }
+  return config
+})
+
+// Auth API
+export const authApi = {
+  login: (email, password) => api.post('/auth/login', { email, password }),
+  me: () => api.get('/auth/me'),
+}
 
 // Sectors API
 export const sectorsApi = {
@@ -60,9 +75,9 @@ export const dashboardApi = {
 
 // Reports API
 export const reportsApi = {
-  downloadEntitiesCsv: () => api.get('/reports/entities/csv', { responseType: 'blob' }),
-  downloadServicesCsv: () => api.get('/reports/services/csv', { responseType: 'blob' }),
-  downloadMaturityCsv: () => api.get('/reports/maturity/csv', { responseType: 'blob' }),
+  downloadEntitiesXlsx: () => api.get('/reports/entities/xlsx', { responseType: 'blob' }),
+  downloadServicesXlsx: () => api.get('/reports/services/xlsx', { responseType: 'blob' }),
+  downloadMaturityXlsx: () => api.get('/reports/maturity/xlsx', { responseType: 'blob' }),
 }
 
 export default api

@@ -1,18 +1,13 @@
 import { createContext, useContext, useState, useEffect } from 'react'
+import { authApi } from '../services/api'
 
 const AuthContext = createContext(null)
-
-// Credenciales del administrador
-const ADMIN_CREDENTIALS = {
-  email: 'elopezu@unal.edu.co',
-  password: 'BZTfne48'
-}
 
 // Clave para localStorage
 const STORAGE_KEYS = {
   USERS: 'xroad_users',
   CURRENT_USER: 'xroad_current_user',
-  ADMIN_ATTEMPTS: 'xroad_admin_attempts'
+  ACCESS_TOKEN: 'xroad_access_token',
 }
 
 export function AuthProvider({ children }) {
@@ -28,6 +23,7 @@ export function AuthProvider({ children }) {
         setUser(JSON.parse(savedUser))
       } catch (e) {
         localStorage.removeItem(STORAGE_KEYS.CURRENT_USER)
+        localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN)
       }
     }
     setLoading(false)
@@ -40,11 +36,6 @@ export function AuthProvider({ children }) {
     // Verificar si el correo ya existe
     if (users.find(u => u.email === email)) {
       throw new Error('El correo electrónico ya está registrado')
-    }
-    
-    // Verificar si es correo de admin
-    if (email === ADMIN_CREDENTIALS.email) {
-      throw new Error('Este correo está reservado para administradores')
     }
     
     // Crear nuevo usuario
@@ -65,7 +56,34 @@ export function AuthProvider({ children }) {
   }
 
   // Iniciar sesión como usuario normal
-  const loginUser = (email, password) => {
+  const loginUser = async (email, password) => {
+    // Primero intentar autenticación backend (roles institucionales)
+    try {
+      const response = await authApi.login(email, password)
+      const { access_token, user: backendUser } = response.data
+
+      if (!backendUser) {
+        throw new Error('Respuesta de autenticación inválida')
+      }
+
+      const userData = {
+        id: backendUser.email,
+        email: backendUser.email,
+        name: backendUser.name,
+        role: backendUser.role,
+      }
+
+      setUser(userData)
+      localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(userData))
+      if (access_token) {
+        localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, access_token)
+      }
+
+      return userData
+    } catch {
+      // Fallback local para no romper flujo existente
+    }
+
     const users = JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS) || '[]')
     const foundUser = users.find(u => u.email === email && u.password === password)
     
@@ -82,39 +100,48 @@ export function AuthProvider({ children }) {
     
     setUser(userData)
     localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(userData))
+    localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN)
     
     return userData
   }
 
   // Iniciar sesión como administrador
-  const loginAdmin = (email, password) => {
+  const loginAdmin = async (email, password) => {
     // Verificar intentos
     if (adminAttempts >= 3) {
       setAdminAttempts(0)
       throw new Error('Demasiados intentos fallidos. Volviendo a la pantalla principal...')
     }
-    
-    // Verificar credenciales
-    if (email !== ADMIN_CREDENTIALS.email || password !== ADMIN_CREDENTIALS.password) {
+
+    try {
+      const response = await authApi.login(email, password)
+      const { access_token, user: backendUser } = response.data
+
+      if (!backendUser || backendUser.role !== 'admin') {
+        throw new Error('El usuario no tiene rol de administrador')
+      }
+
+      setAdminAttempts(0)
+
+      const userData = {
+        id: backendUser.email,
+        email: backendUser.email,
+        name: backendUser.name,
+        role: backendUser.role,
+      }
+
+      setUser(userData)
+      localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(userData))
+      if (access_token) {
+        localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, access_token)
+      }
+
+      return userData
+    } catch {
       setAdminAttempts(prev => prev + 1)
       const remaining = 3 - (adminAttempts + 1)
       throw new Error(`Credenciales incorrectos. Intentos restantes: ${remaining}`)
     }
-    
-    // Login exitoso - reiniciar contador
-    setAdminAttempts(0)
-    
-    const userData = {
-      id: 'admin',
-      email: ADMIN_CREDENTIALS.email,
-      name: 'Administrador X-Road',
-      role: 'admin'
-    }
-    
-    setUser(userData)
-    localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(userData))
-    
-    return userData
   }
 
   // Cerrar sesión
@@ -122,6 +149,7 @@ export function AuthProvider({ children }) {
     setUser(null)
     setAdminAttempts(0)
     localStorage.removeItem(STORAGE_KEYS.CURRENT_USER)
+    localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN)
   }
 
   // Verificar si el usuario es administrador

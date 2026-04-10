@@ -1,9 +1,12 @@
+from typing import Any, Dict, List, Optional
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from typing import List, Optional
+
 from ....database import get_db
 from ....models.sector import Sector
 from ....schemas.sector import Sector as SectorSchema, SectorCreate, SectorUpdate, SectorList
+from ....security import require_admin
 
 router = APIRouter()
 
@@ -37,7 +40,11 @@ def get_sector(sector_id: int, db: Session = Depends(get_db)):
 
 
 @router.post("/", response_model=SectorSchema, status_code=201)
-def create_sector(sector: SectorCreate, db: Session = Depends(get_db)):
+def create_sector(
+    sector: SectorCreate,
+    db: Session = Depends(get_db),
+    current_user: Dict[str, Any] = Depends(require_admin),
+):
     """Create a new sector"""
     # Check if code already exists
     existing = db.query(Sector).filter(Sector.code == sector.code).first()
@@ -53,7 +60,12 @@ def create_sector(sector: SectorCreate, db: Session = Depends(get_db)):
 
 
 @router.put("/{sector_id}", response_model=SectorSchema)
-def update_sector(sector_id: int, sector: SectorUpdate, db: Session = Depends(get_db)):
+def update_sector(
+    sector_id: int,
+    sector: SectorUpdate,
+    db: Session = Depends(get_db),
+    current_user: Dict[str, Any] = Depends(require_admin),
+):
     """Update a sector"""
     db_sector = db.query(Sector).filter(Sector.id == sector_id).first()
     if not db_sector:
@@ -70,7 +82,11 @@ def update_sector(sector_id: int, sector: SectorUpdate, db: Session = Depends(ge
 
 
 @router.delete("/{sector_id}", status_code=204)
-def delete_sector(sector_id: int, db: Session = Depends(get_db)):
+def delete_sector(
+    sector_id: int,
+    db: Session = Depends(get_db),
+    current_user: Dict[str, Any] = Depends(require_admin),
+):
     """Delete a sector"""
     db_sector = db.query(Sector).filter(Sector.id == sector_id).first()
     if not db_sector:

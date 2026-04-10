@@ -30,6 +30,7 @@ export default function LoginPage() {
   // Audio state
   const [isPlaying, setIsPlaying] = useState(false)
   const audioRef = useRef(null)
+  const [hasSpoken, setHasSpoken] = useState(false)
   
   // Initialize audio
   useEffect(() => {
@@ -120,6 +121,76 @@ export default function LoginPage() {
   // Canvas ref
   const canvasRef = useRef(null)
   const nodesRef = useRef([])
+
+  // Welcome voice function using Web Speech API
+  const speakWelcome = () => {
+    if (hasSpoken || !('speechSynthesis' in window)) return
+    
+    // Cancel any ongoing speech
+    window.speechSynthesis.cancel()
+    
+    const message = 'Bienvenido al programa de interoperabilidad, inicia sesión y descubre sobre la interoperabilidad gubernamental'
+    const utterance = new SpeechSynthesisUtterance(message)
+    
+    // Configure voice settings
+    utterance.lang = 'es-ES' // Spanish
+    utterance.rate = 0.9 // Slightly slower for clarity
+    utterance.pitch = 0.9 // Slightly lower for masculine tone
+    utterance.volume = 0.8
+    
+    // Try to find a male Spanish voice
+    const voices = window.speechSynthesis.getVoices()
+    const maleVoice = voices.find(voice => 
+      voice.lang.includes('es') && 
+      (voice.name.toLowerCase().includes('male') || 
+       voice.name.toLowerCase().includes('masculino') ||
+       voice.name.toLowerCase().includes('google español') ||
+       voice.name.toLowerCase().includes('monica') ||
+       voice.name.toLowerCase().includes('jorge'))
+    )
+    
+    if (maleVoice) {
+      utterance.voice = maleVoice
+    } else {
+      // Fallback to any Spanish voice
+      const spanishVoice = voices.find(voice => voice.lang.includes('es'))
+      if (spanishVoice) {
+        utterance.voice = spanishVoice
+      }
+    }
+    
+    // Mark as spoken when done
+    utterance.onend = () => {
+      setHasSpoken(true)
+    }
+    
+    utterance.onerror = (event) => {
+      console.error('Speech synthesis error:', event)
+      setHasSpoken(true)
+    }
+    
+    // Speak after a short delay to ensure voices are loaded
+    setTimeout(() => {
+      window.speechSynthesis.speak(utterance)
+    }, 500)
+  }
+
+  // Load voices when component mounts (Chrome requires this)
+  useEffect(() => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.getVoices()
+    }
+  }, [])
+
+  // Trigger welcome voice when boot completes
+  useEffect(() => {
+    if (bootComplete && !hasSpoken) {
+      // Wait a moment for the main UI to be visible
+      setTimeout(() => {
+        speakWelcome()
+      }, 1000)
+    }
+  }, [bootComplete])
   
   const logs = [
     'Iniciando módulo de seguridad TLS 1.3...',

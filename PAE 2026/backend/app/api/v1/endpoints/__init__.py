@@ -1,3 +1,13 @@
-from . import sectors, entities, services, maturity, dashboard
+from . import auth, sectors, entities, services, maturity, dashboard, reports, ai_analysis, interoperability
 
-__all__ = ["sectors", "entities", "services", "maturity", "dashboard"]
+__all__ = [
+    "auth",
+    "sectors",
+    "entities",
+    "services",
+    "maturity",
+    "dashboard",
+    "reports",
+    "ai_analysis",
+    "interoperability",
+]

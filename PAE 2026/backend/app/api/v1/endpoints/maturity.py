@@ -1,10 +1,13 @@
+from typing import Any, Dict, List, Optional
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from typing import List, Optional
+
 from ....database import get_db
 from ....models.maturity import MaturityAssessment
 from ....models.entity import Entity
 from ....schemas.maturity import MaturityAssessment as MaturitySchema, MaturityAssessmentCreate, MaturityAssessmentUpdate, MATURITY_LEVELS
+from ....security import require_admin
 
 router = APIRouter()
 
@@ -74,7 +77,11 @@ def get_latest_assessment(entity_id: int, db: Session = Depends(get_db)):
 
 
 @router.post("/assessments", response_model=MaturitySchema, status_code=201)
-def create_assessment(assessment: MaturityAssessmentCreate, db: Session = Depends(get_db)):
+def create_assessment(
+    assessment: MaturityAssessmentCreate,
+    db: Session = Depends(get_db),
+    current_user: Dict[str, Any] = Depends(require_admin),
+):
     """Create a new maturity assessment"""
     # Verify entity exists
     entity = db.query(Entity).filter(Entity.id == assessment.entity_id).first()
@@ -99,7 +106,12 @@ def create_assessment(assessment: MaturityAssessmentCreate, db: Session = Depend
 
 
 @router.put("/assessments/{assessment_id}", response_model=MaturitySchema)
-def update_assessment(assessment_id: int, assessment: MaturityAssessmentUpdate, db: Session = Depends(get_db)):
+def update_assessment(
+    assessment_id: int,
+    assessment: MaturityAssessmentUpdate,
+    db: Session = Depends(get_db),
+    current_user: Dict[str, Any] = Depends(require_admin),
+):
     """Update an assessment"""
     db_assessment = db.query(MaturityAssessment).filter(MaturityAssessment.id == assessment_id).first()
     if not db_assessment:
@@ -117,7 +129,11 @@ def update_assessment(assessment_id: int, assessment: MaturityAssessmentUpdate, 
 
 
 @router.delete("/assessments/{assessment_id}", status_code=204)
-def delete_assessment(assessment_id: int, db: Session = Depends(get_db)):
+def delete_assessment(
+    assessment_id: int,
+    db: Session = Depends(get_db),
+    current_user: Dict[str, Any] = Depends(require_admin),
+):
     """Delete an assessment"""
     db_assessment = db.query(MaturityAssessment).filter(MaturityAssessment.id == assessment_id).first()
     if not db_assessment:

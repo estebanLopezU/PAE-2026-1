@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Download, FileText, Table, BarChart } from 'lucide-react'
-import { entitiesApi, servicesApi, maturityApi, reportsApi } from '../services/api'
+import { entitiesApi, servicesApi, maturityApi } from '../services/api'
 
 export default function Reportes() {
   const [stats, setStats] = useState({
@@ -9,6 +9,7 @@ export default function Reportes() {
     assessments: 0
   })
   const [loading, setLoading] = useState(true)
+  const [downloadingType, setDownloadingType] = useState(null)
 
   useEffect(() => {
     fetchStats()
@@ -58,58 +59,46 @@ export default function Reportes() {
   ]
 
   const handleDownload = async (type) => {
+    setDownloadingType(type)
     try {
-      let response
       let filename
-      
-      console.log(`Iniciando descarga de reporte: ${type}`)
+      let directUrl
       
       switch (type) {
         case 'entities':
-          response = await reportsApi.downloadEntitiesCsv()
-          filename = 'reporte_entidades.csv'
+          filename = 'reporte_entidades.xlsx'
+          directUrl = '/api/v1/reports/entities/xlsx'
           break
         case 'services':
-          response = await reportsApi.downloadServicesCsv()
-          filename = 'reporte_servicios.csv'
+          filename = 'reporte_servicios.xlsx'
+          directUrl = '/api/v1/reports/services/xlsx'
           break
         case 'maturity':
-          response = await reportsApi.downloadMaturityCsv()
-          filename = 'reporte_madurez.csv'
+          filename = 'reporte_madurez.xlsx'
+          directUrl = '/api/v1/reports/maturity/xlsx'
           break
         default:
           console.error('Tipo de reporte no válido')
           return
       }
       
-      console.log('Respuesta recibida:', response)
-      console.log('Tipo de datos:', typeof response.data)
-      console.log('Tamaño de datos:', response.data?.length || 'N/A')
-      
-      // Create blob and download
-      const blob = new Blob([response.data], { type: 'text/csv;charset=utf-8;' })
-      console.log('Blob creado:', blob.size, 'bytes')
-      
-      const url = window.URL.createObjectURL(blob)
       const link = document.createElement('a')
-      link.href = url
+      link.href = directUrl
       link.download = filename
       link.style.display = 'none'
-      
+
       document.body.appendChild(link)
       link.click()
-      
-      // Cleanup
+
       setTimeout(() => {
         document.body.removeChild(link)
-        window.URL.revokeObjectURL(url)
-        console.log('Descarga completada y recursos liberados')
       }, 100)
-      
+
     } catch (error) {
       console.error('Error downloading report:', error)
-      console.error('Error details:', error.response?.data || error.message)
-      alert('Error al descargar el reporte. Por favor, intente de nuevo.')
+      alert(`Error al descargar el reporte. Por favor, intente de nuevo.`)
+    } finally {
+      setDownloadingType(null)
     }
   }
 
@@ -131,63 +120,48 @@ export default function Reportes() {
       </div>
 
       {/* Report Cards */}
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {reports.map((report) => (
-          <div key={report.type} className="bg-white rounded-lg shadow card-hover">
-            <div className="p-6">
+      <div className="bg-white rounded-xl shadow-lg p-6">
+        <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
+          <Download className="h-5 w-5 text-primary-600" />
+          Descargar Reportes
+        </h3>
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {reports.map((report) => (
+            <div key={report.type} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
                   <report.icon className="h-8 w-8 text-primary-600" />
                 </div>
                 <div className="ml-4">
-                  <h3 className="text-lg font-medium text-gray-900">{report.title}</h3>
+                  <h4 className="text-lg font-medium text-gray-900">{report.title}</h4>
                   <p className="text-sm text-gray-500">{report.description}</p>
                 </div>
               </div>
-              <div className="mt-4">
-                <div className="text-2xl font-semibold text-gray-900">{report.count}</div>
-                <div className="text-sm text-gray-500">registros disponibles</div>
-              </div>
-              <div className="mt-4">
+              <div className="mt-4 flex items-center justify-between">
+                <div>
+                  <span className="text-2xl font-semibold text-gray-900">{report.count}</span>
+                  <span className="text-sm text-gray-500 ml-1">registros</span>
+                </div>
                 <button
                   onClick={() => handleDownload(report.type)}
-                  className="btn btn-primary w-full"
+                  disabled={downloadingType !== null}
+                  className="btn btn-primary"
                 >
                   <Download className="h-4 w-4 mr-2" />
-                  Descargar CSV
+                  {downloadingType === report.type ? 'Descargando...' : 'Descargar'}
                 </button>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Summary Statistics */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Resumen del Ecosistema</h3>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <div className="text-center p-4 bg-blue-50 rounded-lg">
-            <div className="text-3xl font-bold text-blue-600">{stats.entities}</div>
-            <div className="text-sm text-blue-600">Total Entidades</div>
-          </div>
-          <div className="text-center p-4 bg-green-50 rounded-lg">
-            <div className="text-3xl font-bold text-green-600">{stats.services}</div>
-            <div className="text-sm text-green-600">Total Servicios</div>
-          </div>
-          <div className="text-center p-4 bg-purple-50 rounded-lg">
-            <div className="text-3xl font-bold text-purple-600">{stats.assessments}</div>
-            <div className="text-sm text-purple-600">Evaluaciones</div>
-          </div>
+          ))}
         </div>
       </div>
 
-      {/* Instructions */}
+      {/* Instrucciones */}
       <div className="bg-white rounded-lg shadow p-6">
         <h3 className="text-lg font-medium text-gray-900 mb-4">Instrucciones</h3>
         <ul className="list-disc list-inside space-y-2 text-sm text-gray-600">
-          <li>Los reportes se generan en formato CSV compatible con Excel</li>
+          <li>Los reportes se generan en formato Excel (.xlsx)</li>
           <li>Los datos se actualizan en tiempo real desde la base de datos</li>
-          <li>Puede filtrar los datos antes de descargar usando las páginas de cada sección</li>
           <li>Los reportes incluyen todos los campos disponibles del ecosistema</li>
         </ul>
       </div>

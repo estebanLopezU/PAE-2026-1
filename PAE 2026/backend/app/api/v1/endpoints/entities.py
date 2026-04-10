@@ -1,12 +1,15 @@
+from typing import Any, Dict, List, Optional
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from typing import List, Optional
+
 from ....database import get_db
 from ....models.entity import Entity
 from ....models.sector import Sector
 from ....models.maturity import MaturityAssessment
 from ....schemas.entity import Entity as EntitySchema, EntityCreate, EntityUpdate, EntityList
+from ....security import require_admin
 
 router = APIRouter()
 
@@ -76,7 +79,11 @@ def get_entity(entity_id: int, db: Session = Depends(get_db)):
 
 
 @router.post("/", response_model=EntitySchema, status_code=201)
-def create_entity(entity: EntityCreate, db: Session = Depends(get_db)):
+def create_entity(
+    entity: EntityCreate,
+    db: Session = Depends(get_db),
+    current_user: Dict[str, Any] = Depends(require_admin),
+):
     """Create a new entity"""
     # Check if NIT already exists
     existing = db.query(Entity).filter(Entity.nit == entity.nit).first()
@@ -101,7 +108,12 @@ def create_entity(entity: EntityCreate, db: Session = Depends(get_db)):
 
 
 @router.put("/{entity_id}", response_model=EntitySchema)
-def update_entity(entity_id: int, entity: EntityUpdate, db: Session = Depends(get_db)):
+def update_entity(
+    entity_id: int,
+    entity: EntityUpdate,
+    db: Session = Depends(get_db),
+    current_user: Dict[str, Any] = Depends(require_admin),
+):
     """Update an entity"""
     db_entity = db.query(Entity).filter(Entity.id == entity_id).first()
     if not db_entity:
@@ -121,7 +133,11 @@ def update_entity(entity_id: int, entity: EntityUpdate, db: Session = Depends(ge
 
 
 @router.delete("/{entity_id}", status_code=204)
-def delete_entity(entity_id: int, db: Session = Depends(get_db)):
+def delete_entity(
+    entity_id: int,
+    db: Session = Depends(get_db),
+    current_user: Dict[str, Any] = Depends(require_admin),
+):
     """Delete an entity"""
     db_entity = db.query(Entity).filter(Entity.id == entity_id).first()
     if not db_entity:
