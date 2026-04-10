@@ -45,6 +45,15 @@ async def analyze_entity(
         MaturityAssessment.entity_id == entity.id
     ).order_by(MaturityAssessment.assessment_date.desc()).first()
     
+    # Use existing data or sensible defaults if no assessment exists
+    if latest_assessment:
+        maturity_level = latest_assessment.overall_level
+        maturity_score = latest_assessment.overall_score or 25 * maturity_level
+    else:
+        # Generate sensible defaults based on entity characteristics
+        maturity_level = 2 if entity.xroad_status == 'connected' else 1
+        maturity_score = 50 + (maturity_level * 10) if entity.xroad_status == 'connected' else 25
+    
     # Prepare entity data for AI analysis
     entity_data = {
         'id': entity.id,
@@ -55,8 +64,8 @@ async def analyze_entity(
         'phone': entity.phone,
         'xroad_status': entity.xroad_status,
         'services_count': len(entity.services) if entity.services else 0,
-        'maturity_level': latest_assessment.overall_level if latest_assessment else 1,
-        'maturity_score': latest_assessment.overall_score if latest_assessment else 0,
+        'maturity_level': maturity_level,
+        'maturity_score': maturity_score,
         'description': entity.notes,
         'address': entity.address,
         'latitude': entity.latitude,

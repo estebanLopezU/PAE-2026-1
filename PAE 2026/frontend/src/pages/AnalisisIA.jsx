@@ -76,7 +76,11 @@ export default function AnalisisIA() {
 
     try {
       const response = await aiApi.analyzeEntity(parseInt(entityId))
-      setEntityAnalysis(response.data)
+      
+      // The API returns { success: true, data: {...} }
+      // So we need response.data.data to get the actual analysis
+      const analysisData = response.data.success ? response.data.data : response.data
+      setEntityAnalysis(analysisData)
     } catch (error) {
       console.error('Error analyzing entity:', error)
     }
@@ -556,19 +560,19 @@ export default function AnalisisIA() {
               <div className="bg-white rounded-lg p-4">
                 <p className="text-sm text-gray-500">Puntaje Proyectado</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {entityAnalysis.maturity_prediction?.predicted_score || 0}%
+                  {entityAnalysis.maturity_prediction?.predicted_score ?? 0}%
                 </p>
               </div>
               <div className="bg-white rounded-lg p-4">
                 <p className="text-sm text-gray-500">Confianza del Modelo</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {entityAnalysis.maturity_prediction?.confidence ? Math.round(entityAnalysis.maturity_prediction.confidence * 100) : 0}%
+                  {Math.round((entityAnalysis.maturity_prediction?.confidence ?? 0) * 100)}%
                 </p>
               </div>
               <div className="bg-white rounded-lg p-4">
                 <p className="text-sm text-gray-500">Cluster Asignado</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  #{entityAnalysis.cluster || 0}
+                  #{entityAnalysis.cluster ?? 0}
                 </p>
               </div>
             </div>
