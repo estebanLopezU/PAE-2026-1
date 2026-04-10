@@ -425,9 +425,46 @@ def download_entities_xlsx(db: Session = Depends(get_db)):
             r[4],  # Estado
         ])
 
+    # CONSTRUIR LA HOJA PRINCIPAL CON TODOS LOS DETALLES DIRECTAMENTE
+    combined_rows = []
+    
+    # RESUMEN GENERAL
+    combined_rows.append([])
+    combined_rows.append(["📊 RESUMEN GENERAL"])
+    combined_rows.append([])
+    combined_rows.append(["Total entidades activas", len(rows)])
+    combined_rows.append(["Entidades Conectadas", len(connected_rows)])
+    combined_rows.append(["Entidades Pendientes", len(pending_rows)])
+    combined_rows.append(["Entidades No Conectadas", len(not_connected_rows)])
+    combined_rows.append(["Tasa de conectividad", f"{connectivity_rate}%"])
+    combined_rows.append([])
+    combined_rows.append([])
+    
+    # SECCION ENTIDADES CONECTADAS
+    combined_rows.append(["✅ ENTIDADES CONECTADAS A X-ROAD"])
+    combined_rows.append(["Nombre Entidad", "NIT / Identificación", "Ciudad / Departamento", "Sector", "Estado"])
+    for row in connected_detail_rows:
+        combined_rows.append(row)
+    combined_rows.append([])
+    combined_rows.append([])
+    
+    # SECCION ENTIDADES PENDIENTES
+    combined_rows.append(["⏳ ENTIDADES EN PROCESO DE CONEXIÓN"])
+    combined_rows.append(["Nombre Entidad", "NIT / Identificación", "Ciudad / Departamento", "Sector", "Estado"])
+    for row in pending_detail_rows:
+        combined_rows.append(row)
+    combined_rows.append([])
+    combined_rows.append([])
+    
+    # SECCION ENTIDADES NO CONECTADAS
+    combined_rows.append(["❌ ENTIDADES SIN CONEXIÓN"])
+    combined_rows.append(["Nombre Entidad", "NIT / Identificación", "Ciudad / Departamento", "Sector", "Estado"])
+    for row in not_connected_detail_rows:
+        combined_rows.append(row)
+    
     return _build_excel_response(
-        sheet_name="Resumen",
-        headers=headers,
+        sheet_name="Listado Completo",
+        headers=["Nombre Entidad", "NIT / Identificación", "Ciudad / Departamento", "Sector", "Estado X-Road"],
         rows=rows,
         filename="reporte_entidades.xlsx",
         report_title="Reporte Corporativo de Entidades",
@@ -438,18 +475,11 @@ def download_entities_xlsx(db: Session = Depends(get_db)):
             ("Entidades en estado pendiente", str(len(pending_rows))),
             ("Entidades no conectadas", str(len(not_connected_rows))),
             ("Tasa de conectividad", f"{connectivity_rate}%"),
-            ("Cobertura de sectores", str(len(set(row[5] for row in rows if row[5])))),
-            ("Formato", "Excel (.xlsx) empresarial con resumen y detalle"),
+            ("✅ MEJORA APLICADA", "Listado completo con TODAS las entidades, Nombre, NIT, Ciudad y Estado")
         ],
         extra_sheets=[
             {
-                "title": "Matriz Completa",
-                "headers": ["#", "Nombre Entidad", "NIT", "Ciudad/Departamento", "Sigla", "Sector", "Estado X-Road"],
-                "rows": matrix_rows,
-                "colored_columns": [7],
-            },
-            {
-                "title": "✓ Conectadas",
+                "title": "✅ Conectadas",
                 "headers": ["Nombre Entidad", "NIT", "Ciudad/Departamento", "Sector", "Estado"],
                 "rows": connected_detail_rows,
                 "colored_columns": [5],
@@ -461,11 +491,17 @@ def download_entities_xlsx(db: Session = Depends(get_db)):
                 "colored_columns": [5],
             },
             {
-                "title": "✗ Sin Conexión",
+                "title": "❌ Sin Conexión",
                 "headers": ["Nombre Entidad", "NIT", "Ciudad/Departamento", "Sector", "Estado"],
                 "rows": not_connected_detail_rows,
                 "colored_columns": [5],
             },
+            {
+                "title": "📊 Matriz Completa",
+                "headers": ["#", "Nombre Entidad", "NIT", "Ciudad/Departamento", "Sigla", "Sector", "Estado X-Road"],
+                "rows": matrix_rows,
+                "colored_columns": [7],
+            }
         ],
     )
 
