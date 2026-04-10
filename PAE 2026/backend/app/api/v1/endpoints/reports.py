@@ -342,8 +342,9 @@ def download_entities_csv(db: Session = Depends(get_db)):
 
 @router.get("/entities/xlsx")
 def download_entities_xlsx(db: Session = Depends(get_db)):
-    """Download entities report as XLSX"""
+    """Download entities report as XLSX with full entity lists"""
     entities = db.query(
+        Entity.id,
         Entity.name,
         Entity.acronym,
         Entity.nit,
@@ -354,9 +355,10 @@ def download_entities_xlsx(db: Session = Depends(get_db)):
         Entity.is_active == True
     ).all()
 
-    headers = ['Nombre', 'Acrónimo', 'NIT', 'Departamento', 'Estado X-Road', 'Sector']
+    headers = ['ID', 'Nombre', 'Acrónimo', 'NIT', 'Departamento', 'Estado X-Road', 'Sector']
     rows = [
         [
+            entity.id,
             entity.name,
             entity.acronym,
             entity.nit,
@@ -367,104 +369,65 @@ def download_entities_xlsx(db: Session = Depends(get_db)):
         for entity in entities
     ]
 
-    connected_rows = [row for row in rows if row[4] == "Conectada"]
-    pending_rows = [row for row in rows if row[4] == "En Progreso"]
-    not_connected_rows = [row for row in rows if row[4] == "No Conectada"]
+    connected_rows = [row for row in rows if row[5] == "Conectada"]
+    pending_rows = [row for row in rows if row[5] == "En Progreso"]
+    not_connected_rows = [row for row in rows if row[5] == "No Conectada"]
     total = len(rows) if rows else 1
 
-    # Calcular tasa de conectividad
     connectivity_rate = round((len(connected_rows) / total) * 100, 2) if total else 0
 
-    # Detalle para cada sección con columnas más claras
-    # Formato: Nombre Entidad | NIT | Ciudad/Depto | Estado
-    connected_detail_rows = []
-    for r in sorted(connected_rows, key=lambda x: str(x[0]).lower()):
-        connected_detail_rows.append([
-            r[0],  # Nombre
-            r[2] or "N/A",  # NIT
-            r[3] or "N/A",  # Ciudad/Depto
-            r[5] or "N/A",  # Sector
-            "✓ Conectada",  # Estado
+    # Detalle completo con ID, NIT y Ciudad
+    connected_detail = []
+    for r in sorted(connected_rows, key=lambda x: str(x[1]).lower()):
+        connected_detail.append([
+            r[1],  # Nombre
+            r[3] or "N/A",  # NIT
+            r[4] or "N/A",  # Ciudad/Departamento
+            r[2] or "N/A",  # Sigla
+            r[6] or "N/A",  # Sector
+            "CONECTADA"     # Estado
         ])
 
-    pending_detail_rows = []
-    for r in sorted(pending_rows, key=lambda x: str(x[0]).lower()):
-        pending_detail_rows.append([
-            r[0],  # Nombre
-            r[2] or "N/A",  # NIT
-            r[3] or "N/A",  # Ciudad/Depto
-            r[5] or "N/A",  # Sector
-            "⏳ En Proceso",  # Estado
+    pending_detail = []
+    for r in sorted(pending_rows, key=lambda x: str(x[1]).lower()):
+        pending_detail.append([
+            r[1],  # Nombre
+            r[3] or "N/A",  # NIT
+            r[4] or "N/A",  # Ciudad/Departamento
+            r[2] or "N/A",  # Sigla
+            r[6] or "N/A",  # Sector
+            "PENDIENTE"     # Estado
         ])
 
-    not_connected_detail_rows = []
-    for r in sorted(not_connected_rows, key=lambda x: str(x[0]).lower()):
-        not_connected_detail_rows.append([
-            r[0],  # Nombre
-            r[2] or "N/A",  # NIT
-            r[3] or "N/A",  # Ciudad/Depto
-            r[5] or "N/A",  # Sector
-            "✗ Sin Conexión",  # Estado
+    not_connected_detail = []
+    for r in sorted(not_connected_rows, key=lambda x: str(x[1]).lower()):
+        not_connected_detail.append([
+            r[1],  # Nombre
+            r[3] or "N/A",  # NIT
+            r[4] or "N/A",  # Ciudad/Departamento
+            r[2] or "N/A",  # Sigla
+            r[6] or "N/A",  # Sector
+            "SIN CONEXION"   # Estado
         ])
 
-    # Todas las entidades ordenadas por estado
-    status_order = {"Conectada": 0, "En Progreso": 1, "No Conectada": 2}
-    sorted_all_rows = sorted(rows, key=lambda r: (status_order.get(r[4], 99), str(r[0]).lower()))
-
-    # Matriz completa
+    # Matriz completa con numeros
     matrix_rows = []
-    for idx, r in enumerate(sorted_all_rows, start=1):
-        pct = f"{round((len([x for x in rows if x[4] == r[4]]) / total) * 100, 1)}%" if total else "0%"
+    status_order = {"Conectada": 0, "En Progreso": 1, "No Conectada": 2}
+    sorted_all = sorted(rows, key=lambda r: (status_order.get(r[5], 99), str(r[1]).lower()))
+    for idx, r in enumerate(sorted_all, start=1):
         matrix_rows.append([
             idx,
-            r[0],  # Nombre
-            r[2] or "N/A",  # NIT
-            r[3] or "N/A",  # Ciudad
-            r[1] or "N/A",  # Acrónimo
-            r[5] or "N/A",  # Sector
-            r[4],  # Estado
+            r[1],  # Nombre
+            r[3] or "N/A",  # NIT
+            r[4] or "N/A",  # Ciudad
+            r[2] or "N/A",  # Sigla
+            r[6] or "N/A",  # Sector
+            r[5],  # Estado
         ])
 
-    # CONSTRUIR LA HOJA PRINCIPAL CON TODOS LOS DETALLES DIRECTAMENTE
-    combined_rows = []
-    
-    # RESUMEN GENERAL
-    combined_rows.append([])
-    combined_rows.append(["📊 RESUMEN GENERAL"])
-    combined_rows.append([])
-    combined_rows.append(["Total entidades activas", len(rows)])
-    combined_rows.append(["Entidades Conectadas", len(connected_rows)])
-    combined_rows.append(["Entidades Pendientes", len(pending_rows)])
-    combined_rows.append(["Entidades No Conectadas", len(not_connected_rows)])
-    combined_rows.append(["Tasa de conectividad", f"{connectivity_rate}%"])
-    combined_rows.append([])
-    combined_rows.append([])
-    
-    # SECCION ENTIDADES CONECTADAS
-    combined_rows.append(["✅ ENTIDADES CONECTADAS A X-ROAD"])
-    combined_rows.append(["Nombre Entidad", "NIT / Identificación", "Ciudad / Departamento", "Sector", "Estado"])
-    for row in connected_detail_rows:
-        combined_rows.append(row)
-    combined_rows.append([])
-    combined_rows.append([])
-    
-    # SECCION ENTIDADES PENDIENTES
-    combined_rows.append(["⏳ ENTIDADES EN PROCESO DE CONEXIÓN"])
-    combined_rows.append(["Nombre Entidad", "NIT / Identificación", "Ciudad / Departamento", "Sector", "Estado"])
-    for row in pending_detail_rows:
-        combined_rows.append(row)
-    combined_rows.append([])
-    combined_rows.append([])
-    
-    # SECCION ENTIDADES NO CONECTADAS
-    combined_rows.append(["❌ ENTIDADES SIN CONEXIÓN"])
-    combined_rows.append(["Nombre Entidad", "NIT / Identificación", "Ciudad / Departamento", "Sector", "Estado"])
-    for row in not_connected_detail_rows:
-        combined_rows.append(row)
-    
     return _build_excel_response(
-        sheet_name="Listado Completo",
-        headers=["Nombre Entidad", "NIT / Identificación", "Ciudad / Departamento", "Sector", "Estado X-Road"],
+        sheet_name="Resumen",
+        headers=headers,
         rows=rows,
         filename="reporte_entidades.xlsx",
         report_title="Reporte Corporativo de Entidades",
@@ -475,33 +438,33 @@ def download_entities_xlsx(db: Session = Depends(get_db)):
             ("Entidades en estado pendiente", str(len(pending_rows))),
             ("Entidades no conectadas", str(len(not_connected_rows))),
             ("Tasa de conectividad", f"{connectivity_rate}%"),
-            ("✅ MEJORA APLICADA", "Listado completo con TODAS las entidades, Nombre, NIT, Ciudad y Estado")
+            ("Formato", "Excel (.xlsx) con listado completo por estado")
         ],
         extra_sheets=[
             {
-                "title": "✅ Conectadas",
-                "headers": ["Nombre Entidad", "NIT", "Ciudad/Departamento", "Sector", "Estado"],
-                "rows": connected_detail_rows,
-                "colored_columns": [5],
+                "title": "CONECTADAS",
+                "headers": ["Nombre Entidad", "Numero Identificacion (NIT)", "Ciudad Departamento", "Sigla", "Sector", "Estado"],
+                "rows": connected_detail,
+                "colored_columns": [6],
             },
             {
-                "title": "⏳ Pendientes",
-                "headers": ["Nombre Entidad", "NIT", "Ciudad/Departamento", "Sector", "Estado"],
-                "rows": pending_detail_rows,
-                "colored_columns": [5],
+                "title": "PENDIENTES",
+                "headers": ["Nombre Entidad", "Numero Identificacion (NIT)", "Ciudad Departamento", "Sigla", "Sector", "Estado"],
+                "rows": pending_detail,
+                "colored_columns": [6],
             },
             {
-                "title": "❌ Sin Conexión",
-                "headers": ["Nombre Entidad", "NIT", "Ciudad/Departamento", "Sector", "Estado"],
-                "rows": not_connected_detail_rows,
-                "colored_columns": [5],
+                "title": "NO CONECTADAS",
+                "headers": ["Nombre Entidad", "Numero Identificacion (NIT)", "Ciudad Departamento", "Sigla", "Sector", "Estado"],
+                "rows": not_connected_detail,
+                "colored_columns": [6],
             },
             {
-                "title": "📊 Matriz Completa",
+                "title": "MATRIZ COMPLETA",
                 "headers": ["#", "Nombre Entidad", "NIT", "Ciudad/Departamento", "Sigla", "Sector", "Estado X-Road"],
                 "rows": matrix_rows,
                 "colored_columns": [7],
-            }
+            },
         ],
     )
 
