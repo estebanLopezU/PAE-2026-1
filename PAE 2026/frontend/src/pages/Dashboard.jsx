@@ -134,10 +134,69 @@ export default function Dashboard() {
         .kpi-card:nth-child(4) { animation-delay: 0.4s; }
         .kpi-card:nth-child(5) { animation-delay: 0.5s; }
         .kpi-card:nth-child(6) { animation-delay: 0.6s; }
+        
+        .video-bg {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          z-index: -1;
+        }
+        .video-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: linear-gradient(135deg, rgba(15, 23, 42, 0.7) 0%, rgba(30, 58, 138, 0.6) 50%, rgba(15, 23, 42, 0.7) 100%);
+          z-index: -1;
+        }
+        .video-bg {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          z-index: -2;
+        }
+        .dashboard-content {
+          background: rgba(255, 255, 255, 0.1);
+          backdrop-filter: blur(10px);
+          border-radius: 1rem;
+        }
+        .kpi-card {
+          background: rgba(255, 255, 255, 0.1) !important;
+          backdrop-filter: blur(10px);
+        }
+        .chart-card {
+          background: rgba(255, 255, 255, 0.1) !important;
+          backdrop-filter: blur(10px);
+        }
+        .quick-stat-card {
+          background: rgba(255, 255, 255, 0.15) !important;
+          backdrop-filter: blur(10px);
+        }
       `}</style>
 
+      {/* Video Background */}
+      <video 
+        className="video-bg"
+        autoPlay 
+        loop 
+        muted 
+        playsInline
+        onError={(e) => console.log('Video error:', e)}
+        onCanPlay={(e) => console.log('Video can play')}
+      >
+        <source src="/images/133414-756618164_WUeOGc7c (1).mp4" type="video/mp4" />
+      </video>
+      <div className="video-overlay"></div>
+
       {/* Header */}
-      <div className="animate-fade-in-up">
+      <div className="animate-fade-in-up dashboard-content p-6">
         <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
           <span className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
             <Globe className="h-5 w-5 text-white" />
@@ -155,7 +214,7 @@ export default function Dashboard() {
         {kpiCards.map((kpi, index) => (
           <div
             key={kpi.name}
-            className={`animate-fade-in-up kpi-card bg-gradient-to-br ${kpi.bgGradient} border ${kpi.borderColor} rounded-2xl p-5 backdrop-blur-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group`}
+            className={`animate-fade-in-up kpi-card rounded-2xl p-5 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group`}
           >
             <div className="flex items-start justify-between">
               <div className={`${kpi.iconBg} p-3 rounded-xl shadow-lg group-hover:scale-110 transition-transform`}>
@@ -182,14 +241,14 @@ export default function Dashboard() {
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Entities by Sector */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
+        <div className="chart-card rounded-2xl p-6 hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h3 className="text-lg font-semibold text-gray-900">Entidades por Sector</h3>
-              <p className="text-sm text-gray-500 mt-1">Distribucion por categoria</p>
+              <h3 className="text-lg font-semibold text-white">Entidades por Sector</h3>
+              <p className="text-sm text-gray-300 mt-1">Distribucion por categoria</p>
             </div>
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <Building2 className="h-5 w-5 text-blue-600" />
+            <div className="p-2 bg-blue-500/30 rounded-lg">
+              <Building2 className="h-5 w-5 text-white" />
             </div>
           </div>
           <ResponsiveContainer width="100%" height={280}>
@@ -219,14 +278,14 @@ export default function Dashboard() {
         </div>
 
         {/* X-Road Status */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
+        <div className="chart-card rounded-2xl p-6 hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h3 className="text-lg font-semibold text-gray-900">Estado de Conectividad</h3>
-              <p className="text-sm text-gray-500 mt-1">X-Road por status</p>
+              <h3 className="text-lg font-semibold text-white">Estado de Conectividad</h3>
+              <p className="text-sm text-gray-300 mt-1">X-Road por status</p>
             </div>
-            <div className="p-2 bg-green-100 rounded-lg">
-              <Link2 className="h-5 w-5 text-green-600" />
+            <div className="p-2 bg-green-500/30 rounded-lg">
+              <Link2 className="h-5 w-5 text-white" />
             </div>
           </div>
           <div className="flex items-center justify-center">
@@ -271,24 +330,24 @@ export default function Dashboard() {
       </div>
 
       {/* Maturity Distribution */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
+      <div className="chart-card rounded-2xl p-6 hover:shadow-md transition-shadow">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">Niveles de Madurez</h3>
-            <p className="text-sm text-gray-500 mt-1">Evaluacion por nivel de interoperabilidad</p>
+            <h3 className="text-lg font-semibold text-white">Niveles de Madurez</h3>
+            <p className="text-sm text-gray-300 mt-1">Evaluacion por nivel de interoperabilidad</p>
           </div>
-          <div className="p-2 bg-purple-100 rounded-lg">
-            <Shield className="h-5 w-5 text-purple-600" />
+          <div className="p-2 bg-purple-500/30 rounded-lg">
+            <Shield className="h-5 w-5 text-white" />
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
           {maturityDistribution.map((level, index) => (
             <div 
               key={level.name}
-              className="p-4 rounded-xl border border-gray-100 hover:shadow-md transition-all"
+              className="p-4 rounded-xl bg-white/10 hover:shadow-md transition-all"
               style={{ borderLeftColor: level.color, borderLeftWidth: '4px' }}
             >
-              <p className="text-sm text-gray-500">{level.name}</p>
+              <p className="text-sm text-gray-300">{level.name}</p>
               <p className="text-2xl font-bold mt-1" style={{ color: level.color }}>
                 {level.value}
               </p>
@@ -320,7 +379,7 @@ export default function Dashboard() {
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-6 text-white">
+        <div className="quick-stat-card bg-gradient-to-br from-blue-500/50 to-blue-600/50 rounded-2xl p-6 text-white">
           <div className="flex items-center gap-4">
             <div className="p-3 bg-white/20 rounded-xl">
               <TrendingUp className="h-6 w-6" />
@@ -335,7 +394,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl p-6 text-white">
+        <div className="quick-stat-card bg-gradient-to-br from-green-500/50 to-emerald-600/50 rounded-2xl p-6 text-white">
           <div className="flex items-center gap-4">
             <div className="p-3 bg-white/20 rounded-xl">
               <Server className="h-6 w-6" />
@@ -348,7 +407,7 @@ export default function Dashboard() {
           <p className="mt-4 text-green-100 text-sm">+12% vs mes anterior</p>
         </div>
 
-        <div className="bg-gradient-to-br from-purple-500 to-violet-600 rounded-2xl p-6 text-white">
+        <div className="quick-stat-card bg-gradient-to-br from-purple-500/50 to-violet-600/50 rounded-2xl p-6 text-white">
           <div className="flex items-center gap-4">
             <div className="p-3 bg-white/20 rounded-xl">
               <Shield className="h-6 w-6" />
