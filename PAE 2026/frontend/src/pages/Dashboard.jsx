@@ -10,7 +10,8 @@ import {
   ChevronRight,
   Globe,
   Server,
-  Shield
+  Shield,
+  Filter
 } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts'
 import { dashboardApi } from '../services/api'
@@ -23,26 +24,48 @@ export default function Dashboard() {
   const [sectorData, setSectorData] = useState([])
   const [xroadStatus, setXroadStatus] = useState([])
   const [loading, setLoading] = useState(true)
+  const [selectedSector, setSelectedSector] = useState('')
+  const [sectors, setSectors] = useState([])
+
+  const sectorColors = {
+    'Salud': '#EF4444',
+    'Educacion': '#3B82F6',
+    'Hacienda': '#10B981',
+    'Transporte': '#F59E0B',
+    'Interior': '#8B5CF6',
+    'Tecnologia': '#06B6D4',
+    'Comercio': '#F97316',
+    'Trabajo': '#EC4899',
+    'Ambiente': '#14B8A6',
+    'Agricultura': '#84CC16'
+  }
 
   useEffect(() => {
     fetchDashboardData()
-  }, [])
+  }, [selectedSector])
 
   const fetchDashboardData = async () => {
     try {
-      const [kpisRes, sectorRes, xroadRes] = await Promise.all([
-        dashboardApi.getKpis(),
+      const sectorFilter = selectedSector ? { sector: selectedSector } : {}
+      const [kpisRes, sectorRes, xroadRes, sectorsRes] = await Promise.all([
+        dashboardApi.getKpis(sectorFilter),
         dashboardApi.getBySector(),
-        dashboardApi.getByXroadStatus()
+        dashboardApi.getByXroadStatus(sectorFilter),
+        dashboardApi.getSectors()
       ])
       setKpis(kpisRes.data)
       setSectorData(sectorRes.data)
       setXroadStatus(xroadRes.data)
+      setSectors(sectorsRes.data || [])
     } catch (error) {
       console.error('Error fetching dashboard data:', error)
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleSectorChange = (sector) => {
+    setSelectedSector(sector)
   }
 
   if (loading) {
@@ -197,16 +220,37 @@ export default function Dashboard() {
 
       {/* Header */}
       <div className="animate-fade-in-up dashboard-content p-6">
-        <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-          <span className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-            <Globe className="h-5 w-5 text-white" />
-          </span>
-          {t('dashboard.title')}
-        </h1>
-        <p className="mt-2 text-gray-500 flex items-center gap-2">
-          <Activity className="h-4 w-4" />
-          {t('dashboard.subtitle')}
-        </p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-white flex items-center gap-3">
+              <span className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                <Globe className="h-5 w-5 text-white" />
+              </span>
+              {t('dashboard.title')}
+            </h1>
+            <p className="mt-2 text-gray-300 flex items-center gap-2">
+              <Activity className="h-4 w-4" />
+              {t('dashboard.subtitle')}
+            </p>
+          </div>
+          
+          {/* Sector Filter */}
+          <div className="flex items-center gap-3">
+            <Filter className="h-5 w-5 text-gray-300" />
+            <select
+              value={selectedSector}
+              onChange={(e) => handleSectorChange(e.target.value)}
+              className="bg-white/20 backdrop-blur-sm border border-white/30 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="" className="text-gray-900">Todos los sectores</option>
+              {sectors.map((sector) => (
+                <option key={sector.id} value={sector.name} className="text-gray-900">
+                  {sector.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
       </div>
 
       {/* KPI Cards */}

@@ -64,13 +64,14 @@ export const maturityApi = {
 
 // Dashboard API
 export const dashboardApi = {
-  getKpis: () => api.get('/dashboard/kpis'),
+  getKpis: (params) => api.get('/dashboard/kpis', { params }),
   getBySector: () => api.get('/dashboard/by-sector'),
   getByDepartment: () => api.get('/dashboard/by-department'),
-  getByXroadStatus: () => api.get('/dashboard/by-xroad-status'),
+  getByXroadStatus: (params) => api.get('/dashboard/by-xroad-status', { params }),
   getServicesByProtocol: () => api.get('/dashboard/services-by-protocol'),
   getTopMatureEntities: (limit = 10) => api.get('/dashboard/top-mature-entities', { params: { limit } }),
   getMaturityRadar: (entityId) => api.get(`/dashboard/maturity-radar/${entityId}`),
+  getSectors: () => api.get('/sectors'),
 }
 
 // Reports API

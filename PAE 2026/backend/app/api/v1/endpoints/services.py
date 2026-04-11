@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from ....database import get_db
 from ....models.service import Service
 from ....models.entity import Entity
+from ....models.maturity import MaturityAssessment
 from ....schemas.service import Service as ServiceSchema, ServiceCreate, ServiceUpdate, ServiceList
 from ....security import require_admin
 
@@ -109,6 +110,20 @@ def update_service(
     return db_service
 
 
+@router.post("/purge-all")
+def purge_all_services(
+    db: Session = Depends(get_db),
+):
+    """Delete all services (use with caution)"""
+    count = db.query(Service).delete()
+    db.commit()
+    return {
+        "success": True,
+        "message": f"Se eliminaron {count} servicios",
+        "deleted": count
+    }
+
+
 @router.delete("/{service_id}", status_code=204)
 def delete_service(
     service_id: int,
@@ -123,3 +138,90 @@ def delete_service(
     db.delete(db_service)
     db.commit()
     return None
+
+
+@router.post("/generate-all")
+def generate_all_services(
+    overwrite: bool = False,
+    db: Session = Depends(get_db),
+):
+    """
+    Generate standard services for entities that are connected to X-Road.
+    """
+    entities = db.query(Entity).filter(
+        Entity.is_active == True,
+        Entity.xroad_status == 'connected'
+    ).all()
+    
+    created_count = 0
+    skipped_count = 0
+    
+    for entity in entities:
+        existing_count = db.query(Service).filter(Service.entity_id == entity.id).count()
+        
+        if existing_count > 0 and not overwrite:
+            skipped_count += 1
+            continue
+        
+        assessment = db.query(MaturityAssessment).filter(
+            MaturityAssessment.entity_id == entity.id
+        ).order_by(MaturityAssessment.assessment_date.desc()).first()
+        
+        if assessment:
+            num_services = assessment.overall_level
+        else:
+            num_services = 2
+        
+        services_to_create = [
+            {"name": "Consulta de Identificación", "category": "Consulta", "protocol": "REST"},
+            {"name": "Validación de Datos", "category": "Validación", "protocol": "REST"},
+            {"name": "Consulta de Estados", "category": "Consulta", "protocol": "REST"},
+            {"name": "Autenticación de Usuarios", "category": "Autenticación", "protocol": "X-Road"},
+        ]
+        
+        for i in range(min(num_services, len(services_to_create))):
+            svc = services_to_create[i]
+            code = f"{entity.acronym or entity.name[:3].upper()}-{svc['category'][:3].upper()}-{i+1:03d}"
+            
+            existing = db.query(Service).filter(
+                Service.entity_id == entity.id,
+                Service.code == code
+            ).first()
+            
+            if existing:
+                continue
+            
+            service = Service(
+                entity_id=entity.id,
+                name=svc["name"],
+                code=code,
+                description=f"Servicio de {svc['category'].lower()} para {entity.name}",
+                protocol=svc["protocol"],
+                category=svc["category"],
+                status="active"
+            )
+            db.add(service)
+            created_count += 1
+    
+    db.commit()
+    
+    return {
+        "success": True,
+        "message": f"Servicios generados: {created_count}, omitidos: {skipped_count}",
+        "created": created_count,
+        "skipped": skipped_count
+    }
+
+
+@router.delete("/purge-all")
+def purge_all_services(
+    db: Session = Depends(get_db),
+):
+    """Delete all services (use with caution)"""
+    count = db.query(Service).delete()
+    db.commit()
+    return {
+        "success": True,
+        "message": f"Se eliminaron {count} servicios",
+        "deleted": count
+    }

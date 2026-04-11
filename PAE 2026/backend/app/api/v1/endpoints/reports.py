@@ -684,7 +684,7 @@ def download_maturity_xlsx(db: Session = Depends(get_db)):
             assessment.has_interoperability_policy,
             assessment.has_trained_personnel,
             assessment.assessor_name,
-            assessment.assessment_date,
+            assessment.assessment_date.replace(tzinfo=None) if assessment.assessment_date else None,
         ]
         for assessment in assessments
     ]

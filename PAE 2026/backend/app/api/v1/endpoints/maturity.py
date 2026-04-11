@@ -142,3 +142,105 @@ def delete_assessment(
     db.delete(db_assessment)
     db.commit()
     return None
+
+
+@router.post("/assessments/generate-all")
+def generate_all_assessments(
+    overwrite: bool = False,
+    db: Session = Depends(get_db),
+):
+    """
+    Generate automatic maturity assessments for all entities that don't have one.
+    Uses entity data (xroad_status, services_count, etc.) to calculate maturity level.
+    """
+    entities = db.query(Entity).filter(Entity.is_active == True).all()
+    
+    created_count = 0
+    skipped_count = 0
+    
+    for entity in entities:
+        # Check if entity already has assessment
+        existing = db.query(MaturityAssessment).filter(
+            MaturityAssessment.entity_id == entity.id
+        ).order_by(MaturityAssessment.assessment_date.desc()).first()
+        
+        if existing and not overwrite:
+            skipped_count += 1
+            continue
+        
+        # Calculate maturity based on entity attributes
+        # Base score from 0-100
+        score = 0
+        
+        # X-Road status contributes 25 points max
+        if entity.xroad_status == 'connected':
+            score += 25
+        elif entity.xroad_status == 'pending':
+            score += 10
+        
+        # Services count contributes 25 points max (4+ services = 25 points)
+        services_count = len(entity.services) if entity.services else 0
+        score += min(services_count * 6.25, 25)
+        
+        # Website/email/phone contributes 20 points max
+        if entity.website:
+            score += 7
+        if entity.email:
+            score += 7
+        if entity.phone:
+            score += 6
+        
+        # Sector assignment contributes 15 points
+        if entity.sector_id:
+            score += 15
+        
+        # Coordinates contribute 15 points
+        if entity.latitude and entity.longitude:
+            score += 15
+        
+        # Determine level
+        if score >= 75:
+            level = 4
+        elif score >= 50:
+            level = 3
+        elif score >= 25:
+            level = 2
+        else:
+            level = 1
+        
+        # Domain scores (simplified calculation)
+        technical_score = min(100, (score // 4) * 3 + (25 if entity.xroad_status == 'connected' else 0))
+        semantic_score = min(100, (services_count * 15) + (25 if entity.email else 0))
+        organizational_score = min(100, 50 + (25 if entity.sector_id else 0))
+        legal_score = min(100, 40 + (25 if entity.website else 0))
+        
+        # Create assessment
+        assessment = MaturityAssessment(
+            entity_id=entity.id,
+            overall_level=level,
+            overall_score=score,
+            legal_domain_score=legal_score,
+            organizational_domain_score=organizational_score,
+            semantic_domain_score=semantic_score,
+            technical_domain_score=technical_score,
+            has_api_documentation=level,
+            uses_standard_protocols=level,
+            has_data_quality=level - 1 if level > 1 else 1,
+            has_security_standards=level,
+            has_interoperability_policy=level - 1 if level > 1 else 1,
+            has_trained_personnel=level - 1 if level > 1 else 1,
+            assessor_name="Sistema Automático",
+            assessor_notes="Evaluación automática basada en datos de la entidad"
+        )
+        db.add(assessment)
+        created_count += 1
+    
+    db.commit()
+    
+    return {
+        "success": True,
+        "message": f"Evaluaciones generadas: {created_count}, omitidas: {skipped_count}",
+        "created": created_count,
+        "skipped": skipped_count,
+        "total_entities": len(entities)
+    }

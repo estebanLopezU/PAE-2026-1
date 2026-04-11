@@ -1,7 +1,7 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import func, case
-from typing import Dict, List
+from typing import Dict, List, Optional
 from ....database import get_db
 from ....models.entity import Entity
 from ....models.sector import Sector
@@ -12,26 +12,32 @@ router = APIRouter()
 
 
 @router.get("/kpis")
-def get_dashboard_kpis(db: Session = Depends(get_db)):
-    """Get main dashboard KPIs"""
-    total_entities = db.query(Entity).filter(Entity.is_active == True).count()
+def get_dashboard_kpis(
+    sector: Optional[str] = Query(None, description="Filter by sector name"),
+    db: Session = Depends(get_db)
+):
+    """Get main dashboard KPIs with optional sector filter"""
+    query = db.query(Entity).filter(Entity.is_active == True)
     
-    xroad_connected = db.query(Entity).filter(
-        Entity.xroad_status == "connected",
-        Entity.is_active == True
-    ).count()
+    if sector:
+        query = query.join(Sector).filter(Sector.name == sector)
     
-    xroad_pending = db.query(Entity).filter(
-        Entity.xroad_status == "pending",
-        Entity.is_active == True
-    ).count()
+    total_entities = query.count()
     
-    total_services = db.query(Service).filter(Service.status == "active").count()
+    xroad_connected = query.filter(Entity.xroad_status == "connected").count()
     
-    # Average maturity level
+    xroad_pending = query.filter(Entity.xroad_status == "pending").count()
+    
+    services_query = db.query(Service).filter(Service.status == "active")
+    if sector:
+        services_query = services_query.join(Entity).join(Sector).filter(Sector.name == sector)
+    total_services = services_query.count()
+    
+    maturity_query = db.query(MaturityAssessment).join(Entity)
+    if sector:
+        maturity_query = maturity_query.join(Sector).filter(Sector.name == sector)
     avg_maturity = db.query(func.avg(MaturityAssessment.overall_score)).scalar() or 0
     
-    # Entities by maturity level
     maturity_distribution = db.query(
         MaturityAssessment.overall_level,
         func.count(func.distinct(MaturityAssessment.entity_id))
@@ -89,12 +95,20 @@ def get_entities_by_department(db: Session = Depends(get_db)):
 
 
 @router.get("/by-xroad-status")
-def get_xroad_status_distribution(db: Session = Depends(get_db)):
+def get_xroad_status_distribution(
+    sector: Optional[str] = Query(None, description="Filter by sector name"),
+    db: Session = Depends(get_db)
+):
     """Get X-Road connection status distribution"""
-    results = db.query(
+    query = db.query(
         Entity.xroad_status,
         func.count(Entity.id).label("count")
-    ).filter(Entity.is_active == True).group_by(Entity.xroad_status).all()
+    ).filter(Entity.is_active == True)
+    
+    if sector:
+        query = query.join(Sector).filter(Sector.name == sector)
+    
+    results = query.group_by(Entity.xroad_status).all()
     
     return [
         {"status": status, "count": count}
