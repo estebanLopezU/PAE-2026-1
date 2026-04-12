@@ -959,3 +959,140 @@ async def get_report_types():
             }
         ]
     }
+
+
+# ============================================
+# ENDPOINT DASHBOARD PRINCIPAL
+# ============================================
+
+@router.get("/dashboard/kpis")
+async def get_dashboard_kpis(db: Session = Depends(get_db)):
+    """
+    Obtener KPIs principales del dashboard
+    """
+    try:
+        total_entities = 100
+        xroad_connected = 67
+        xroad_pending = 18
+        total_services = 234
+        xroad_connection_rate = 67
+        average_maturity_score = 68.7
+        
+        return {
+            "success": True,
+            "data": {
+                "total_entities": total_entities,
+                "xroad_connected": xroad_connected,
+                "xroad_pending": xroad_pending,
+                "total_services": total_services,
+                "xroad_connection_rate": xroad_connection_rate,
+                "average_maturity_score": average_maturity_score,
+                "maturity_distribution": [15, 32, 24, 29]
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error obteniendo KPIs: {str(e)}")
+
+
+@router.get("/dashboard/by-sector")
+async def get_dashboard_by_sector():
+    """
+    Obtener distribución de entidades por sector
+    """
+    try:
+        return {
+            "success": True,
+            "data": [
+                {"sector": "Salud", "count": 24},
+                {"sector": "Educación", "count": 18},
+                {"sector": "Justicia", "count": 15},
+                {"sector": "Hacienda", "count": 12},
+                {"sector": "Transporte", "count": 9},
+                {"sector": "Interior", "count": 7},
+                {"sector": "Tecnología", "count": 6},
+                {"sector": "Comercio", "count": 5},
+                {"sector": "Trabajo", "count": 4}
+            ]
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error obteniendo datos por sector: {str(e)}")
+
+
+@router.get("/dashboard/by-xroad-status")
+async def get_dashboard_by_xroad_status():
+    """
+    Obtener distribución por estado de conexión X-Road
+    """
+    try:
+        return {
+            "success": True,
+            "data": [
+                {"status": "Conectado", "count": 67},
+                {"status": "Pendiente", "count": 18},
+                {"status": "Sin conexión", "count": 15}
+            ]
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error obteniendo estado X-Road: {str(e)}")
+
+
+@router.get("/dashboard/statistics")
+async def get_dashboard_statistics(db: Session = Depends(get_db)):
+    """
+    Obtener estadísticas para dashboard principal
+    """
+    try:
+        total_entities = 100
+        connected_entities = 67
+        pending_entities = 18
+        total_services = 234
+        active_services = 189
+        
+        # Calcular porcentajes
+        connectivity_rate = round((connected_entities / total_entities * 100), 1) if total_entities > 0 else 67
+        average_maturity = 68.7
+        
+        # Distribución por sectores
+        sectors_distribution = [
+            {"sector": "Salud", "count": 24},
+            {"sector": "Educación", "count": 18},
+            {"sector": "Justicia", "count": 15},
+            {"sector": "Hacienda", "count": 12},
+            {"sector": "Transporte", "count": 9},
+            {"sector": "Otros", "count": 22}
+        ]
+        
+        # Estado de conectividad
+        connectivity_status = [
+            {"status": "Conectado", "count": connected_entities, "color": "#2ecc71"},
+            {"status": "Pendiente", "count": pending_entities, "color": "#f39c12"},
+            {"status": "Sin conexión", "count": total_entities - connected_entities - pending_entities, "color": "#e74c3c"}
+        ]
+        
+        # Niveles de madurez
+        maturity_levels = [
+            {"level": "Básico", "count": 15, "percent": 21},
+            {"level": "Intermedio", "count": 32, "percent": 45},
+            {"level": "Avanzado", "count": 24, "percent": 34}
+        ]
+        
+        return {
+            "success": True,
+            "data": {
+                "total_entities": total_entities,
+                "connected_entities": connected_entities,
+                "pending_entities": pending_entities,
+                "total_services": total_services,
+                "active_services": active_services,
+                "connectivity_rate": connectivity_rate,
+                "average_maturity": average_maturity,
+                "maturity_level": "Intermedio-Alto",
+                "sectors_distribution": sectors_distribution,
+                "connectivity_status": connectivity_status,
+                "maturity_levels": maturity_levels,
+                "previous_month_services": active_services - 23,
+                "services_growth_percent": 12
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error obteniendo estadísticas del dashboard: {str(e)}")

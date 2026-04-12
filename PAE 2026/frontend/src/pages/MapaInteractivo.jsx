@@ -65,10 +65,17 @@ export default function MapaInteractivo() {
 
   const fetchData = async () => {
     try {
+      console.log('=== MAPA: Obteniendo entidades ===')
       const [entitiesRes, sectorsRes] = await Promise.all([
         entitiesApi.getAll({ limit: 100 }),
         sectorsApi.getAll({ limit: 100 })
       ])
+      console.log('MAPA: Entidades recibidas:', entitiesRes.data.items.length)
+      console.log('MAPA: Primera entidad:', entitiesRes.data.items[0])
+      
+      const entidadesConCoords = entitiesRes.data.items.filter(e => e.latitude && e.longitude)
+      console.log('MAPA: Con coordenadas:', entidadesConCoords.length)
+      
       setEntities(entitiesRes.data.items)
       setSectors(sectorsRes.data.items)
     } catch (error) {
@@ -79,13 +86,17 @@ export default function MapaInteractivo() {
   }
 
   const filteredEntities = entities.filter(entity => {
+    const hasCoords = entity.latitude && entity.longitude
+    if (!hasCoords) {
+      console.log('MAPA: Sin coords:', entity.name, entity.latitude, entity.longitude)
+    }
     const matchesSector = !selectedSector || entity.sector_id === parseInt(selectedSector)
     const matchesStatus = !selectedStatus || entity.xroad_status === selectedStatus
     const matchesSearch = !searchTerm || 
       entity.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       entity.acronym?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       entity.department?.toLowerCase().includes(searchTerm.toLowerCase())
-    return matchesSector && matchesStatus && matchesSearch && entity.latitude && entity.longitude
+    return matchesSector && matchesStatus && matchesSearch && hasCoords
   })
 
   const handleEntityClick = (entity) => {

@@ -6,463 +6,206 @@ import {
   Clock,
   Activity,
   TrendingUp,
-  Users,
   ChevronRight,
   Globe,
   Server,
   Shield,
-  Filter
+  Filter,
+  AlertCircle,
+  CheckCircle
 } from 'lucide-react'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts'
-import { dashboardApi } from '../services/api'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
 
-const COLORS = ['#10B981', '#F59E0B', '#EF4444', '#3B82F6', '#8B5CF6']
+const API_BASE = '/api/v1'
+
+async function fetchAPI(url) {
+  const res = await fetch(url, {
+    headers: { 'Content-Type': 'application/json' }
+  })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  return res.json()
+}
 
 export default function Dashboard() {
   const { t } = useTranslation()
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const [kpis, setKpis] = useState(null)
   const [sectorData, setSectorData] = useState([])
   const [xroadStatus, setXroadStatus] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [selectedSector, setSelectedSector] = useState('')
   const [sectors, setSectors] = useState([])
+  const [selectedSector, setSelectedSector] = useState('')
 
-  const sectorColors = {
-    'Salud': '#EF4444',
-    'Educacion': '#3B82F6',
-    'Hacienda': '#10B981',
-    'Transporte': '#F59E0B',
-    'Interior': '#8B5CF6',
-    'Tecnologia': '#06B6D4',
-    'Comercio': '#F97316',
-    'Trabajo': '#EC4899',
-    'Ambiente': '#14B8A6',
-    'Agricultura': '#84CC16'
-  }
-
-  useEffect(() => {
-    fetchDashboardData()
-  }, [selectedSector])
-
-  const fetchDashboardData = async () => {
+  const fetchData = async () => {
+    setLoading(true)
+    setError(null)
     try {
-      const sectorFilter = selectedSector ? { sector: selectedSector } : {}
-      const [kpisRes, sectorRes, xroadRes, sectorsRes] = await Promise.all([
-        dashboardApi.getKpis(sectorFilter),
-        dashboardApi.getBySector(),
-        dashboardApi.getByXroadStatus(sectorFilter),
-        dashboardApi.getSectors()
+      console.log('=== DASHBOARD FETCHING ===')
+      
+      const [kpisData, sectorRes, xroadRes, sectorsRes] = await Promise.all([
+        fetchAPI(`${API_BASE}/dashboard/kpis`),
+        fetchAPI(`${API_BASE}/dashboard/by-sector`),
+        fetchAPI(`${API_BASE}/dashboard/by-xroad-status`),
+        fetchAPI(`${API_BASE}/sectors/`)
       ])
-      setKpis(kpisRes.data)
-      setSectorData(sectorRes.data)
-      setXroadStatus(xroadRes.data)
-      setSectors(sectorsRes.data || [])
-    } catch (error) {
-      console.error('Error fetching dashboard data:', error)
+
+      console.log('KPIs:', kpisData)
+      console.log('By Sector:', sectorRes)
+      console.log('X-Road Status:', xroadRes)
+      console.log('Sectors:', sectorsRes)
+
+      setKpis(kpisData)
+      setSectorData(sectorRes)
+      setXroadStatus(xroadRes)
+      setSectors(sectorsRes.items || sectorsRes || [])
+      
+      console.log('=== DATA LOADED SUCCESS ===')
+      
+    } catch (err) {
+      console.error('ERROR:', err)
+      setError(err.message)
     } finally {
       setLoading(false)
     }
   }
 
-  const handleSectorChange = (sector) => {
-    setSelectedSector(sector)
-  }
+  useEffect(() => {
+    fetchData()
+  }, [])
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-900">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-white text-lg">Cargando Dashboard...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-900">
+        <div className="text-center p-8 bg-red-500/10 rounded-xl border border-red-500/30">
+          <AlertCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
+          <p className="text-red-500 text-xl mb-4">Error: {error}</p>
+          <button onClick={fetchData} className="px-6 py-2 bg-red-500 text-white rounded-lg">
+            Reintentar
+          </button>
+        </div>
       </div>
     )
   }
 
   const kpiCards = [
-    {
-      name: t('dashboard.totalEntities'),
-      value: kpis?.total_entities || 0,
-      icon: Building2,
-      color: '#3B82F6',
-      bgGradient: 'from-blue-500/10 to-blue-600/5',
-      borderColor: 'border-blue-500/30',
-      iconBg: 'bg-blue-500'
-    },
-    {
-      name: t('dashboard.connectedEntities'),
-      value: kpis?.xroad_connected || 0,
-      icon: Link2,
-      color: '#10B981',
-      bgGradient: 'from-green-500/10 to-emerald-600/5',
-      borderColor: 'border-green-500/30',
-      iconBg: 'bg-green-500'
-    },
-    {
-      name: t('common.pending'),
-      value: kpis?.xroad_pending || 0,
-      icon: Clock,
-      color: '#F59E0B',
-      bgGradient: 'from-yellow-500/10 to-amber-600/5',
-      borderColor: 'border-yellow-500/30',
-      iconBg: 'bg-yellow-500'
-    },
-    {
-      name: t('dashboard.xroadStatus'),
-      value: `${kpis?.xroad_connection_rate || 0}%`,
-      icon: TrendingUp,
-      color: '#8B5CF6',
-      bgGradient: 'from-purple-500/10 to-violet-600/5',
-      borderColor: 'border-purple-500/30',
-      iconBg: 'bg-purple-500'
-    },
-    {
-      name: t('dashboard.totalServices'),
-      value: kpis?.total_services || 0,
-      icon: Server,
-      color: '#06B6D4',
-      bgGradient: 'from-cyan-500/10 to-cyan-600/5',
-      borderColor: 'border-cyan-500/30',
-      iconBg: 'bg-cyan-500'
-    },
-    {
-      name: t('dashboard.averageMaturity'),
-      value: `${kpis?.average_maturity_score || 0}%`,
-      icon: Shield,
-      color: '#F97316',
-      bgGradient: 'from-orange-500/10 to-orange-600/5',
-      borderColor: 'border-orange-500/30',
-      iconBg: 'bg-orange-500'
-    }
+    { name: 'Total Entidades', value: kpis?.total_entities || 0, color: '#3B82F6' },
+    { name: 'Conectadas X-Road', value: kpis?.xroad_connected || 0, color: '#10B981' },
+    { name: 'Pendientes', value: kpis?.xroad_pending || 0, color: '#F59E0B' },
+    { name: 'Tasa de Conexión', value: `${kpis?.xroad_connection_rate || 0}%`, color: '#8B5CF6' },
+    { name: 'Total Servicios', value: kpis?.total_services || 0, color: '#06B6D4' },
+    { name: 'Madurez Promedio', value: `${kpis?.average_maturity_score || 0}%`, color: '#F97316' }
   ]
 
-  const maturityDistribution = kpis?.maturity_distribution ? [
-    { name: 'Nivel 1 - Inicial', value: kpis.maturity_distribution[1] || 0, color: '#EF4444' },
-    { name: 'Nivel 2 - Basico', value: kpis.maturity_distribution[2] || 0, color: '#F59E0B' },
-    { name: 'Nivel 3 - Intermedio', value: kpis.maturity_distribution[3] || 0, color: '#3B82F6' },
-    { name: 'Nivel 4 - Avanzado', value: kpis.maturity_distribution[4] || 0, color: '#10B981' }
-  ] : []
+  const maturityDistribution = [
+    { name: 'Nivel 1', value: kpis?.maturity_distribution?.[1] || 0, color: '#EF4444' },
+    { name: 'Nivel 2', value: kpis?.maturity_distribution?.[2] || 0, color: '#F59E0B' },
+    { name: 'Nivel 3', value: kpis?.maturity_distribution?.[3] || 0, color: '#3B82F6' },
+    { name: 'Nivel 4', value: kpis?.maturity_distribution?.[4] || 0, color: '#10B981' }
+  ]
 
   return (
-    <div className="space-y-8">
+    <div className="min-h-screen bg-gray-900 p-6">
       <style>{`
-        @keyframes fadeInUp {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-fade-in-up {
-          animation: fadeInUp 0.5s ease forwards;
-          opacity: 0;
-        }
-        .kpi-card:nth-child(1) { animation-delay: 0.1s; }
-        .kpi-card:nth-child(2) { animation-delay: 0.2s; }
-        .kpi-card:nth-child(3) { animation-delay: 0.3s; }
-        .kpi-card:nth-child(4) { animation-delay: 0.4s; }
-        .kpi-card:nth-child(5) { animation-delay: 0.5s; }
-        .kpi-card:nth-child(6) { animation-delay: 0.6s; }
-        
-        .video-bg {
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-          z-index: -1;
-        }
-        .video-overlay {
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          background: linear-gradient(135deg, rgba(15, 23, 42, 0.7) 0%, rgba(30, 58, 138, 0.6) 50%, rgba(15, 23, 42, 0.7) 100%);
-          z-index: -1;
-        }
-        .video-bg {
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-          z-index: -2;
-        }
-        .dashboard-content {
-          background: rgba(255, 255, 255, 0.1);
-          backdrop-filter: blur(10px);
-          border-radius: 1rem;
-        }
-        .kpi-card {
-          background: rgba(255, 255, 255, 0.1) !important;
-          backdrop-filter: blur(10px);
-        }
-        .chart-card {
-          background: rgba(255, 255, 255, 0.1) !important;
-          backdrop-filter: blur(10px);
-        }
-        .quick-stat-card {
-          background: rgba(255, 255, 255, 0.15) !important;
-          backdrop-filter: blur(10px);
-        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.5s ease forwards; }
       `}</style>
 
-      {/* Video Background */}
-      <video 
-        className="video-bg"
-        autoPlay 
-        loop 
-        muted 
-        playsInline
-        onError={(e) => console.log('Video error:', e)}
-        onCanPlay={(e) => console.log('Video can play')}
-      >
-        <source src="/images/133414-756618164_WUeOGc7c (1).mp4" type="video/mp4" />
-      </video>
-      <div className="video-overlay"></div>
-
       {/* Header */}
-      <div className="animate-fade-in-up dashboard-content p-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="animate-fade-in mb-8 bg-gray-800/50 backdrop-blur-lg rounded-2xl p-6 border border-gray-700/50">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between">
           <div>
             <h1 className="text-3xl font-bold text-white flex items-center gap-3">
-              <span className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                <Globe className="h-5 w-5 text-white" />
+              <span className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                <Globe className="h-6 w-6 text-white" />
               </span>
-              {t('dashboard.title')}
+              Dashboard X-Road Colombia
             </h1>
-            <p className="mt-2 text-gray-300 flex items-center gap-2">
-              <Activity className="h-4 w-4" />
-              {t('dashboard.subtitle')}
-            </p>
+            <p className="mt-2 text-gray-400">Plataforma de Interoperabilidad del Gobierno Colombiano</p>
           </div>
-          
-          {/* Sector Filter */}
-          <div className="flex items-center gap-3">
-            <Filter className="h-5 w-5 text-gray-300" />
-            <select
-              value={selectedSector}
-              onChange={(e) => handleSectorChange(e.target.value)}
-              className="bg-white/20 backdrop-blur-sm border border-white/30 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="" className="text-gray-900">Todos los sectores</option>
-              {sectors.map((sector) => (
-                <option key={sector.id} value={sector.name} className="text-gray-900">
-                  {sector.name}
-                </option>
-              ))}
-            </select>
-          </div>
+          <button onClick={fetchData} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg">
+            Actualizar
+          </button>
         </div>
       </div>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-        {kpiCards.map((kpi, index) => (
-          <div
-            key={kpi.name}
-            className={`animate-fade-in-up kpi-card rounded-2xl p-5 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group`}
-          >
-            <div className="flex items-start justify-between">
-              <div className={`${kpi.iconBg} p-3 rounded-xl shadow-lg group-hover:scale-110 transition-transform`}>
-                <kpi.icon className="h-5 w-5 text-white" />
-              </div>
-              <ChevronRight className="h-5 w-5 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-            </div>
-            <div className="mt-4">
-              <p className="text-sm font-medium text-gray-500">{kpi.name}</p>
-              <p className="text-3xl font-bold text-gray-900 mt-1" style={{ color: kpi.color }}>
-                {kpi.value}
-              </p>
-            </div>
-            <div className="mt-3 h-1 rounded-full bg-gray-200 overflow-hidden">
-              <div 
-                className="h-full rounded-full transition-all duration-500"
-                style={{ width: '70%', backgroundColor: kpi.color }}
-              ></div>
-            </div>
+      {/* KPIS */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+        {kpiCards.map((kpi, i) => (
+          <div key={kpi.name} className="animate-fade-in bg-gray-800/50 rounded-2xl p-5 border border-gray-700/50" style={{animationDelay: `${i*0.1}s`}}>
+            <p className="text-gray-400 text-sm">{kpi.name}</p>
+            <p className="text-3xl font-bold mt-2" style={{color: kpi.color}}>{kpi.value}</p>
           </div>
         ))}
       </div>
 
-      {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Entities by Sector */}
-        <div className="chart-card rounded-2xl p-6 hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h3 className="text-lg font-semibold text-white">Entidades por Sector</h3>
-              <p className="text-sm text-gray-300 mt-1">Distribucion por categoria</p>
-            </div>
-            <div className="p-2 bg-blue-500/30 rounded-lg">
-              <Building2 className="h-5 w-5 text-white" />
-            </div>
-          </div>
-          <ResponsiveContainer width="100%" height={280}>
+      {/* Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div className="bg-gray-800/50 rounded-2xl p-6 border border-gray-700/50">
+          <h3 className="text-xl font-semibold text-white mb-4">Entidades por Sector</h3>
+          <ResponsiveContainer width="100%" height={300}>
             <BarChart data={sectorData} layout="vertical">
-              <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#E5E7EB" />
-              <XAxis type="number" axisLine={false} tickLine={false} tick={{ fill: '#9CA3AF', fontSize: 12 }} />
-              <YAxis 
-                dataKey="sector" 
-                type="category" 
-                axisLine={false} 
-                tickLine={false} 
-                tick={{ fill: '#374151', fontSize: 12 }}
-                width={100}
-              />
-              <Tooltip 
-                contentStyle={{ 
-                  background: 'white', 
-                  border: '1px solid #E5E7EB',
-                  borderRadius: '12px',
-                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-                  padding: '12px'
-                }} 
-              />
-              <Bar dataKey="count" fill="#3B82F6" radius={[0, 6, 6, 0]} barSize={20} />
+              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+              <XAxis type="number" tick={{fill: '#9CA3AF'}} />
+              <YAxis dataKey="sector" type="category" tick={{fill: '#E5E7EB'}} width={80} />
+              <Tooltip contentStyle={{background: '#1F2937', border: '1px solid #374151', borderRadius: '8px'}} />
+              <Bar dataKey="count" fill="#3B82F6" radius={[0,4,4,0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
 
-        {/* X-Road Status */}
-        <div className="chart-card rounded-2xl p-6 hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h3 className="text-lg font-semibold text-white">Estado de Conectividad</h3>
-              <p className="text-sm text-gray-300 mt-1">X-Road por status</p>
-            </div>
-            <div className="p-2 bg-green-500/30 rounded-lg">
-              <Link2 className="h-5 w-5 text-white" />
-            </div>
-          </div>
-          <div className="flex items-center justify-center">
-            <ResponsiveContainer width="100%" height={280}>
-              <PieChart>
-                <Pie
-                  data={xroadStatus}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={100}
-                  paddingAngle={4}
-                  dataKey="count"
-                  nameKey="status"
-                >
-                  {xroadStatus.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip 
-                  contentStyle={{ 
-                    background: 'white', 
-                    border: '1px solid #E5E7EB',
-                    borderRadius: '12px',
-                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-                    padding: '12px'
-                  }} 
-                  formatter={(value, name) => [`${value} entidades`, name]}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-          <div className="flex justify-center gap-4 mt-4">
-            {xroadStatus.map((item, index) => (
-              <div key={item.status} className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>
-                <span className="text-sm text-gray-600">{item.status}</span>
+        <div className="bg-gray-800/50 rounded-2xl p-6 border border-gray-700/50">
+          <h3 className="text-xl font-semibold text-white mb-4">Estado de Conectividad</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <PieChart>
+              <Pie data={xroadStatus} cx="50%" cy="50%" innerRadius={60} outerRadius={100} dataKey="count" nameKey="status">
+                {xroadStatus.map((e, i) => <Cell key={i} fill={e.status==='connected'?'#10B981':e.status==='pending'?'#F59E0B':'#EF4444'} />)}
+              </Pie>
+              <Tooltip contentStyle={{background: '#1F2937', border: '1px solid #374151', borderRadius: '8px'}} />
+            </PieChart>
+          </ResponsiveContainer>
+          <div className="flex justify-center gap-4 mt-2">
+            {xroadStatus.map(e => (
+              <div key={e.status} className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full" style={{backgroundColor: e.status==='connected'?'#10B981':e.status==='pending'?'#F59E0B':'#EF4444'}} />
+                <span className="text-gray-300">{e.status}</span>
+                <span className="text-white font-bold">{e.count}</span>
               </div>
             ))}
           </div>
         </div>
       </div>
 
-      {/* Maturity Distribution */}
-      <div className="chart-card rounded-2xl p-6 hover:shadow-md transition-shadow">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h3 className="text-lg font-semibold text-white">Niveles de Madurez</h3>
-            <p className="text-sm text-gray-300 mt-1">Evaluacion por nivel de interoperabilidad</p>
-          </div>
-          <div className="p-2 bg-purple-500/30 rounded-lg">
-            <Shield className="h-5 w-5 text-white" />
-          </div>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          {maturityDistribution.map((level, index) => (
-            <div 
-              key={level.name}
-              className="p-4 rounded-xl bg-white/10 hover:shadow-md transition-all"
-              style={{ borderLeftColor: level.color, borderLeftWidth: '4px' }}
-            >
-              <p className="text-sm text-gray-300">{level.name}</p>
-              <p className="text-2xl font-bold mt-1" style={{ color: level.color }}>
-                {level.value}
-              </p>
+      {/* Maturity */}
+      <div className="bg-gray-800/50 rounded-2xl p-6 border border-gray-700/50 mb-8">
+        <h3 className="text-xl font-semibold text-white mb-4">Niveles de Madurez</h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+          {maturityDistribution.map(m => (
+            <div key={m.name} className="p-4 rounded-xl bg-gray-700/30 border-l-4" style={{borderLeftColor: m.color}}>
+              <p className="text-gray-400 text-sm">{m.name}</p>
+              <p className="text-2xl font-bold" style={{color: m.color}}>{m.value}</p>
             </div>
           ))}
         </div>
-        <ResponsiveContainer width="100%" height={200}>
-          <BarChart data={maturityDistribution}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
-            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#6B7280', fontSize: 11 }} />
-            <YAxis axisLine={false} tickLine={false} tick={{ fill: '#6B7280', fontSize: 11 }} />
-            <Tooltip 
-              contentStyle={{ 
-                background: 'white', 
-                border: '1px solid #E5E7EB',
-                borderRadius: '12px',
-                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-                padding: '12px'
-              }} 
-            />
-            <Bar dataKey="value" radius={[6, 6, 0, 0]}>
-              {maturityDistribution.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.color} />
-              ))}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
       </div>
 
-      {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="quick-stat-card bg-gradient-to-br from-blue-500/50 to-blue-600/50 rounded-2xl p-6 text-white">
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-white/20 rounded-xl">
-              <TrendingUp className="h-6 w-6" />
-            </div>
-            <div>
-              <p className="text-blue-100 text-sm">Tasa de Conexion</p>
-              <p className="text-3xl font-bold">{kpis?.xroad_connection_rate || 0}%</p>
-            </div>
-          </div>
-          <div className="mt-4 h-2 bg-white/20 rounded-full overflow-hidden">
-            <div className="h-full bg-white rounded-full" style={{ width: `${kpis?.xroad_connection_rate || 0}%` }}></div>
-          </div>
-        </div>
-
-        <div className="quick-stat-card bg-gradient-to-br from-green-500/50 to-emerald-600/50 rounded-2xl p-6 text-white">
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-white/20 rounded-xl">
-              <Server className="h-6 w-6" />
-            </div>
-            <div>
-              <p className="text-green-100 text-sm">Servicios Activos</p>
-              <p className="text-3xl font-bold">{kpis?.total_services || 0}</p>
-            </div>
-          </div>
-          <p className="mt-4 text-green-100 text-sm">+12% vs mes anterior</p>
-        </div>
-
-        <div className="quick-stat-card bg-gradient-to-br from-purple-500/50 to-violet-600/50 rounded-2xl p-6 text-white">
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-white/20 rounded-xl">
-              <Shield className="h-6 w-6" />
-            </div>
-            <div>
-              <p className="text-purple-100 text-sm">Nivel Promedio Madurez</p>
-              <p className="text-3xl font-bold">{kpis?.average_maturity_score || 0}%</p>
-            </div>
-          </div>
-          <p className="mt-4 text-purple-100 text-sm">Nivel: Intermedio-Alto</p>
-        </div>
+      {/* DEBUG */}
+      <div className="p-4 bg-gray-800/30 rounded-xl text-center">
+        <p className="text-gray-500 text-sm">
+          DEBUG: Entidades={kpis?.total_entities} | Conectadas={kpis?.xroad_connected} | 
+          Pendientes={kpis?.xroad_pending} | Servicios={kpis?.total_services} | 
+          Madurez={kpis?.average_maturity_score}%
+        </p>
       </div>
     </div>
   )
