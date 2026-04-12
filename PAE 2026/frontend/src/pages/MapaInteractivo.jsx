@@ -307,6 +307,9 @@ export default function MapaInteractivo() {
                           <Building2 className="h-4 w-4" />
                           <span>{entity.sector_name}</span>
                         </div>
+                        <div className="flex items-center gap-2 mt-1 text-sm text-gray-500">
+                          <span>Lat: {entity.latitude?.toFixed(4)}, Lng: {entity.longitude?.toFixed(4)}</span>
+                        </div>
                         <div className="mt-3">
                           <span
                             className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium"
