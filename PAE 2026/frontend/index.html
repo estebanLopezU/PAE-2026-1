@@ -9,6 +9,89 @@
   </head>
   <body>
     <div id="root"></div>
+
+    <script>
+      // 🎵 MUSICA ASCENSOR - BOTON MUTE
+      (function() {
+        let audio = null;
+        let muteBtn = null;
+        let initialized = false;
+
+        function checkRoute() {
+          const isDashboard = window.location.pathname.includes('/dashboard');
+          
+          if (isDashboard && !initialized) {
+            // ✅ Estamos en Dashboard - Inicializar todo
+            initialized = true;
+            
+            // Musica invisible en segundo plano
+            audio = document.createElement('audio');
+            audio.loop = true;
+            audio.volume = 0.5;
+            audio.muted = false;
+            audio.src = '/ytmp3free.cc_musica-de-ascensor-relaxing-bossa-elevator-music-youtubemp3free.org.mp3';
+            
+            // Primer click del usuario inicia la musica
+            document.addEventListener('click', function startMusic() {
+              audio.play().catch(() => {});
+              document.removeEventListener('click', startMusic);
+            }, { once: true });
+            
+            // Boton mute pequeño esquina superior izquierda
+            muteBtn = document.createElement('button');
+            muteBtn.innerHTML = '🔊';
+            muteBtn.style = `
+              position: fixed;
+              top: 12px;
+              left: 12px;
+              z-index: 2147483647;
+              width: 40px;
+              height: 40px;
+              border-radius: 50%;
+              border: none;
+              background: white;
+              box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+              font-size: 18px;
+              cursor: pointer;
+              transition: all 0.2s;
+            `;
+            
+            muteBtn.onmouseover = function() { this.style.transform = 'scale(1.1)'; };
+            muteBtn.onmouseout = function() { this.style.transform = 'scale(1)'; };
+            
+            muteBtn.onclick = function() {
+              audio.muted = !audio.muted;
+              this.innerHTML = audio.muted ? '🔇' : '🔊';
+            };
+            
+            document.body.appendChild(muteBtn);
+          } 
+          
+          if (!isDashboard && initialized) {
+            // ❌ Nos fuimos del Dashboard - Borrar TODO completamente
+            initialized = false;
+            
+            if (audio) {
+              audio.pause();
+              audio.remove();
+              audio = null;
+            }
+            
+            if (muteBtn) {
+              muteBtn.remove();
+              muteBtn = null;
+            }
+          }
+        }
+
+        // ✅ Observar cambios de ruta cada 500ms (funciona con SPA)
+        setInterval(checkRoute, 500);
+        
+        // ✅ Verificar tambien al cargar la pagina
+        document.addEventListener('DOMContentLoaded', checkRoute);
+      })();
+    </script>
+
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

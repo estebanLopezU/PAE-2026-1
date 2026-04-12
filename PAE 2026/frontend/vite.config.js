@@ -4,6 +4,10 @@ import path from 'path'
 
 export default defineConfig({
   plugins: [react()],
+  publicDir: 'public',
+  build: {
+    assetsInclude: ['**/*.mp3']
+  },
   server: {
     port: 5173,
     host: true,
