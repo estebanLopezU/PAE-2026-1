@@ -181,7 +181,7 @@ def generate_all_services(
         
         for i in range(min(num_services, len(services_to_create))):
             svc = services_to_create[i]
-            code = f"{entity.acronym or entity.name[:3].upper()}-{svc['category'][:3].upper()}-{i+1:03d}"
+            code = f"{entity.id}-{entity.acronym or entity.name[:3].upper()}-{svc['category'][:3].upper()}-{i+1:03d}"
             
             existing = db.query(Service).filter(
                 Service.entity_id == entity.id,
