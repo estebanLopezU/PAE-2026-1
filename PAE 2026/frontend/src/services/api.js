@@ -81,4 +81,9 @@ export const reportsApi = {
   downloadMaturityXlsx: () => api.get('/reports/maturity/xlsx', { responseType: 'blob' }),
 }
 
+// Relationships API
+export const relationshipsApi = {
+  getGraph: () => api.get('/relationships/graph'),
+}
+
 export default api

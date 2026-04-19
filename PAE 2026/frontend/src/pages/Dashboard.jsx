@@ -15,6 +15,7 @@ import {
   CheckCircle
 } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
+import RelationshipGraph from '../components/RelationshipGraph'
 
 const API_BASE = '/api/v1'
 
@@ -197,6 +198,22 @@ export default function Dashboard() {
             </div>
           ))}
         </div>
+      </div>
+
+      {/* Relationship Graph Section */}
+      <div className="animate-fade-in mb-8">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="text-2xl font-bold text-white">Red de Interconexión Estatal</h3>
+            <p className="text-gray-400">Visualización de flujos de información y dependencias entre entidades</p>
+          </div>
+          <div className="flex gap-2">
+            <span className="px-3 py-1 bg-green-500/10 text-green-400 border border-green-500/20 rounded-full text-xs flex items-center gap-1">
+              <CheckCircle className="h-3 w-3" /> Motor de Red Activo
+            </span>
+          </div>
+        </div>
+        <RelationshipGraph />
       </div>
 
       {/* DEBUG */}

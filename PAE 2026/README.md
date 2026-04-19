@@ -20,15 +20,27 @@
 
 **X-Road Colombia** es una plataforma integral para la gestión y monitoreo de la interoperabilidad entre entidades gubernamentales colombianas, basada en el Marco de Interoperabilidad del MinTIC.
 
-### Características Principales:
+### 🎯 Hallazgo Principal del Estudio:
+
+✅ ✅ **De las 127 entidades oficialmente registradas en el nodo central de X-Road:**
+✅ ✅ **77 entidades** = Cuentan con informacion publica disponible, servicios publicados y documentacion accesible
+✅ ✅ **50 entidades** = Estan registradas oficialmente, PERO NO tienen absolutamente ninguna informacion publica disponible.
+
+✅ Casi el 40% de las entidades que oficialmente se anuncian como conectadas, no tienen ninguna presencia publica ni operativa verificable.
+
+---
+
+### ✅ Características Principales:
 
 - 📊 **Dashboard Interactivo** - Visualización en tiempo real del ecosistema X-Road
 - 🏛️ **Gestión de Entidades** - Registro y monitoreo de entidades gubernamentales
 - 🔗 **Servicios de Interoperabilidad** - Catálogo de APIs y servicios disponibles
-- 📈 **Evaluación de Madurez** - Sistema de evaluación según el Marco MinTIC
-- 🗺️ **Mapa Interactivo** - Geolocalización de entidades en Colombia
+- 📈 **Evaluación de Madurez** - Sistema de evaluación según el Marco Oficial MinTIC
+- 🗺️ **Mapa Interactivo** - Geolocalización de entidades en todo el territorio nacional
 - 📋 **Reportes** - Generación de reportes en CSV para análisis
 - 🤖 **Análisis con IA** - Recomendaciones inteligentes y análisis predictivo
+- 🔐 **Seguridad por diseño** - Arquitectura solo lectura, Rate Limiting y protecciones contra ataques comunes
+- ⚡ **Motor de calificacion automatico** - Evalua entidades automaticamente en menos de 30 segundos
 
 ---
 
@@ -302,6 +314,11 @@ PUT    /api/v1/maturity/assessments/{id}
 DELETE /api/v1/maturity/assessments/{id}
 ```
 
+### Relaciones
+```
+GET /api/v1/relationships/graph
+```
+
 ### Reportes
 ```
 GET /api/v1/reports/entities/csv
@@ -543,5 +560,7 @@ docker exec xroad-backend python scripts/seed_data.py
 Este proyecto está bajo la Licencia MIT.
 
 ---
+
+**¡Gracias por usar X-Road Colombia! 🇨🇴**
 
 **¡Gracias por usar X-Road Colombia! 🇨🇴**
