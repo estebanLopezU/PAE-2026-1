@@ -50,7 +50,7 @@ export default function AnalisisIA() {
     try {
       setError(null)
       const [entitiesRes, sectorsRes] = await Promise.all([
-        entitiesApi.getAll({ limit: 100 }),
+        entitiesApi.getAll({ limit: 200 }),
         sectorsApi.getAll({ limit: 100 })
       ])
       setEntities(entitiesRes.data?.items || [])

@@ -11,6 +11,7 @@ import MapaInteractivo from './pages/MapaInteractivo'
 import EvaluacionMadurez from './pages/EvaluacionMadurez'
 import Reportes from './pages/Reportes'
 import AnalisisIA from './pages/AnalisisIA'
+import AuditoriaSeguridad from './pages/AuditoriaSeguridad'
 
 // Componente para proteger rutas que requieren autenticación
 function ProtectedRoute({ children }) {
@@ -67,11 +68,11 @@ function ProtectedRoute({ children }) {
     }
   }, [showLoading])
   
-  // Hide loading after 5 seconds
+  // Hide loading after 1.5 seconds
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowLoading(false)
-    }, 5000)
+    }, 1500)
     
     return () => clearTimeout(timer)
   }, [])
@@ -449,6 +450,17 @@ function AppRoutes() {
           <ProtectedRoute>
             <Layout>
               <AnalisisIA />
+            </Layout>
+          </ProtectedRoute>
+        } 
+      />
+      
+      <Route 
+        path="/auditoria-seguridad" 
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <AuditoriaSeguridad />
             </Layout>
           </ProtectedRoute>
         } 
