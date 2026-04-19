@@ -9,7 +9,7 @@ from app.models.entity import Entity
 def add_entities():
     db = SessionLocal()
     
-    with open('/app/entities_to_add.json', 'r', encoding='utf-8') as f:
+    with open('entities_to_add.json', 'r', encoding='utf-8') as f:
         entities_data = json.load(f)
     
     added_count = 0

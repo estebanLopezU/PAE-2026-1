@@ -60,8 +60,8 @@ export default function EvaluacionMadurez() {
     try {
       setError(null)
       const [assessmentsRes, entitiesRes] = await Promise.all([
-        maturityApi.getAssessments({ limit: 100 }),
-        entitiesApi.getAll({ limit: 100 })
+        maturityApi.getAssessments({ limit: 150 }),
+        entitiesApi.getAll({ limit: 150 })
       ])
       
       const assessmentsData = Array.isArray(assessmentsRes.data) ? assessmentsRes.data : []
