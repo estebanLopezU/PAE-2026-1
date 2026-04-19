@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
-import { servicesApi, sectorsApi } from '../services/api'
+import { servicesApi, sectorsApi, entitiesApi, relationshipsApi } from '../services/api'
 import clsx from 'clsx'
+import { RefreshCw, CheckCircle, XCircle, Clock } from 'lucide-react'
 
 export default function MatrizServicios() {
   const [services, setServices] = useState([])
@@ -10,9 +11,20 @@ export default function MatrizServicios() {
     protocol: '',
     category: ''
   })
+  const [activeTab, setActiveTab] = useState('services')
+  const [relationships, setRelationships] = useState([])
+  const [lastUpdate, setLastUpdate] = useState(null)
 
   useEffect(() => {
     fetchData()
+    
+    // Auto actualizar cada 30 segundos en tiempo real
+    const interval = setInterval(() => {
+      fetchData()
+      setLastUpdate(new Date())
+    }, 30000)
+    
+    return () => clearInterval(interval)
   }, [filters])
 
   const fetchData = async () => {

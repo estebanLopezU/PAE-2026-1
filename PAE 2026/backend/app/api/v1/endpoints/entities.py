@@ -17,7 +17,7 @@ router = APIRouter()
 @router.get("/", response_model=EntityList)
 def list_entities(
     skip: int = Query(0, ge=0),
-    limit: int = Query(20, ge=1, le=100),
+    limit: int = Query(20, ge=1, le=200),
     sector_id: Optional[int] = None,
     xroad_status: Optional[str] = None,
     department: Optional[str] = None,

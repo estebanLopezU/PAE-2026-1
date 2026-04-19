@@ -67,7 +67,7 @@ export default function MapaInteractivo() {
     try {
       console.log('=== MAPA: Obteniendo entidades ===')
       const [entitiesRes, sectorsRes] = await Promise.all([
-        entitiesApi.getAll({ limit: 100 }),
+        entitiesApi.getAll({ limit: 200 }),
         sectorsApi.getAll({ limit: 100 })
       ])
       console.log('MAPA: Entidades recibidas:', entitiesRes.data.items.length)

@@ -21,7 +21,7 @@ def get_maturity_levels():
 @router.get("/assessments", response_model=List[MaturitySchema])
 def list_assessments(
     skip: int = Query(0, ge=0),
-    limit: int = Query(20, ge=1, le=100),
+    limit: int = Query(20, ge=1, le=200),
     entity_id: Optional[int] = None,
     min_level: Optional[int] = None,
     max_level: Optional[int] = None,
