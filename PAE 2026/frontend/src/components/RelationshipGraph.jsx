@@ -1,31 +1,38 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import ForceGraph2D from 'react-force-graph-2d';
-import { Search, Info, ZoomIn, ZoomOut, Maximize2, Zap } from 'lucide-react';
-import { relationshipsApi } from '../services/api';
+import { Search, ZoomIn, ZoomOut, Maximize2, Zap, X } from 'lucide-react';
+import { relationshipsApi, sectorsApi } from '../services/api';
+
+const HUB_RADIUS = 320;
+const ENTITY_RADIUS = 150;
+const ROOT_COLOR = '#FBBF24';
+
+function hexWithAlpha(hex, alpha255) {
+  const h = hex.replace('#', '');
+  return `#${h}${Math.round(alpha255).toString(16).padStart(2, '0')}`;
+}
 
 export default function RelationshipGraph() {
-  const [graphData, setGraphData] = useState({ nodes: [], links: [] });
+  const [rawData, setRawData] = useState({ nodes: [], links: [] });
+  const [sectors, setSectors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [hoverNode, setHoverNode] = useState(null);
   const [selectedNode, setSelectedNode] = useState(null);
   const [highlightNodes, setHighlightNodes] = useState(new Set());
   const [highlightLinks, setHighlightLinks] = useState(new Set());
-  const [hoverNode, setHoverNode] = useState(null);
   const fgRef = useRef();
 
   useEffect(() => {
-    relationshipsApi.getGraph()
-      .then(res => {
-        const data = res.data;
-        // Map source/target to object references
-        const nodesById = Object.fromEntries(data.nodes.map(node => [node.id, node]));
-        const links = data.links.map(link => ({
-          ...link,
-          source: nodesById[link.source],
-          target: nodesById[link.target]
-        })).filter(link => link.source && link.target);
-
-        setGraphData({ nodes: data.nodes, links });
+    Promise.all([
+      relationshipsApi.getGraph(),
+      sectorsApi.getAll(),
+    ])
+      .then(([relRes, secRes]) => {
+        const data = relRes.data;
+        const secData = secRes.data?.items || secRes.data || [];
+        setRawData(data);
+        setSectors(secData);
         setLoading(false);
       })
       .catch(err => {
@@ -34,77 +41,235 @@ export default function RelationshipGraph() {
       });
   }, []);
 
-  const updateHighlight = () => {
-    setHighlightNodes(new Set(highlightNodes));
-    setHighlightLinks(new Set(highlightLinks));
-  };
+  const { graphData, entityNodes, hubCount } = useMemo(() => {
+    if (!rawData.nodes.length) {
+      return { graphData: { nodes: [], links: [] }, entityNodes: [], hubCount: 0 };
+    }
 
-  const handleNodeHover = node => {
-    highlightNodes.clear();
-    highlightLinks.clear();
+    // Normalize all IDs to strings
+    const rawNodes = rawData.nodes.map(n => ({ ...n, id: String(n.id) }));
+    const nodesById = new Map(rawNodes.map(n => [n.id, n]));
+
+    // Group entity IDs by sector
+    const entitiesBySector = {};
+    rawNodes.forEach(n => {
+      const sec = n.sector || 'Otros';
+      if (!entitiesBySector[sec]) entitiesBySector[sec] = [];
+      entitiesBySector[sec].push(n.id);
+    });
+
+    const sortedSectors = Object.keys(entitiesBySector)
+      .map(name => {
+        const s = sectors.find(sec => sec.name === name);
+        return { name, color: s?.color || '#94A3B8', count: entitiesBySector[name].length };
+      })
+      .sort((a, b) => b.count - a.count);
+
+    const rootNode = {
+      id: 'root',
+      name: 'Estado Colombiano',
+      val: 20,
+      level: 'root',
+      x: 0,
+      y: 0,
+    };
+
+    const hubNodes = sortedSectors.map((s, i) => {
+      const angle = (i / sortedSectors.length) * 2 * Math.PI - Math.PI / 2;
+      return {
+        id: `hub-${s.name}`,
+        name: s.name,
+        sector: s.name,
+        color: s.color,
+        val: 10 + s.count * 0.3,
+        level: 'hub',
+        x: Math.cos(angle) * HUB_RADIUS,
+        y: Math.sin(angle) * HUB_RADIUS,
+      };
+    });
+
+    const hubBySector = new Map(hubNodes.map(h => [h.sector, h]));
+
+    const allNodes = [rootNode, ...hubNodes];
+    const positionedEntityIds = new Set();
+
+    sortedSectors.forEach((sec) => {
+      const hub = hubBySector.get(sec.name);
+      const ids = entitiesBySector[sec.name];
+      const count = ids.length;
+      const baseAngle = Math.atan2(hub.y, hub.x);
+      const spread = Math.min(Math.PI / 1.3, Math.max(Math.PI / 6, count * 0.28));
+
+      ids.forEach((eid, j) => {
+        const entity = nodesById.get(eid);
+        if (!entity) return;
+        const offset = count === 1 ? 0 : (j - (count - 1) / 2) * (spread / (count - 1));
+        const angle = baseAngle + offset;
+        entity.x = hub.x + Math.cos(angle) * ENTITY_RADIUS;
+        entity.y = hub.y + Math.sin(angle) * ENTITY_RADIUS;
+        entity.color = sec.color;
+        entity.level = 'entity';
+        entity.hubId = hub.id;
+        allNodes.push(entity);
+        positionedEntityIds.add(eid);
+      });
+    });
+
+    // Fallback for any orphan node
+    rawNodes.forEach(n => {
+      if (!positionedEntityIds.has(n.id)) {
+        n.x = (Math.random() - 0.5) * 300;
+        n.y = (Math.random() - 0.5) * 300;
+        n.color = '#94A3B8';
+        n.level = 'entity';
+        allNodes.push(n);
+      }
+    });
+
+    // Build links
+    const structuralLinks = hubNodes.map(h => ({
+      source: rootNode.id,
+      target: h.id,
+      type: 'structural',
+      value: 3,
+    }));
+
+    allNodes.forEach(n => {
+      if (n.level === 'entity' && n.hubId) {
+        structuralLinks.push({
+          source: n.hubId,
+          target: n.id,
+          type: 'structural',
+          value: 1,
+        });
+      }
+    });
+
+    const validIds = new Set(allNodes.map(n => n.id));
+    const dataLinks = (rawData.links || [])
+      .map(link => ({
+        ...link,
+        source: String(link.source),
+        target: String(link.target),
+        type: 'data',
+        value: 1,
+      }))
+      .filter(link => validIds.has(link.source) && validIds.has(link.target));
+
+    return {
+      graphData: { nodes: allNodes, links: [...structuralLinks, ...dataLinks] },
+      entityNodes: rawNodes,
+      hubCount: hubNodes.length,
+    };
+  }, [rawData, sectors]);
+
+  const handleNodeHover = useCallback(node => {
+    const newHN = new Set();
+    const newHL = new Set();
     if (node) {
-      highlightNodes.add(node);
+      newHN.add(node);
       graphData.links.forEach(link => {
-        if (link.source.id === node.id || link.target.id === node.id) {
-          highlightLinks.add(link);
-          highlightNodes.add(link.source);
-          highlightNodes.add(link.target);
+        const sId = typeof link.source === 'object' ? link.source.id : link.source;
+        const tId = typeof link.target === 'object' ? link.target.id : link.target;
+        if (sId === node.id || tId === node.id) {
+          newHL.add(link);
+          const sNode = graphData.nodes.find(n => n.id === sId);
+          const tNode = graphData.nodes.find(n => n.id === tId);
+          if (sNode) newHN.add(sNode);
+          if (tNode) newHN.add(tNode);
         }
       });
+      if (node.level === 'hub') {
+        graphData.nodes.forEach(n => {
+          if (n.hubId === node.id) newHN.add(n);
+        });
+      }
+      if (node.level === 'root') {
+        graphData.nodes.forEach(n => newHN.add(n));
+        graphData.links.forEach(l => newHL.add(l));
+      }
     }
     setHoverNode(node || null);
-    updateHighlight();
-  };
+    setHighlightNodes(newHN);
+    setHighlightLinks(newHL);
+  }, [graphData]);
 
-  const handleLinkHover = link => {
-    highlightNodes.clear();
-    highlightLinks.clear();
+  const handleLinkHover = useCallback(link => {
+    const newHN = new Set();
+    const newHL = new Set();
     if (link) {
-      highlightLinks.add(link);
-      highlightNodes.add(link.source);
-      highlightNodes.add(link.target);
+      newHL.add(link);
+      const sId = typeof link.source === 'object' ? link.source.id : link.source;
+      const tId = typeof link.target === 'object' ? link.target.id : link.target;
+      const sNode = graphData.nodes.find(n => n.id === sId);
+      const tNode = graphData.nodes.find(n => n.id === tId);
+      if (sNode) newHN.add(sNode);
+      if (tNode) newHN.add(tNode);
     }
-    updateHighlight();
-  };
+    setHoverNode(null);
+    setHighlightNodes(newHN);
+    setHighlightLinks(newHL);
+  }, [graphData]);
 
-  const filteredNodes = graphData.nodes.filter(n => 
-    n.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    (n.acronym && n.acronym.toLowerCase().includes(searchTerm.toLowerCase()))
+  const filteredNodes = entityNodes.filter(n =>
+    n.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    n.acronym?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleSearch = (node) => {
     setSearchTerm(node.name);
     setSelectedNode(node);
-    fgRef.current.centerAt(node.x, node.y, 1000);
-    fgRef.current.zoom(3, 1000);
-    handleNodeHover(node);
+    const targetNode = graphData.nodes.find(n => n.id === String(node.id));
+    if (targetNode && fgRef.current) {
+      fgRef.current.centerAt(targetNode.x, targetNode.y, 800);
+      fgRef.current.zoom(2.5, 800);
+    }
+    handleNodeHover(targetNode);
   };
 
-  if (loading) return (
-    <div className="h-[600px] flex items-center justify-center bg-gray-900 rounded-2xl border border-gray-700">
-      <div className="text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-        <p className="text-gray-400">Iniciando Motor de Interconexión...</p>
+  const clearSearch = () => {
+    setSearchTerm('');
+    setSelectedNode(null);
+    setHighlightNodes(new Set());
+    setHighlightLinks(new Set());
+    setHoverNode(null);
+    if (fgRef.current) {
+      fgRef.current.zoomToFit(800, 40);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="h-[700px] flex items-center justify-center bg-gray-900 rounded-2xl border border-gray-700">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-400">Iniciando Motor de Interconexión...</p>
+        </div>
       </div>
-    </div>
-  );
+    );
+  }
 
   return (
-    <div className="relative bg-[#050a18] rounded-2xl border border-gray-700 overflow-hidden group">
+    <div className="relative bg-[#050a18] rounded-2xl border border-gray-700 overflow-hidden group h-[700px]">
       {/* Search Bar */}
-      <div className="absolute top-4 left-4 z-10 w-72">
+      <div className="absolute top-4 left-4 z-10 w-80">
         <div className="relative">
           <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
           <input
             type="text"
             placeholder="Buscar entidad en la red..."
-            className="w-full bg-gray-800/80 backdrop-blur-md border border-gray-700 rounded-xl py-2 pl-10 pr-4 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
+            className="w-full bg-gray-800/90 backdrop-blur-md border border-gray-700 rounded-xl py-2 pl-10 pr-10 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => { setSearchTerm(e.target.value); setSelectedNode(null); }}
           />
+          {searchTerm && (
+            <button onClick={clearSearch} className="absolute right-3 top-2.5 text-gray-400 hover:text-white">
+              <X className="h-4 w-4" />
+            </button>
+          )}
           {searchTerm && filteredNodes.length > 0 && !selectedNode && (
             <div className="absolute mt-2 w-full bg-gray-800 border border-gray-700 rounded-xl overflow-hidden shadow-2xl max-h-60 overflow-y-auto z-20">
-              {filteredNodes.slice(0, 5).map(node => (
+              {filteredNodes.slice(0, 6).map(node => (
                 <button
                   key={node.id}
                   onClick={() => handleSearch(node)}
@@ -118,46 +283,69 @@ export default function RelationshipGraph() {
         </div>
       </div>
 
-      {/* Stats/Legend */}
-      <div className="absolute bottom-4 left-4 z-10 p-4 bg-gray-900/80 backdrop-blur-md border border-gray-700 rounded-xl text-xs space-y-3 pointer-events-none">
+      {/* Stats / Legend */}
+      <div className="absolute bottom-4 left-4 z-10 p-4 bg-gray-900/80 backdrop-blur-md border border-gray-700 rounded-xl text-xs space-y-3 pointer-events-none max-w-[220px]">
         <div className="flex items-center gap-2">
           <Zap className="h-4 w-4 text-yellow-400 fill-yellow-400" />
-          <span className="text-white font-bold">Estado: Red Operativa</span>
+          <span className="text-white font-bold">Red Neuronal Estatal</span>
         </div>
         <div className="space-y-1.5">
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-blue-500 shadow-[0_0_10px_#3B82F6]"></div>
-            <span className="text-gray-300">Entidad Pública</span>
+            <div className="w-3 h-3 rounded-full bg-amber-400 shadow-[0_0_10px_#FBBF24]"></div>
+            <span className="text-gray-300">Núcleo Central</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-6 h-1 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full"></div>
-            <span className="text-gray-300">Flujo de Datos (Real-time)</span>
+            <div className="w-3 h-3 rounded-full bg-emerald-500 shadow-[0_0_8px_#10B981]"></div>
+            <span className="text-gray-300">Hubs Sectoriales</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-blue-400"></div>
+            <span className="text-gray-300">Entidades</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-0.5 bg-gradient-to-r from-gray-500 to-gray-700 rounded-full"></div>
+            <span className="text-gray-300">Interconexión</span>
           </div>
         </div>
-        <p className="text-gray-500 text-[10px]">Total Conexiones: {graphData.links.length}</p>
+        <p className="text-gray-500 text-[10px] pt-1 border-t border-gray-700">
+          {rawData.nodes.length} entidades • {rawData.links.length} conexiones • {hubCount} sectores
+        </p>
       </div>
 
-      {/* Floating Info Panel */}
+      {/* Info Panel */}
       {hoverNode && (
         <div className="absolute top-4 right-4 z-10 p-5 bg-blue-900/20 backdrop-blur-xl border border-blue-400/30 rounded-2xl w-72 animate-fade-in shadow-[0_0_20px_rgba(59,130,246,0.1)]">
           <div className="flex items-center justify-between mb-2">
-            <h4 className="text-blue-400 font-bold text-[10px] uppercase tracking-[0.2em]">Conexión Activa</h4>
+            <h4 className="text-blue-400 font-bold text-[10px] uppercase tracking-[0.2em]">
+              {hoverNode.level === 'root' ? 'Núcleo Central' : hoverNode.level === 'hub' ? 'Sector Estratégico' : 'Conexión Activa'}
+            </h4>
             <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse"></div>
           </div>
           <p className="text-white font-extrabold text-lg leading-tight mb-3">{hoverNode.name}</p>
           <div className="flex flex-wrap gap-2 mb-4">
-            <span className="px-2 py-1 bg-blue-500/20 text-blue-300 rounded-md text-[10px] border border-blue-500/30 font-medium">
-              {hoverNode.sector}
-            </span>
+            {hoverNode.sector && hoverNode.level !== 'hub' && (
+              <span className="px-2 py-1 bg-blue-500/20 text-blue-300 rounded-md text-[10px] border border-blue-500/30 font-medium">
+                {hoverNode.sector}
+              </span>
+            )}
             {hoverNode.acronym && (
               <span className="px-2 py-1 bg-purple-500/20 text-purple-300 rounded-md text-[10px] border border-purple-500/30 font-medium">
                 {hoverNode.acronym}
               </span>
             )}
+            {hoverNode.level === 'hub' && (
+              <span className="px-2 py-1 bg-emerald-500/20 text-emerald-300 rounded-md text-[10px] border border-emerald-500/30 font-medium">
+                {graphData.nodes.filter(n => n.hubId === hoverNode.id).length} entidades
+              </span>
+            )}
           </div>
           <div className="pt-4 border-t border-blue-500/20">
             <p className="text-gray-400 text-[11px]">
-              {highlightLinks.size > 0 
+              {hoverNode.level === 'root'
+                ? `Eje central de interoperabilidad con ${hubCount} sectores estratégicos.`
+                : hoverNode.level === 'hub'
+                ? 'Coordina la interoperabilidad de su sector con el ecosistema nacional.'
+                : highlightLinks.size > 0
                 ? `Interoperando con ${highlightLinks.size} entidades del Estado.`
                 : 'Sin conexiones externas verificadas en este momento.'}
             </p>
@@ -165,50 +353,118 @@ export default function RelationshipGraph() {
         </div>
       )}
 
-      {/* The Neural Graph */}
+      {/* Neural Graph */}
       <ForceGraph2D
         ref={fgRef}
         graphData={graphData}
         backgroundColor="#050a18"
-        nodeRelSize={7}
-        nodeColor={node => highlightNodes.has(node) ? '#60A5FA' : '#1D4ED8'}
-        linkColor={link => highlightLinks.has(link) ? '#60A5FA' : 'rgba(59, 130, 246, 0.2)'}
-        linkWidth={link => highlightLinks.has(link) ? 3 : 1.5}
-        linkDirectionalParticles={4}
-        linkDirectionalParticleWidth={2}
-        linkDirectionalParticleSpeed={0.006}
+        nodeRelSize={6}
+        warmupTicks={0}
+        cooldownTicks={0}
+        enableNodeDrag={false}
+        enableZoomInteraction={true}
+        enablePanInteraction={true}
+        linkColor={link => {
+          if (highlightLinks.size && !highlightLinks.has(link)) return 'rgba(100,116,139,0.04)';
+          if (link.type === 'structural') {
+            const src = typeof link.source === 'object' ? link.source : graphData.nodes.find(n => n.id === link.source);
+            if (src && src.level === 'root') return 'rgba(251,191,36,0.35)';
+            return 'rgba(148,163,184,0.22)';
+          }
+          return highlightLinks.has(link) ? '#60A5FA' : 'rgba(59,130,246,0.12)';
+        }}
+        linkWidth={link => {
+          if (highlightLinks.has(link)) return 3;
+          return link.type === 'structural' ? 1.5 : 1;
+        }}
+        linkDirectionalParticles={link => link.type === 'data' ? 3 : 0}
+        linkDirectionalParticleWidth={link => highlightLinks.has(link) ? 3 : 1.5}
+        linkDirectionalParticleSpeed={0.008}
         linkDirectionalParticleColor={() => '#60A5FA'}
         onNodeHover={handleNodeHover}
         onLinkHover={handleLinkHover}
         nodeCanvasObject={(node, ctx, globalScale) => {
-          const label = node.acronym || node.name.substring(0, 8);
-          const fontSize = 14/globalScale;
-          
-          // Glow effect for all nodes
-          ctx.beginPath();
-          ctx.arc(node.x, node.y, 4, 0, 2 * Math.PI, false);
-          ctx.fillStyle = highlightNodes.has(node) ? '#FFFFFF' : '#3B82F6';
-          ctx.shadowBlur = highlightNodes.has(node) ? 15 : 5;
-          ctx.shadowColor = '#3B82F6';
-          ctx.fill();
-          ctx.shadowBlur = 0;
+          const isHighlighted = highlightNodes.has(node);
+          const isDimmed = highlightNodes.size && !isHighlighted;
 
-          // Text labels if zoomed in
-          if (globalScale > 2) {
-            ctx.font = `bold ${fontSize}px Inter, system-ui, sans-serif`;
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-            ctx.fillText(label, node.x, node.y + 12);
+          if (node.level === 'root') {
+            const r = 16 / globalScale;
+            // outer glow ring
+            ctx.beginPath();
+            ctx.arc(node.x, node.y, r + 8, 0, 2 * Math.PI);
+            ctx.fillStyle = isDimmed ? hexWithAlpha(ROOT_COLOR, 15) : hexWithAlpha(ROOT_COLOR, 50);
+            ctx.fill();
+            // core
+            ctx.beginPath();
+            ctx.arc(node.x, node.y, r, 0, 2 * Math.PI);
+            ctx.fillStyle = isDimmed ? hexWithAlpha(ROOT_COLOR, 80) : ROOT_COLOR;
+            ctx.shadowBlur = isHighlighted ? 30 : 14;
+            ctx.shadowColor = ROOT_COLOR;
+            ctx.fill();
+            ctx.shadowBlur = 0;
+            if (globalScale > 0.5) {
+              ctx.font = `bold ${13 / globalScale}px Inter, system-ui, sans-serif`;
+              ctx.textAlign = 'center';
+              ctx.textBaseline = 'middle';
+              ctx.fillStyle = isDimmed ? 'rgba(255,255,255,0.35)' : '#FFF';
+              ctx.fillText(node.name, node.x, node.y + r + 10);
+            }
+          } else if (node.level === 'hub') {
+            const r = (7 + node.val * 0.35) / globalScale;
+            const color = node.color || '#10B981';
+            // outer ring
+            ctx.beginPath();
+            ctx.arc(node.x, node.y, r + 5, 0, 2 * Math.PI);
+            ctx.fillStyle = isDimmed ? hexWithAlpha(color, 12) : hexWithAlpha(color, 45);
+            ctx.fill();
+            // core
+            ctx.beginPath();
+            ctx.arc(node.x, node.y, r, 0, 2 * Math.PI);
+            ctx.fillStyle = isDimmed ? hexWithAlpha(color, 70) : color;
+            ctx.shadowBlur = isHighlighted ? 22 : 10;
+            ctx.shadowColor = color;
+            ctx.fill();
+            ctx.shadowBlur = 0;
+            if (globalScale > 0.6) {
+              ctx.font = `bold ${11 / globalScale}px Inter, system-ui, sans-serif`;
+              ctx.textAlign = 'center';
+              ctx.textBaseline = 'middle';
+              ctx.fillStyle = isDimmed ? 'rgba(255,255,255,0.35)' : '#FFF';
+              ctx.fillText(node.name, node.x, node.y + r + 9);
+            }
+          } else {
+            const r = (3.5 + (node.val || 2) * 1.2) / globalScale;
+            const color = node.color || '#3B82F6';
+            ctx.beginPath();
+            ctx.arc(node.x, node.y, r, 0, 2 * Math.PI);
+            ctx.fillStyle = isDimmed ? hexWithAlpha(color, 45) : color;
+            ctx.shadowBlur = isHighlighted ? 14 : 5;
+            ctx.shadowColor = color;
+            ctx.fill();
+            ctx.shadowBlur = 0;
+
+            if ((globalScale > 1.6 || isHighlighted) && node.acronym) {
+              ctx.font = `bold ${9 / globalScale}px Inter, system-ui, sans-serif`;
+              ctx.textAlign = 'center';
+              ctx.textBaseline = 'middle';
+              ctx.fillStyle = isDimmed ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.85)';
+              ctx.fillText(node.acronym, node.x, node.y + r + 5);
+            }
           }
         }}
       />
 
       {/* Navigation Controls */}
       <div className="absolute bottom-4 right-4 z-10 flex flex-col gap-2">
-        <button onClick={() => fgRef.current.zoom(fgRef.current.zoom() * 1.5, 400)} className="p-2 bg-gray-800/80 border border-gray-700 rounded-xl text-gray-400 hover:text-white hover:bg-gray-700 transition-all"><ZoomIn className="h-5 w-5" /></button>
-        <button onClick={() => fgRef.current.zoom(fgRef.current.zoom() * 0.7, 400)} className="p-2 bg-gray-800/80 border border-gray-700 rounded-xl text-gray-400 hover:text-white hover:bg-gray-700 transition-all"><ZoomOut className="h-5 w-5" /></button>
-        <button onClick={() => fgRef.current.zoomToFit(400)} className="p-2 bg-gray-800/80 border border-gray-700 rounded-xl text-gray-400 hover:text-white hover:bg-gray-700 transition-all"><Maximize2 className="h-5 w-5" /></button>
+        <button onClick={() => fgRef.current?.zoom(fgRef.current.zoom() * 1.5, 400)} className="p-2 bg-gray-800/80 border border-gray-700 rounded-xl text-gray-400 hover:text-white hover:bg-gray-700 transition-all">
+          <ZoomIn className="h-5 w-5" />
+        </button>
+        <button onClick={() => fgRef.current?.zoom(fgRef.current.zoom() * 0.7, 400)} className="p-2 bg-gray-800/80 border border-gray-700 rounded-xl text-gray-400 hover:text-white hover:bg-gray-700 transition-all">
+          <ZoomOut className="h-5 w-5" />
+        </button>
+        <button onClick={() => fgRef.current?.zoomToFit(400, 40)} className="p-2 bg-gray-800/80 border border-gray-700 rounded-xl text-gray-400 hover:text-white hover:bg-gray-700 transition-all">
+          <Maximize2 className="h-5 w-5" />
+        </button>
       </div>
     </div>
   );
