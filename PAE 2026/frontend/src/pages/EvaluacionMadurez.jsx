@@ -43,6 +43,24 @@ const criteriaDescriptions = {
   trained_personnel: '¿El personal está capacitado en interoperabilidad?'
 }
 
+const criteriaKeyAliases = {
+  has_api_documentation: 'api_documentation',
+  uses_standard_protocols: 'standard_protocols',
+  has_data_quality: 'data_quality',
+  has_security_standards: 'security_standards',
+  has_interoperability_policy: 'interoperability_policy',
+  has_trained_personnel: 'trained_personnel'
+}
+
+const normalizeCriteria = (rawCriteria = {}) => {
+  return Object.entries(rawCriteria).reduce((acc, [rawKey, rawValue]) => {
+    const normalizedKey = criteriaKeyAliases[rawKey] || rawKey
+    const normalizedValue = typeof rawValue === 'boolean' ? (rawValue ? 1 : 0) : Number(rawValue) || 0
+    acc[normalizedKey] = normalizedValue
+    return acc
+  }, {})
+}
+
 export default function EvaluacionMadurez() {
   const { canCreate } = useAuth()
   const [assessments, setAssessments] = useState([])
@@ -94,6 +112,11 @@ export default function EvaluacionMadurez() {
     }
   }
 
+  const hasAssessmentForEntity = (entityId) => {
+    const normalizedEntityId = Number(entityId)
+    return assessments.some((assessment) => Number(assessment.entity_id) === normalizedEntityId)
+  }
+
   // Calculate overall score and level based on criteria
   const calculateMaturity = (criteria) => {
     const scores = Object.values(criteria)
@@ -132,10 +155,14 @@ export default function EvaluacionMadurez() {
     fullMark: 100
   })) : []
 
-  const criteriaChartData = radarData ? Object.entries(radarData.criteria).map(([key, value]) => ({
-    criteria: criteriaLabels[key],
-    score: value
-  })) : []
+  const normalizedCriteria = radarData ? normalizeCriteria(radarData.criteria) : {}
+  const criteriaChartData = radarData
+    ? Object.keys(criteriaLabels).map((key) => ({
+        criteria: criteriaLabels[key],
+        score: normalizedCriteria[key] ?? 0
+      }))
+    : []
+  const maxCriteriaScore = Math.max(4, ...criteriaChartData.map(item => item.score || 0))
 
   if (error) {
     return (
@@ -204,7 +231,7 @@ export default function EvaluacionMadurez() {
                   <option value="">Seleccione una entidad...</option>
                   {entities.map(entity => (
                     <option key={entity.id} value={entity.id}>
-                      {entity.name} {!entity.maturity_level && '(Pendiente evaluación)'}
+                      {entity.name} {!hasAssessmentForEntity(entity.id) && '(Pendiente evaluación)'}
                     </option>
                   ))}
                 </select>
@@ -224,7 +251,7 @@ export default function EvaluacionMadurez() {
           </div>
 
           {/* No Assessment Warning */}
-          {selectedEntity && !selectedEntity.maturity_level && (
+          {selectedEntity && !hasAssessmentForEntity(selectedEntity.id) && (
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
               <div className="flex">
                 <div className="flex-shrink-0">
@@ -284,8 +311,8 @@ export default function EvaluacionMadurez() {
                 <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={criteriaChartData} layout="vertical">
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis type="number" domain={[0, 4]} />
-                    <YAxis dataKey="criteria" type="category" width={120} />
+                    <XAxis type="number" domain={[0, maxCriteriaScore]} />
+                    <YAxis dataKey="criteria" type="category" width={180} />
                     <Tooltip />
                     <Bar dataKey="score" fill={maturityLevelColors[radarData.overall_level]} />
                   </BarChart>

@@ -214,6 +214,12 @@ def seed_everything():
             semantic_domain_score=round(base_score + random.uniform(-3, 3), 1),
             organizational_domain_score=round(base_score + random.uniform(-1, 5), 1),
             legal_domain_score=round(base_score + random.uniform(-4, 2), 1),
+            has_api_documentation=level,
+            uses_standard_protocols=level,
+            has_data_quality=max(1, level - 1 if level > 1 else 1),
+            has_security_standards=level,
+            has_interoperability_policy=max(1, level - 1 if level > 1 else 1),
+            has_trained_personnel=max(1, level - 1 if level > 1 else 1),
             assessor_name="Auditor Real-Time"
         )
         db.add(assessment)

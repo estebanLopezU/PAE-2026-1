@@ -210,6 +210,22 @@ def get_entity_maturity_radar(entity_id: int, db: Session = Depends(get_db)):
             }
         }
     
+    criteria_values = {
+        "api_documentation": assessment.has_api_documentation,
+        "standard_protocols": assessment.uses_standard_protocols,
+        "data_quality": assessment.has_data_quality,
+        "security_standards": assessment.has_security_standards,
+        "interoperability_policy": assessment.has_interoperability_policy,
+        "trained_personnel": assessment.has_trained_personnel
+    }
+
+    # Compatibilidad con datos históricos/seed donde criterios quedaron en 0.
+    # Si todos están en cero pero la entidad sí tiene nivel de madurez,
+    # usamos el nivel general como valor base de criterios para visualización.
+    if assessment.overall_level and all((value or 0) == 0 for value in criteria_values.values()):
+        fallback_value = max(1, min(4, int(assessment.overall_level)))
+        criteria_values = {key: fallback_value for key in criteria_values.keys()}
+
     return {
         "entity_id": entity_id,
         "entity_name": entity.name,
@@ -221,14 +237,7 @@ def get_entity_maturity_radar(entity_id: int, db: Session = Depends(get_db)):
             "semantic": assessment.semantic_domain_score,
             "technical": assessment.technical_domain_score
         },
-        "criteria": {
-            "api_documentation": assessment.has_api_documentation,
-            "standard_protocols": assessment.uses_standard_protocols,
-            "data_quality": assessment.has_data_quality,
-            "security_standards": assessment.has_security_standards,
-            "interoperability_policy": assessment.has_interoperability_policy,
-            "trained_personnel": assessment.has_trained_personnel
-        },
+        "criteria": criteria_values,
         "assessment_date": assessment.assessment_date,
         "assessor_name": assessment.assessor_name
     }

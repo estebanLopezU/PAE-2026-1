@@ -3,7 +3,7 @@
 
 **Autor:** Esteban Lopez Usma  
 **Carrera:** Administración de Sistemas Informáticos  
-**Fecha:** 13 de abril de 2026
+**Fecha:** 23 de abril de 2026
 
 ---
 
@@ -199,25 +199,51 @@ El MinTIC diseñó un Modelo de Madurez de 5 niveles para que las entidades pued
 Esta práctica no se limitó a un análisis teórico. Se desarrolló una plataforma tecnológica funcional denominada **Visor de Interoperabilidad del Estado Colombiano** que materializa todos los hallazgos de esta investigación en un producto utilizable.
 
 ### 📋 ¿Qué se puede hacer en la plataforma?
-La plataforma cuenta con 6 módulos funcionales listos para usar:
+La plataforma cuenta actualmente con **8 módulos funcionales principales** y un módulo de acceso autenticado:
 
 | Módulo | Descripción |
 |---|---|
+| 🔐 Acceso y autenticación | Inicio de sesión con roles (usuario y administrador), validación de credenciales y control de sesión |
 | 📊 Dashboard Principal | Vista general con indicadores clave, nivel promedio nacional, distribución por sectores y evolución histórica |
 | 🗺️ Mapa Interactivo | Geolocalización de todas las entidades en el mapa de Colombia, filtros por nivel de madurez, sector y departamento |
 | 📋 Listado de Entidades | Directorio completo de todas las entidades analizadas, con buscador y filtros avanzados |
 | 🔢 Matriz de Servicios | Visualización cruzada de servicios de interoperabilidad entre entidades y sectores |
 | 📑 Reportes | Generación automática de reportes por sector, departamento o nivel de madurez |
 | 🤖 Analisis IA | Módulo de inteligencia artificial que genera recomendaciones personalizadas por entidad |
+| 🔮 Analítica predictiva IA | Proyección de conectividad, escenarios de crecimiento y entrenamiento de modelos con datos del ecosistema |
+| 🛡️ Auditoría de Seguridad | Tablero de verificación de controles de seguridad, puntuación global y recomendaciones prioritarias |
 
 ### 🎮 ¿Cómo se utiliza?
-Es extremadamente sencillo:
 1.  Ingresas a la plataforma desde cualquier navegador
-2.  No requiere registro ni autenticación para consulta pública
-3.  Puedes navegar por los diferentes módulos desde el menú lateral
-4.  Haz click en cualquier entidad del mapa o del listado para ver su detalle completo
-5.  Aplica filtros para ver solo la información que te interesa
-6.  Exporta los datos en formato CSV o Excel para tus propios análisis
+2.  Seleccionas tipo de acceso (usuario o administrador)
+3.  Inicias sesión para acceder a los módulos del sistema
+4.  Puedes navegar por los diferentes módulos desde el menú lateral
+5.  Haz click en cualquier entidad del mapa o del listado para ver su detalle completo
+6.  Aplica filtros para ver solo la información que te interesa
+7.  Exporta los datos en formato CSV o Excel para tus propios análisis
+
+### 🆕 Funcionalidades incorporadas recientemente
+Durante la fase final del desarrollo se incorporaron capacidades adicionales que fortalecen la operación de la plataforma:
+
+1. **Sistema de autenticación y control de acceso por rol**
+   - Inicio de sesión con separación de perfiles (usuario / administrador)
+   - Gestión de sesión desde frontend con persistencia segura de token
+   - Endpoint de autenticación dedicado en backend (`/api/v1/auth/login`)
+
+2. **Módulo de Analítica Predictiva con IA ampliada**
+   - Proyecciones de conectividad a 6 y 12 meses
+   - Escenarios (optimista, esperado y conservador)
+   - Entrenamiento y actualización de modelos de IA desde interfaz
+
+3. **Módulo de Auditoría y Seguridad Operacional**
+   - Score global de seguridad del sistema
+   - Monitoreo de controles (JWT, HTTPS, sanitización, protección XSS/SQLi)
+   - Recomendaciones priorizadas (ej. MFA y refuerzo de rate limiting)
+
+4. **Mejora de experiencia de acceso y carga**
+   - Pantallas de carga y transición para inicio de sesión
+   - Mensajería de estado para operaciones críticas
+   - Interfaz de acceso adaptada a uso académico y demostrativo
 
 ### 🔧 Tecnologías utilizadas:
 | Capa | Tecnologías |
@@ -273,12 +299,12 @@ La plataforma fue desarrollada desde el principio con la seguridad como principi
 | Medida | Descripcion |
 |---|---|
 | 📢 **Solo datos publicos** | Toda la informacion almacenada en la plataforma es informacion publica oficial publicada por las propias entidades en sus portales de transparencia. No se almacenan datos sensibles, privados o confidenciales en ningun momento. |
-| 🔒 **Cifrado completo** | Todo el trafico entre el navegador y el servidor se transmite exclusivamente mediante HTTPS con cifrado TLS 1.3 |
-| 👤 **Control de acceso por roles** | Tres niveles de permisos bien definidos: Publico, Investigador y Administrador |
+| 🔒 **Cifrado completo** | Todo el trafico entre cliente y servidor se transmite mediante HTTPS con cifrado TLS |
+| 👤 **Control de acceso por roles** | Acceso autenticado con perfiles diferenciados (usuario y administrador) y control de sesión |
 | 📜 **Auditoria completa** | Todas las acciones de usuarios quedan registradas con fecha, hora, direccion IP y usuario para trazabilidad completa |
 | 🔑 **Almacenamiento seguro de credenciales** | Las contraseñas se almacenan hasheadas con el algoritmo bcrypt, sin posibilidad de revertir el cifrado |
-| 🛑 **Arquitectura solo lectura para publico** | La API solo expone endpoints de tipo GET para usuarios publicos. No existen endpoints POST, PUT o DELETE accesibles publicamente. Es imposible modificar informacion desde el modo publico. |
-| ⚠️ **Sin entrada de usuarios** | No existen formularios, campos de texto ni ningun mecanismo para enviar informacion al servidor por parte de usuarios anonimos. |
+| 🛑 **Separacion de privilegios** | El acceso administrativo habilita funciones de gestion; el acceso de usuario prioriza consulta y analisis |
+| ⚠️ **Validacion de entrada** | Formularios de autenticacion y captura de datos con validaciones en frontend y backend |
 | 🚦 **Rate Limiting** | Implementado limitador de 60 peticiones por minuto por direccion IP para prevenir ataques de fuerza bruta y denegacion de servicio. |
 | 🛡️ **Proteccion contra ataques comunes** | Implementadas protecciones contra SQL Injection, XSS, CSRF y secuestro de sesiones. |
 
