@@ -94,13 +94,14 @@ export default function Dashboard() {
   const [sectorData, setSectorData] = useState([])
   const [xroadStatus, setXroadStatus] = useState([])
   const [sectors, setSectors] = useState([])
+  const [pendingEntities, setPendingEntities] = useState([])
 
-  const totalPendingPages = Math.ceil(PENDING_ENTITIES.length / PENDING_PER_PAGE)
+  const totalPendingPages = Math.ceil(pendingEntities.length / PENDING_PER_PAGE)
 
   const paginatedPending = useMemo(() => {
     const start = (pendingPage - 1) * PENDING_PER_PAGE
-    return PENDING_ENTITIES.slice(start, start + PENDING_PER_PAGE)
-  }, [pendingPage])
+    return pendingEntities.slice(start, start + PENDING_PER_PAGE)
+  }, [pendingPage, pendingEntities])
 
   const normalizedStatusData = useMemo(() => {
     return xroadStatus.map((item) => ({
@@ -168,11 +169,12 @@ export default function Dashboard() {
     try {
       const sectorQuery = selectedSector ? `?sector=${encodeURIComponent(selectedSector)}` : ''
 
-      const [kpiData, sectorsByType, xroadByStatus, sectorsList] = await Promise.all([
+      const [kpiData, sectorsByType, xroadByStatus, sectorsList, pendingData] = await Promise.all([
         fetchAPI(`${API_BASE}/dashboard/kpis${sectorQuery}`, signal),
         fetchAPI(`${API_BASE}/dashboard/by-sector`, signal),
         fetchAPI(`${API_BASE}/dashboard/by-xroad-status${sectorQuery}`, signal),
         fetchAPI(`${API_BASE}/sectors/`, signal),
+        fetchAPI(`${API_BASE}/entities/?xroad_status=pending&limit=200`, signal),
       ])
 
       setKpis(kpiData)
@@ -180,6 +182,27 @@ export default function Dashboard() {
       setXroadStatus(xroadByStatus)
       setSectors(sectorsList.items || sectorsList || [])
       setPendingPage(1)
+
+      // Map real pending entities to table format
+      const mappedPending = (pendingData.items || []).map((entity) => {
+        const level = entity.maturity_level || 1
+        const status = level >= 3 ? 'En Proceso' : 'Pendiente'
+        const etaMap = { 4: 'T2 2026', 3: 'T3 2026', 2: 'T4 2026', 1: '2027' }
+        const reasonMap = {
+          4: 'En etapa final de certificación técnica',
+          3: 'Ajustes de infraestructura y políticas',
+          2: 'Despliegue de sistemas interoperables en curso',
+          1: 'Formulación y aprobación de proyecto',
+        }
+        return {
+          name: entity.name,
+          dept: entity.department || 'Nacional',
+          status,
+          eta: etaMap[level] || '2027',
+          reason: entity.notes || reasonMap[level] || 'Integración X-Road en planificación',
+        }
+      })
+      setPendingEntities(mappedPending)
     } catch (err) {
       if (err.name !== 'AbortError') {
         setError(err.message || 'No fue posible cargar el dashboard')
