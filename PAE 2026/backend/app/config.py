@@ -6,21 +6,21 @@ class Settings(BaseSettings):
     # Application
     APP_NAME: str = "X-Road Interoperability Mapper"
     APP_VERSION: str = "1.0.0"
-    DEBUG: bool = True
+    DEBUG: bool = False
 
     # Auth
-    AUTH_ENABLED: bool = False
-    JWT_SECRET_KEY: str = "change-this-secret-in-production"
+    AUTH_ENABLED: bool = True
+    JWT_SECRET_KEY: str
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 120
 
     # Demo users (move to DB/users service in next phase)
-    ADMIN_EMAIL: str = "elopezu@unal.edu.co"
-    ADMIN_PASSWORD: str = "BZTfne48"
-    ANALYST_EMAIL: str = "analista@xroad.gov.co"
-    ANALYST_PASSWORD: str = "Analista123*"
+    ADMIN_EMAIL: str
+    ADMIN_PASSWORD: str
+    ANALYST_EMAIL: str
+    ANALYST_PASSWORD: str
     
-    # Database - Using SQLite for development
+    # Database
     DATABASE_URL: str = "sqlite:///./xroad_colombia.db"
     
     # CORS
@@ -32,6 +32,7 @@ class Settings(BaseSettings):
     
     class Config:
         env_file = ".env"
+        env_file_encoding = "utf-8"
 
 
 @lru_cache()

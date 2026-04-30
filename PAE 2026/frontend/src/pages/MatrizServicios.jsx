@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
-import { servicesApi, sectorsApi, entitiesApi, relationshipsApi } from '../services/api'
+import { servicesApi, sectorsApi } from '../services/api'
 import clsx from 'clsx'
-import { RefreshCw, CheckCircle, XCircle, Clock } from 'lucide-react'
+import { RefreshCw, CheckCircle, XCircle, Clock, Database, Zap, Shield, Box } from 'lucide-react'
+import GlassCard from '../components/common/GlassCard'
+import StatusPulse from '../components/common/StatusPulse'
 
 export default function MatrizServicios() {
   const [services, setServices] = useState([])
@@ -11,14 +13,11 @@ export default function MatrizServicios() {
     protocol: '',
     category: ''
   })
-  const [activeTab, setActiveTab] = useState('services')
-  const [relationships, setRelationships] = useState([])
-  const [lastUpdate, setLastUpdate] = useState(null)
+  const [lastUpdate, setLastUpdate] = useState(new Date())
 
   useEffect(() => {
     fetchData()
     
-    // Auto actualizar cada 30 segundos en tiempo real
     const interval = setInterval(() => {
       fetchData()
       setLastUpdate(new Date())
@@ -46,143 +45,161 @@ export default function MatrizServicios() {
   const categories = ['Consulta', 'Validación', 'Trámite', 'Autenticación']
 
   const protocolColors = {
-    REST: 'bg-blue-100 text-blue-800',
-    SOAP: 'bg-purple-100 text-purple-800',
-    'X-Road': 'bg-green-100 text-green-800'
+    REST: 'text-blue-400 bg-blue-500/10 border-blue-500/20',
+    SOAP: 'text-purple-400 bg-purple-500/10 border-purple-500/20',
+    'X-Road': 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20'
   }
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-      </div>
-    )
+     return (
+       <div className="flex min-h-[60vh] items-center justify-center">
+         <StatusPulse size="lg" />
+       </div>
+     )
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Matriz de Servicios</h1>
-        <p className="mt-1 text-sm text-gray-500">
-          Vista de servicios de interoperabilidad por sector y protocolo
-        </p>
+    <div className="space-y-8 pb-12">
+      {/* Header Section */}
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6">
+        <div className="space-y-2">
+          <div className="flex items-center gap-3">
+             <div className="p-3 bg-blue-500/10 rounded-2xl border border-blue-500/20">
+               <Database className="h-6 w-6 text-blue-400" />
+             </div>
+             <h1 className="text-4xl font-bold tracking-tight text-white uppercase">Matriz de Servicios</h1>
+          </div>
+          <p className="text-slate-400 font-medium max-w-xl">
+             Catálogo centralizado de activos de información y endpoints de interoperabilidad. Última sincronización: <span className="text-blue-400 font-mono">{lastUpdate.toLocaleTimeString()}</span>
+          </p>
+        </div>
       </div>
 
-      {/* Filters */}
-      <div className="bg-white rounded-lg shadow p-4">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <div>
-            <label className="form-label">Protocolo</label>
+      {/* Filters Section */}
+      <GlassCard className="p-6 border-slate-700/50">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+          <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Protocolo</label>
             <select
-              className="form-select"
+              className="w-full px-4 py-3 bg-slate-900/50 border border-slate-800 rounded-xl text-slate-200 focus:ring-2 focus:ring-blue-500/50 outline-none"
               value={filters.protocol}
               onChange={(e) => setFilters(prev => ({ ...prev, protocol: e.target.value }))}
             >
-              <option value="">Todos los protocolos</option>
+              <option value="">TODOS LOS PROTOCOLOS</option>
               {protocols.map(proto => (
-                <option key={proto} value={proto}>{proto}</option>
+                <option key={proto} value={proto}>{proto.toUpperCase()}</option>
               ))}
             </select>
           </div>
-          <div>
-            <label className="form-label">Categoría</label>
+          <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Categoría</label>
             <select
-              className="form-select"
+              className="w-full px-4 py-3 bg-slate-900/50 border border-slate-800 rounded-xl text-slate-200 focus:ring-2 focus:ring-blue-500/50 outline-none"
               value={filters.category}
               onChange={(e) => setFilters(prev => ({ ...prev, category: e.target.value }))}
             >
-              <option value="">Todas las categorías</option>
+              <option value="">TODAS LAS CATEGORÍAS</option>
               {categories.map(cat => (
-                <option key={cat} value={cat}>{cat}</option>
+                <option key={cat} value={cat}>{cat.toUpperCase()}</option>
               ))}
             </select>
           </div>
           <div className="flex items-end">
             <button
-              className="btn btn-secondary w-full"
+              className="w-full flex items-center justify-center gap-2 px-6 py-3 text-slate-400 bg-slate-800/50 border border-slate-700 hover:bg-slate-700 hover:text-white rounded-xl font-bold transition-all"
               onClick={() => setFilters({ protocol: '', category: '' })}
             >
-              Limpiar Filtros
+              <RefreshCw className="h-4 w-4" />
+              RESTABLECER FILTROS
             </button>
           </div>
         </div>
-      </div>
+      </GlassCard>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-4">
+      {/* Metrics Grid */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {protocols.map(proto => {
           const count = services.filter(s => s.protocol === proto).length
           return (
-            <div key={proto} className="data-card">
-              <div className="text-sm font-medium text-gray-500">{proto}</div>
-              <div className="mt-2 text-3xl font-bold text-gray-900">{count}</div>
-              <div className="mt-2 flex items-center text-xs text-gray-500">
-                <div className={`w-2 h-2 rounded-full mr-2 ${
-                  proto === 'REST' ? 'bg-blue-500' :
-                  proto === 'SOAP' ? 'bg-purple-500' : 'bg-green-500'
-                }`}></div>
-                Servicios {proto}
-              </div>
-            </div>
+            <GlassCard key={proto} className="p-5 border-t-2" style={{ borderTopColor: proto === 'REST' ? '#60A5FA' : proto === 'SOAP' ? '#A78BFA' : '#34D399' }}>
+               <div className="flex items-center justify-between mb-4">
+                  <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{proto} ENDPOINTS</p>
+                  <Box className="h-4 w-4 text-slate-600" />
+               </div>
+               <div className="flex items-baseline gap-2">
+                  <span className="text-3xl font-black text-white">{count}</span>
+                  <span className="text-xs font-bold text-slate-500">ACTIVOS</span>
+               </div>
+            </GlassCard>
           )
         })}
-        <div className="data-card">
-          <div className="text-sm font-medium text-gray-500">Total Servicios</div>
-          <div className="mt-2 text-3xl font-bold text-gray-900">{services.length}</div>
-          <div className="mt-2 flex items-center text-xs text-gray-500">
-            <div className="w-2 h-2 rounded-full bg-primary-500 mr-2"></div>
-            Todos los protocolos
-          </div>
-        </div>
+        <GlassCard className="p-5 bg-blue-600/10 border-blue-500/30">
+           <div className="flex items-center justify-between mb-4">
+              <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest">TOTAL ECOSYSTEM</p>
+              <Zap className="h-4 w-4 text-blue-400" />
+           </div>
+           <div className="flex items-baseline gap-2">
+              <span className="text-3xl font-black text-white">{services.length}</span>
+              <span className="text-xs font-bold text-blue-500">TOTAL</span>
+           </div>
+        </GlassCard>
       </div>
 
-      {/* Services Matrix */}
-      <div className="table-scientific">
+      {/* Main Table Section */}
+      <GlassCard className="overflow-hidden border-slate-700/50">
         <div className="overflow-x-auto">
-          <table className="data-table">
+          <table className="w-full text-left border-collapse">
             <thead>
-              <tr>
-                <th>Servicio</th>
-                <th>Entidad</th>
-                <th>Categoría</th>
-                <th>Protocolo</th>
-                <th>Estado</th>
+              <tr className="bg-slate-900/50 border-b border-slate-800">
+                <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Servicio / Identificador</th>
+                <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Entidad Proveedora</th>
+                <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Categoría</th>
+                <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Protocolo</th>
+                <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Estado Operativo</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-slate-800/50">
               {services.map((service) => (
-                <tr key={service.id}>
-                  <td>
-                    <div>
-                      <div className="font-semibold text-gray-900">{service.name}</div>
-                      <div className="text-sm text-gray-500 mt-1">{service.code}</div>
+                <tr key={service.id} className="hover:bg-white/5 transition-colors group">
+                  <td className="px-6 py-5">
+                    <div className="space-y-1">
+                      <div className="font-bold text-slate-200 group-hover:text-blue-400 transition-colors uppercase tracking-tight">{service.name}</div>
+                      <div className="text-[10px] font-mono font-bold text-slate-600">{service.code}</div>
                     </div>
                   </td>
-                  <td>
-                    <span className="text-gray-700 font-medium">{service.entity_name}</span>
+                  <td className="px-6 py-5">
+                    <div className="flex items-center gap-2 text-sm text-slate-400">
+                       <Shield className="h-3.5 w-3.5 text-blue-500/50" />
+                       <span className="font-medium text-slate-300">{service.entity_name}</span>
+                    </div>
                   </td>
-                  <td>
-                    <span className="text-gray-600">{service.category || '-'}</span>
+                  <td className="px-6 py-5">
+                    <span className="px-3 py-1 bg-slate-800 border border-slate-700 rounded-lg text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                       {service.category || 'GENERAL'}
+                    </span>
                   </td>
-                  <td>
-                    <span className={clsx('status-badge', protocolColors[service.protocol])}>
+                  <td className="px-6 py-5">
+                    <span className={clsx('px-3 py-1 rounded-lg text-[10px] font-black border uppercase tracking-widest', protocolColors[service.protocol] || 'bg-slate-800 border-slate-700 text-slate-400')}>
                       {service.protocol}
                     </span>
                   </td>
-                  <td>
-                    <span className={clsx(
-                      'status-badge',
-                      service.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                    )}>
-                      {service.status === 'active' ? 'Activo' : 'Inactivo'}
-                    </span>
+                  <td className="px-6 py-5">
+                     <div className="flex justify-center">
+                        <StatusPulse status={service.status === 'active' ? 'success' : 'error'} size="sm" />
+                     </div>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-      </div>
+        {services.length === 0 && (
+          <div className="p-12 text-center">
+             <Box className="h-12 w-12 text-slate-800 mx-auto mb-4" />
+             <p className="text-slate-500 font-bold uppercase tracking-widest">No matching service assets found</p>
+          </div>
+        )}
+      </GlassCard>
     </div>
   )
 }

@@ -7,6 +7,7 @@ from fastapi import APIRouter, HTTPException, Depends, Query
 from sqlalchemy.orm import Session
 from typing import List, Dict, Optional
 from ....database import get_db
+from ....security import get_current_user, require_admin
 from ....services.open_data_portal import open_data_client, get_open_data_statistics, search_interop_datasets
 from ....services.xroad_connector import xroad_connector, get_xroad_members, get_xroad_services, get_xroad_connectivity_report
 from ....services.digital_citizen_folder import digital_citizen_client, get_digital_services, get_interoperability_report
@@ -47,7 +48,7 @@ class SyncRequest(BaseModel):
 # ============================================
 
 @router.get("/open-data/statistics")
-async def get_open_data_stats():
+async def get_open_data_stats(current_user: Dict = Depends(get_current_user)):
     """
     Obtener estadísticas del Portal de Datos Abiertos de Colombia
     """
@@ -64,7 +65,8 @@ async def get_open_data_stats():
 @router.get("/open-data/search")
 async def search_open_data(
     query: str = Query(default="interoperabilidad", description="Término de búsqueda"),
-    limit: int = Query(default=50, ge=1, le=200)
+    limit: int = Query(default=50, ge=1, le=200),
+    current_user: Dict = Depends(get_current_user)
 ):
     """
     Buscar datasets en el Portal de Datos Abiertos
@@ -81,7 +83,10 @@ async def search_open_data(
 
 
 @router.get("/open-data/datasets/{sector}")
-async def get_datasets_by_sector(sector: str):
+async def get_datasets_by_sector(
+    sector: str,
+    current_user: Dict = Depends(get_current_user)
+):
     """
     Obtener datasets por sector específico
     """
@@ -109,7 +114,10 @@ async def get_datasets_by_sector(sector: str):
 
 
 @router.post("/open-data/sync")
-async def sync_open_data(db: Session = Depends(get_db)):
+async def sync_open_data(
+    db: Session = Depends(get_db),
+    current_user: Dict = Depends(require_admin)
+):
     """
     Sincronizar datasets del Portal de Datos Abiertos a la base de datos
     """
@@ -137,7 +145,8 @@ async def sync_open_data(db: Session = Depends(get_db)):
 async def get_xroad_members_list(
     status: Optional[str] = Query(default=None, description="Filtrar por estado"),
     member_class: Optional[str] = Query(default=None, description="Filtrar por clase"),
-    limit: int = Query(default=100, ge=1, le=500)
+    limit: int = Query(default=100, ge=1, le=500),
+    current_user: Dict = Depends(get_current_user)
 ):
     """
     Obtener miembros registrados en X-Road Colombia
@@ -172,7 +181,8 @@ async def get_xroad_members_list(
 @router.get("/xroad/members/{member_code}")
 async def get_xroad_member_details(
     member_code: str,
-    member_class: str = Query(default="GOV", description="Clase del miembro")
+    member_class: str = Query(default="GOV", description="Clase del miembro"),
+    current_user: Dict = Depends(get_current_user)
 ):
     """
     Obtener detalles de un miembro específico de X-Road
@@ -229,7 +239,11 @@ async def get_xroad_services_list(
 
 
 @router.get("/xroad/services/{provider}/{service_code}/health")
-async def check_xroad_service_health(provider: str, service_code: str):
+async def check_xroad_service_health(
+    provider: str, 
+    service_code: str,
+    current_user: Dict = Depends(get_current_user)
+):
     """
     Verificar salud de un servicio X-Road específico
     """
@@ -247,7 +261,8 @@ async def check_xroad_service_health(provider: str, service_code: str):
 
 @router.get("/xroad/statistics")
 async def get_xroad_stats(
-    period_hours: int = Query(default=24, ge=1, le=168, description="Período en horas")
+    period_hours: int = Query(default=24, ge=1, le=168, description="Período en horas"),
+    current_user: Dict = Depends(get_current_user)
 ):
     """
     Obtener estadísticas del nodo X-Road
@@ -282,7 +297,7 @@ async def get_xroad_stats(
 
 
 @router.get("/xroad/connectivity-report")
-async def get_xroad_report():
+async def get_xroad_report(current_user: Dict = Depends(get_current_user)):
     """
     Generar reporte completo de conectividad X-Road
     """
@@ -297,7 +312,10 @@ async def get_xroad_report():
 
 
 @router.post("/xroad/sync")
-async def sync_xroad_members(db: Session = Depends(get_db)):
+async def sync_xroad_members(
+    db: Session = Depends(get_db),
+    current_user: Dict = Depends(require_admin)
+):
     """
     Sincronizar miembros X-Road a la base de datos
     """
@@ -360,7 +378,10 @@ async def get_digital_citizen_services(
 
 
 @router.get("/digital-citizen/services/{service_id}")
-async def get_digital_citizen_service_details(service_id: str):
+async def get_digital_citizen_service_details(
+    service_id: str,
+    current_user: Dict = Depends(get_current_user)
+):
     """
     Obtener detalles de un servicio específico de la Carpeta Ciudadana
     """
@@ -380,7 +401,10 @@ async def get_digital_citizen_service_details(service_id: str):
 
 
 @router.get("/digital-citizen/entities/{entity_code}/services")
-async def get_entity_digital_services(entity_code: str):
+async def get_entity_digital_services(
+    entity_code: str,
+    current_user: Dict = Depends(get_current_user)
+):
     """
     Obtener servicios digitales de una entidad específica
     """
@@ -410,7 +434,8 @@ async def get_entity_digital_services(entity_code: str):
 @router.get("/digital-citizen/statistics/{service_id}")
 async def get_digital_service_stats(
     service_id: str,
-    period_days: int = Query(default=30, ge=1, le=365)
+    period_days: int = Query(default=30, ge=1, le=365),
+    current_user: Dict = Depends(get_current_user)
 ):
     """
     Obtener estadísticas de uso de un servicio digital
@@ -442,7 +467,7 @@ async def get_digital_service_stats(
 
 
 @router.get("/digital-citizen/interoperability-report")
-async def get_digital_citizen_report():
+async def get_digital_citizen_report(current_user: Dict = Depends(get_current_user)):
     """
     Generar reporte de interoperabilidad de la Carpeta Ciudadana Digital
     """
@@ -457,7 +482,10 @@ async def get_digital_citizen_report():
 
 
 @router.post("/digital-citizen/sync")
-async def sync_digital_citizen_services(db: Session = Depends(get_db)):
+async def sync_digital_citizen_services(
+    db: Session = Depends(get_db),
+    current_user: Dict = Depends(require_admin)
+):
     """
     Sincronizar servicios de la Carpeta Ciudadana a la base de datos
     """
@@ -482,7 +510,10 @@ async def sync_digital_citizen_services(db: Session = Depends(get_db)):
 # ============================================
 
 @router.post("/api-analysis/analyze")
-async def analyze_single_api(request: APIAnalysisRequest):
+async def analyze_single_api(
+    request: APIAnalysisRequest,
+    current_user: Dict = Depends(get_current_user)
+):
     """
     Analizar una API gubernamental específica
     """
@@ -504,7 +535,8 @@ async def analyze_single_api(request: APIAnalysisRequest):
 @router.post("/api-analysis/batch")
 async def analyze_multiple_apis(
     entity_ids: List[int],
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: Dict = Depends(get_current_user)
 ):
     """
     Analizar APIs de múltiples entidades
@@ -566,7 +598,10 @@ async def analyze_multiple_apis(
 
 
 @router.get("/api-analysis/quality-report")
-async def get_api_quality_report(db: Session = Depends(get_db)):
+async def get_api_quality_report(
+    db: Session = Depends(get_db),
+    current_user: Dict = Depends(get_current_user)
+):
     """
     Generar reporte general de calidad de APIs
     """
@@ -608,7 +643,8 @@ async def get_api_quality_report(db: Session = Depends(get_db)):
 @router.post("/gaps/analyze")
 async def analyze_gaps(
     request: GapAnalysisRequest,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: Dict = Depends(get_current_user)
 ):
     """
     Analizar brechas de interoperabilidad en el ecosistema
@@ -662,7 +698,8 @@ async def analyze_gaps(
 @router.get("/gaps/report")
 async def get_gaps_report(
     sector_id: Optional[int] = Query(default=None),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: Dict = Depends(get_current_user)
 ):
     """
     Obtener reporte de brechas de interoperabilidad
@@ -714,7 +751,10 @@ async def get_gaps_report(
 # ============================================
 
 @router.post("/sync/all")
-async def sync_all_sources(db: Session = Depends(get_db)):
+async def sync_all_sources(
+    db: Session = Depends(get_db),
+    current_user: Dict = Depends(require_admin)
+):
     """
     Sincronizar todas las fuentes de datos
     """
@@ -780,7 +820,10 @@ class ValidationRequest(BaseModel):
 
 
 @router.post("/validation/semantic")
-async def validate_api_semantic(request: ValidationRequest):
+async def validate_api_semantic(
+    request: ValidationRequest,
+    current_user: Dict = Depends(get_current_user)
+):
     """
     Validar semántica de una especificación API (OpenAPI/Swagger)
     """

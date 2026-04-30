@@ -14,11 +14,12 @@
     --text-primary: #f8fafc;
     --text-secondary: #94a3b8;
     --text-muted: #64748b;
-    --accent-blue: #3b82f6;
+    --accent-blue: #007FFF;
     --accent-purple: #8b5cf6;
-    --accent-emerald: #10b981;
+    --accent-emerald: #50C878;
     --accent-amber: #f59e0b;
     --accent-cyan: #06b6d4;
+    --interop-navy: #0A0E1A;
   }
 
   html {
@@ -36,151 +37,7 @@
     overflow-x: hidden;
   }
 
-  ::selection {
-    background: rgba(59, 130, 246, 0.3);
-    color: #fff;
-  }
-}
-
-@layer components {
-  /* Premium card */
-  .card-premium {
-    background: linear-gradient(135deg, rgba(15, 23, 42, 0.7) 0%, rgba(30, 41, 59, 0.5) 100%);
-    backdrop-filter: blur(20px);
-    border: 1px solid var(--border-subtle);
-    border-radius: 20px;
-    position: relative;
-    overflow: hidden;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  .card-premium::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.4), transparent);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-  }
-
-  .card-premium:hover::before {
-    opacity: 1;
-  }
-
-  .card-premium:hover {
-    transform: translateY(-4px);
-    border-color: var(--border-medium);
-    box-shadow: 
-      0 20px 40px -12px rgba(0, 0, 0, 0.4),
-      0 0 40px rgba(59, 130, 246, 0.08);
-  }
-
-  /* Glowing border card */
-  .card-glow {
-    background: rgba(15, 23, 42, 0.5);
-    backdrop-filter: blur(16px);
-    border: 1px solid rgba(59, 130, 246, 0.15);
-    border-radius: 16px;
-    transition: all 0.3s ease;
-  }
-
-  .card-glow:hover {
-    border-color: rgba(59, 130, 246, 0.3);
-    box-shadow: 0 0 30px rgba(59, 130, 246, 0.1);
-  }
-
-  /* Gradient text */
-  .text-gradient {
-    background: linear-gradient(135deg, #60a5fa, #a78bfa, #34d399);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
-  /* Status badges premium */
-  .badge-status {
-    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold;
-    backdrop-filter: blur(10px);
-  }
-
-  /* Buttons */
-  .btn-primary {
-    @apply relative overflow-hidden px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-all duration-300;
-    background: linear-gradient(135deg, #2563eb, #7c3aed);
-    box-shadow: 0 4px 15px -3px rgba(37, 99, 235, 0.4);
-  }
-
-  .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px -5px rgba(37, 99, 235, 0.5);
-  }
-
-  /* Table premium */
-  .table-premium {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-  }
-
-  .table-premium thead th {
-    @apply px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider;
-    color: #94a3b8;
-    background: rgba(15, 23, 42, 0.8);
-    border-bottom: 1px solid rgba(59, 130, 246, 0.15);
-  }
-
-  .table-premium tbody td {
-    @apply px-5 py-3 text-sm;
-    color: #cbd5e1;
-    border-bottom: 1px solid rgba(148, 163, 184, 0.06);
-    transition: all 0.2s ease;
-  }
-
-  .table-premium tbody tr:hover td {
-    background: rgba(59, 130, 246, 0.04);
-    color: #f1f5f9;
-  }
-
-  /* Section header */
-  .section-header {
-    @apply flex items-center gap-3 mb-5;
-  }
-
-  .section-header-icon {
-    @apply p-2 rounded-xl;
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(139, 92, 246, 0.1));
-    border: 1px solid rgba(59, 130, 246, 0.2);
-  }
-
-  .section-header-title {
-    @apply text-lg font-bold tracking-tight text-white;
-  }
-
-  .section-header-subtitle {
-    @apply text-xs text-slate-500;
-  }
-
-  /* Animated shimmer */
-  .shimmer {
-    position: relative;
-    overflow: hidden;
-  }
-
-  .shimmer::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.03), transparent);
-    animation: shimmer 3s infinite;
-  }
-
-  /* Scrollbar */
+  /* Custom Scrollbar - High-tech style */
   ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
@@ -188,31 +45,65 @@
 
   ::-webkit-scrollbar-track {
     background: rgba(15, 23, 42, 0.3);
-    border-radius: 3px;
   }
 
   ::-webkit-scrollbar-thumb {
-    background: linear-gradient(180deg, rgba(59, 130, 246, 0.4), rgba(139, 92, 246, 0.4));
-    border-radius: 3px;
+    background: linear-gradient(180deg, rgba(59, 130, 246, 0.3), rgba(139, 92, 246, 0.3));
+    border-radius: 10px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(180deg, rgba(59, 130, 246, 0.6), rgba(139, 92, 246, 0.6));
+    background: linear-gradient(180deg, rgba(59, 130, 246, 0.5), rgba(139, 92, 246, 0.5));
+  }
+
+  /* Premium Selection Color */
+  ::selection {
+    background: rgba(0, 127, 255, 0.3);
+    color: #fff;
+  }
+}
+
+@layer components {
+  .glass-effect {
+    @apply backdrop-blur-xl bg-white/5 border border-white/10;
+  }
+  
+  .glass-effect-dark {
+    @apply backdrop-blur-2xl bg-black/40 border border-white/5;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center px-5 py-2.5 rounded-xl font-bold transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:pointer-events-none;
+  }
+
+  .btn-primary {
+    @apply bg-indigo-600 text-white hover:bg-indigo-500 shadow-[0_0_15px_rgba(79,70,229,0.3)] hover:shadow-[0_0_25px_rgba(79,70,229,0.5)];
+  }
+
+  .btn-secondary {
+    @apply bg-slate-800 text-slate-200 hover:bg-slate-700 border border-slate-700 shadow-sm;
+  }
+
+  .input-field {
+    @apply w-full px-4 py-3 bg-slate-950/50 border border-slate-800 rounded-xl text-slate-200 placeholder-slate-600 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 outline-none transition-all;
+  }
+
+  /* Status badges premium fallback */
+  .badge-status {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
   }
 }
 
 @layer utilities {
   .animate-gradient-x {
     background-size: 200% 200%;
-    animation: gradientX 3s ease infinite;
-  }
-
-  .animate-float {
-    animation: float 6s ease-in-out infinite;
+    animation: gradientX 5s ease infinite;
   }
 
   .text-shadow-glow {
-    text-shadow: 0 0 40px rgba(59, 130, 246, 0.3);
+    text-shadow: 0 0 30px rgba(59, 130, 246, 0.4);
   }
 }
 
@@ -221,102 +112,42 @@
   50% { background-position: 100% 50%; }
 }
 
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+/* Chart Tooltips Custom Style */
+.recharts-default-tooltip {
+  @apply !bg-[#0f172a] !border-slate-800 !rounded-xl !shadow-2xl !p-4 !backdrop-blur-xl !bg-opacity-90 !border-opacity-50;
 }
 
-@keyframes shimmer {
-  0% { left: -100%; }
-  50%, 100% { left: 100%; }
+.recharts-tooltip-label {
+  @apply !text-slate-400 !text-[10px] !font-black !uppercase !tracking-widest !mb-3;
 }
 
-@keyframes gridPulse {
-  0%, 100% { opacity: 0.3; }
-  50% { opacity: 0.6; }
+.recharts-tooltip-item {
+  @apply !text-xs !font-bold !py-1.5;
 }
 
-/* Leaflet map */
+/* Leaflet Map Modern Dark Theme Correction */
 .leaflet-container {
-  border-radius: 16px;
-  border: 1px solid rgba(59, 130, 246, 0.15);
+  @apply !bg-[#050a18] !font-sans !rounded-2xl !border !border-white/5;
 }
 
-/* Recharts tooltip */
-.recharts-tooltip-wrapper {
-  outline: none !important;
+.leaflet-popup-content-wrapper {
+  @apply !bg-[#0f172a] !text-slate-100 !rounded-xl !border !border-slate-700/50 !shadow-2xl !p-0;
 }
 
-/* Input focus states */
-input:focus, select:focus, textarea:focus {
-  outline: none;
-}
-
-/* Smooth page transitions */
-.page-enter {
-  opacity: 0;
-  transform: translateY(8px);
-}
-
-.page-enter-active {
-  opacity: 1;
-  transform: translateY(0);
-  transition: all 0.3s ease;
+.leaflet-popup-tip {
+  @apply !bg-[#0f172a];
 }
 
 /* ─────────────────────────────────────────
-   DARK THEME OVERRIDES (fix for pages still
-   using light-theme Tailwind classes)
+   DARK THEME OVERRIDES (Legacy Fixes)
    ───────────────────────────────────────── */
 
-/* Text colors */
-.text-gray-900  { color: #f1f5f9 !important; }
-.text-gray-800  { color: #e2e8f0 !important; }
-.text-gray-700  { color: #cbd5e1 !important; }
-.text-gray-600  { color: #94a3b8 !important; }
-.text-gray-500  { color: #94a3b8 !important; }
-.text-gray-400  { color: #64748b !important; }
+/* Force dark colors for components using default Tailwind shades */
+.text-gray-900, .text-slate-900  { color: #f1f5f9 !important; }
+.text-gray-500, .text-slate-500 { color: #94a3b8 !important; }
 
-/* Backgrounds */
-.bg-white       { background-color: rgba(15, 23, 42, 0.7) !important; backdrop-filter: blur(16px); }
-.bg-gray-50     { background-color: rgba(30, 41, 59, 0.5) !important; }
-.bg-gray-100    { background-color: rgba(30, 41, 59, 0.6) !important; }
-.bg-gray-200    { background-color: rgba(51, 65, 85, 0.5) !important; }
-
-/* Borders */
-.border-gray-100 { border-color: rgba(148, 163, 184, 0.1) !important; }
-.border-gray-200 { border-color: rgba(148, 163, 184, 0.15) !important; }
-.border-gray-300 { border-color: rgba(148, 163, 184, 0.2) !important; }
-
-/* Form elements */
-input, select, textarea {
-  color: #f1f5f9 !important;
-  background-color: rgba(30, 41, 59, 0.6) !important;
-  border-color: rgba(148, 163, 184, 0.2) !important;
-}
-
-input::placeholder, textarea::placeholder {
-  color: #64748b !important;
-}
-
-/* Table specific fixes */
-table { color: #cbd5e1; }
-table thead th { color: #94a3b8 !important; }
-table tbody td { color: #cbd5e1 !important; }
-
-/* Card fixes */
-.data-card,
-.chart-container {
-  background: linear-gradient(135deg, rgba(15, 23, 42, 0.7) 0%, rgba(30, 41, 59, 0.5) 100%) !important;
-  backdrop-filter: blur(20px) !important;
-  border: 1px solid rgba(59, 130, 246, 0.1) !important;
-  color: #f1f5f9 !important;
-}
-
-/* Badge fixes — keep original semantic colors */
-[class*="bg-green-100"]   { background-color: rgba(16, 185, 129, 0.15) !important; color: #34d399 !important; }
-[class*="bg-blue-100"]    { background-color: rgba(59, 130, 246, 0.15) !important; color: #60a5fa !important; }
-[class*="bg-purple-100"]  { background-color: rgba(139, 92, 246, 0.15) !important; color: #a78bfa !important; }
-[class*="bg-yellow-100"]  { background-color: rgba(245, 158, 11, 0.15) !important; color: #fbbf24 !important; }
-[class*="bg-red-100"]     { background-color: rgba(239, 68, 68, 0.15) !important; color: #f87171 !important; }
-[class*="bg-gray-100"]    { background-color: rgba(100, 116, 139, 0.15) !important; color: #94a3b8 !important; }
+/* Keep semantic badges safe but transparent */
+[class*="bg-green-100"]   { background-color: rgba(16, 185, 129, 0.1) !important; color: #34d399 !important; border: 1px solid rgba(16, 185, 129, 0.2); }
+[class*="bg-blue-100"]    { background-color: rgba(59, 130, 246, 0.1) !important; color: #60a5fa !important; border: 1px solid rgba(59, 130, 246, 0.2); }
+[class*="bg-yellow-100"]  { background-color: rgba(245, 158, 11, 0.1) !important; color: #fbbf24 !important; border: 1px solid rgba(245, 158, 11, 0.2); }
+[class*="bg-red-100"]     { background-color: rgba(239, 68, 68, 0.1) !important; color: #f87171 !important; border: 1px solid rgba(239, 68, 68, 0.2); }

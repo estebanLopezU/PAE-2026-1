@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
 import { entitiesApi, sectorsApi } from '../services/api'
-import { Search, Filter, MapPin, Building2, Link2, Clock, XCircle, Layers, Maximize2, List } from 'lucide-react'
+import { Search, Filter, MapPin, Building2, Link2, Clock, XCircle, Layers, Maximize2, List, Activity, Shield, Box } from 'lucide-react'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
+import GlassCard from '../components/common/GlassCard'
+import StatusPulse from '../components/common/StatusPulse'
 
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png'
 import markerIcon from 'leaflet/dist/images/marker-icon.png'
@@ -17,18 +19,13 @@ L.Icon.Default.mergeOptions({
 })
 
 const xroadStatusConfig = {
-  connected: { color: '#10B981', label: 'Conectado', icon: Link2 },
-  pending: { color: '#F59E0B', label: 'Pendiente', icon: Clock },
-  not_connected: { color: '#EF4444', label: 'No Conectado', icon: XCircle }
-}
-
-const statusIcons = {
-  connected: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
-  pending: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-yellow.png',
-  not_connected: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png'
+  connected: { color: '#50C878', label: 'CONECTADO', icon: Link2, status: 'success' },
+  pending: { color: '#F59E0B', label: 'PENDIENTE', icon: Clock, status: 'warning' },
+  not_connected: { color: '#EF4444', label: 'NO CONECTADO', icon: XCircle, status: 'error' }
 }
 
 function createCustomIcon(color) {
+  // Using custom SVG or better looking markers could be an enhancement
   return L.icon({
     iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${color}.png`,
     shadowUrl: markerShadow,
@@ -65,17 +62,10 @@ export default function MapaInteractivo() {
 
   const fetchData = async () => {
     try {
-      console.log('=== MAPA: Obteniendo entidades ===')
       const [entitiesRes, sectorsRes] = await Promise.all([
         entitiesApi.getAll({ limit: 200 }),
         sectorsApi.getAll({ limit: 100 })
       ])
-      console.log('MAPA: Entidades recibidas:', entitiesRes.data.items.length)
-      console.log('MAPA: Primera entidad:', entitiesRes.data.items[0])
-      
-      const entidadesConCoords = entitiesRes.data.items.filter(e => e.latitude && e.longitude)
-      console.log('MAPA: Con coordenadas:', entidadesConCoords.length)
-      
       setEntities(entitiesRes.data.items)
       setSectors(sectorsRes.data.items)
     } catch (error) {
@@ -87,9 +77,6 @@ export default function MapaInteractivo() {
 
   const filteredEntities = entities.filter(entity => {
     const hasCoords = entity.latitude && entity.longitude
-    if (!hasCoords) {
-      console.log('MAPA: Sin coords:', entity.name, entity.latitude, entity.longitude)
-    }
     const matchesSector = !selectedSector || entity.sector_id === parseInt(selectedSector)
     const matchesStatus = !selectedStatus || entity.xroad_status === selectedStatus
     const matchesSearch = !searchTerm || 
@@ -102,7 +89,7 @@ export default function MapaInteractivo() {
   const handleEntityClick = (entity) => {
     setSelectedEntity(entity)
     setMapCenter([entity.latitude, entity.longitude])
-    setInitialZoom(10)
+    setInitialZoom(12)
   }
 
   const connectedCount = filteredEntities.filter(e => e.xroad_status === 'connected').length
@@ -110,219 +97,219 @@ export default function MapaInteractivo() {
   const notConnectedCount = filteredEntities.filter(e => e.xroad_status === 'not_connected').length
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-      </div>
-    )
+     return (
+       <div className="flex min-h-[60vh] items-center justify-center">
+         <StatusPulse size="lg" />
+       </div>
+     )
   }
 
   return (
-    <div className="space-y-4">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-            <span className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-green-500 flex items-center justify-center">
-              <MapPin className="h-5 w-5 text-white" />
-            </span>
-            Mapa Interactivo
-          </h1>
-          <p className="text-gray-500 mt-1">Visualizacion geografica de entidades X-Road Colombia</p>
+    <div className="space-y-6 pb-12">
+      {/* Header Section */}
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6">
+        <div className="space-y-2">
+          <div className="flex items-center gap-3">
+             <div className="p-3 bg-blue-500/10 rounded-2xl border border-blue-500/20">
+               <MapPin className="h-6 w-6 text-blue-400" />
+             </div>
+             <h1 className="text-4xl font-bold tracking-tight text-white uppercase">Infraestructura Geográfica</h1>
+          </div>
+          <p className="text-slate-400 font-medium max-w-xl text-sm italic">
+             Monitoreo satelital de nodos de interoperabilidad y despliegue institucional a nivel nacional.
+          </p>
         </div>
         <button
           onClick={() => setShowList(!showList)}
-          className="btn btn-secondary flex items-center gap-2"
+          className="flex items-center gap-2 px-6 py-3 bg-slate-800/80 border border-slate-700 hover:bg-slate-700 rounded-xl text-slate-200 font-bold transition-all text-sm uppercase tracking-widest"
         >
-          <List className="h-4 w-4" />
-          {showList ? 'Ver Mapa' : 'Ver Lista'}
+          {showList ? <Layers className="h-4 w-4" /> : <List className="h-4 w-4" />}
+          {showList ? 'Vista Satelital' : 'Panel de Control'}
         </button>
       </div>
 
-      {/* Stats Bar */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-gray-100 rounded-lg">
-              <Building2 className="h-5 w-5 text-gray-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-gray-900">{entities.length}</p>
-              <p className="text-xs text-gray-500">Total Entidades</p>
-            </div>
-          </div>
-        </div>
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-green-100 rounded-lg">
-              <Link2 className="h-5 w-5 text-green-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-green-600">{connectedCount}</p>
-              <p className="text-xs text-gray-500">Conectadas</p>
-            </div>
-          </div>
-        </div>
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-yellow-100 rounded-lg">
-              <Clock className="h-5 w-5 text-yellow-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-yellow-600">{pendingCount}</p>
-              <p className="text-xs text-gray-500">Pendientes</p>
-            </div>
-          </div>
-        </div>
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-red-100 rounded-lg">
-              <XCircle className="h-5 w-5 text-red-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-red-600">{notConnectedCount}</p>
-              <p className="text-xs text-gray-500">No Conectadas</p>
-            </div>
-          </div>
-        </div>
+      {/* Modern Stats Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <GlassCard className="p-5 border-l-4 border-l-blue-500">
+           <div className="flex items-center justify-between mb-2">
+              <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">ECOSISTEMA TOTAL</p>
+              <Building2 className="h-4 w-4 text-slate-600" />
+           </div>
+           <div className="text-3xl font-black text-white">{entities.length}</div>
+        </GlassCard>
+        <GlassCard className="p-5 border-l-4 border-l-emerald-500">
+           <div className="flex items-center justify-between mb-2">
+              <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">OPERATIVOS</p>
+              <Link2 className="h-4 w-4 text-emerald-600" />
+           </div>
+           <div className="text-3xl font-black text-white">{connectedCount}</div>
+        </GlassCard>
+        <GlassCard className="p-5 border-l-4 border-l-amber-500">
+           <div className="flex items-center justify-between mb-2">
+              <p className="text-[10px] font-black text-amber-500 uppercase tracking-widest">EN PROCESO</p>
+              <Clock className="h-4 w-4 text-amber-600" />
+           </div>
+           <div className="text-3xl font-black text-white">{pendingCount}</div>
+        </GlassCard>
+        <GlassCard className="p-5 border-l-4 border-l-red-500">
+           <div className="flex items-center justify-between mb-2">
+              <p className="text-[10px] font-black text-red-500 uppercase tracking-widest">DESCONECTADOS</p>
+              <XCircle className="h-4 w-4 text-red-600" />
+           </div>
+           <div className="text-3xl font-black text-white">{notConnectedCount}</div>
+        </GlassCard>
       </div>
 
-      {/* Filters */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-          {/* Search */}
+      {/* Filters GlassCard */}
+      <GlassCard className="p-6 border-slate-700/50">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
             <input
               type="text"
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Buscar entidad..."
+              className="w-full pl-10 pr-4 py-3 bg-slate-900/50 border border-slate-800 rounded-xl text-slate-200 text-sm focus:ring-2 focus:ring-blue-500/50 outline-none placeholder-slate-600"
+              placeholder="RASTREAR ENTIDAD..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          
-          {/* Sector Filter */}
           <select
-            className="px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-4 py-3 bg-slate-900/50 border border-slate-800 rounded-xl text-slate-300 text-sm focus:ring-2 focus:ring-blue-500/50 outline-none uppercase font-bold"
             value={selectedSector}
             onChange={(e) => setSelectedSector(e.target.value)}
           >
-            <option value="">Todos los sectores</option>
+            <option value="">TODOS LOS SECTORES</option>
             {sectors.map(sector => (
-              <option key={sector.id} value={sector.id}>{sector.name}</option>
+              <option key={sector.id} value={sector.id}>{sector.name.toUpperCase()}</option>
             ))}
           </select>
-
-          {/* Status Filter */}
           <select
-            className="px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-4 py-3 bg-slate-900/50 border border-slate-800 rounded-xl text-slate-300 text-sm focus:ring-2 focus:ring-blue-500/50 outline-none uppercase font-bold"
             value={selectedStatus}
             onChange={(e) => setSelectedStatus(e.target.value)}
           >
-            <option value="">Todos los estados</option>
-            <option value="connected">Conectado</option>
-            <option value="pending">Pendiente</option>
-            <option value="not_connected">No Conectado</option>
+            <option value="">ESTADO DE CONEXIÓN</option>
+            <option value="connected">OPERATIVO / CONECTADO</option>
+            <option value="pending">PENDIENTE DE VALIDACIÓN</option>
+            <option value="not_connected">CRÍTICO / DESCONECTADO</option>
           </select>
-
-          {/* Clear Filters */}
           <button
-            className="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors text-gray-700 font-medium"
+            className="w-full px-4 py-3 bg-slate-800/50 hover:bg-slate-700 border border-slate-700 rounded-xl text-slate-400 font-black text-[10px] tracking-widest transition-all"
             onClick={() => {
               setSelectedSector('')
               setSelectedStatus('')
               setSearchTerm('')
             }}
           >
-            Limpiar Filtros
+            SISTEMA REINICIAR FILTROS
           </button>
         </div>
-      </div>
+      </GlassCard>
 
-      {/* Main Content */}
+      {/* Main Map/List View */}
       {showList ? (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Lista de Entidades ({filteredEntities.length})</h3>
-          <div className="space-y-2 max-h-96 overflow-y-auto">
+        <GlassCard className="p-6 border-slate-700/50">
+          <div className="flex items-center gap-3 mb-6">
+             <Activity className="h-5 w-5 text-blue-400" />
+             <h3 className="text-xl font-bold text-white uppercase tracking-tight">Registro de Nodos Geográficos ({filteredEntities.length})</h3>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
             {filteredEntities.map(entity => (
               <div
                 key={entity.id}
                 onClick={() => handleEntityClick(entity)}
-                className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 cursor-pointer transition-colors"
+                className="group p-4 bg-slate-900/40 border border-slate-800 rounded-xl hover:border-blue-500/50 cursor-pointer transition-all hover:bg-slate-800/60"
               >
-                <div className="flex items-center gap-3">
-                  <div 
-                    className="w-3 h-3 rounded-full"
-                    style={{ backgroundColor: xroadStatusConfig[entity.xroad_status]?.color }}
-                  />
-                  <div>
-                    <p className="font-medium text-gray-900">{entity.name}</p>
-                    <p className="text-sm text-gray-500">{entity.department} - {entity.sector_name}</p>
-                  </div>
+                <div className="flex items-start justify-between mb-3">
+                   <div className="p-2 bg-slate-800 rounded-lg group-hover:bg-blue-500/10 transition-colors">
+                      <Shield className="h-4 w-4 text-slate-400 group-hover:text-blue-400" />
+                   </div>
+                   <StatusPulse status={xroadStatusConfig[entity.xroad_status]?.status} size="sm" />
                 </div>
-                <div className="text-right">
-                  <span className="text-xs text-gray-500">{entity.services_count || 0} servicios</span>
+                <div className="space-y-1">
+                   <p className="font-bold text-slate-200 group-hover:text-white transition-colors uppercase text-xs truncate">{entity.name}</p>
+                   <p className="text-[10px] font-mono text-slate-500 uppercase tracking-wider">{entity.department} • {entity.sector_name}</p>
+                </div>
+                <div className="mt-4 flex items-center justify-between border-t border-slate-800/50 pt-3">
+                   <div className="flex items-center gap-1.5 text-[9px] font-black text-slate-400 uppercase tracking-tighter">
+                      <Box className="h-3 w-3" />
+                      {entity.services_count || 0} ENDPOINTS
+                   </div>
+                   <button className="text-[9px] font-black text-blue-400 uppercase hover:text-blue-300">Localizar →</button>
                 </div>
               </div>
             ))}
           </div>
-        </div>
+        </GlassCard>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-          {/* Map */}
-          <div className="lg:col-span-3 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden" style={{ height: '600px' }}>
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {/* Map Area */}
+          <GlassCard className="lg:col-span-3 !p-0 border-slate-700/50 overflow-hidden relative" style={{ height: '700px' }}>
+            <div className="absolute top-4 right-4 z-[1000] flex flex-col gap-2">
+               <div className="px-3 py-2 bg-slate-900/90 border border-slate-700/50 rounded-lg backdrop-blur-md shadow-2xl flex items-center gap-3">
+                  <div className="flex items-center gap-2">
+                     <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse shadow-sm shadow-emerald-500/50" />
+                     <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Red Activa</span>
+                  </div>
+               </div>
+            </div>
+            
             <MapContainer
               center={[4.5709, -74.2973]}
               zoom={6}
-              style={{ height: '100%', width: '100%' }}
+              style={{ height: '100%', width: '100%', background: '#0A0E1A' }}
+              zoomControl={false} // Customizing zoom control could be next
             >
               <MapController center={mapCenter} zoom={initialZoom} />
+              {/* Dark mode satellite look tile layer */}
               <TileLayer
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
               />
               {filteredEntities.map((entity) => {
-                const statusColor = entity.xroad_status === 'connected' ? 'green' : entity.xroad_status === 'pending' ? 'yellow' : 'red'
+                const statusKind = entity.xroad_status === 'connected' ? 'green' : entity.xroad_status === 'pending' ? 'yellow' : 'red'
                 return (
                   <Marker
                     key={entity.id}
                     position={[entity.latitude, entity.longitude]}
-                    icon={createCustomIcon(statusColor)}
-                    eventHandlers={{
-                      click: () => handleEntityClick(entity)
-                    }}
+                    icon={createCustomIcon(statusKind)}
+                    eventHandlers={{ click: () => handleEntityClick(entity) }}
                   >
-                    <Popup>
-                      <div className="p-2 min-w-48">
-                        <h3 className="font-semibold text-gray-900">{entity.name}</h3>
-                        {entity.acronym && (
-                          <p className="text-sm text-gray-600 font-medium">{entity.acronym}</p>
-                        )}
-                        <div className="flex items-center gap-2 mt-2 text-sm text-gray-500">
-                          <MapPin className="h-4 w-4" />
-                          <span>{entity.department}</span>
+                    <Popup className="custom-leaflet-popup">
+                      <div className="p-3 min-w-[240px] bg-[#111827] text-white rounded-xl -m-3 border border-slate-700/50">
+                        <div className="flex justify-between items-start mb-3">
+                           <div className="flex-1">
+                              <h3 className="font-black text-xs text-blue-400 uppercase tracking-wide leading-tight">{entity.name}</h3>
+                              <p className="text-[10px] font-bold text-slate-500">{entity.acronym || 'SIN ACRÓNIMO'}</p>
+                           </div>
+                           <StatusPulse status={xroadStatusConfig[entity.xroad_status]?.status} size="sm" />
                         </div>
-                        <div className="flex items-center gap-2 mt-1 text-sm text-gray-500">
-                          <Building2 className="h-4 w-4" />
-                          <span>{entity.sector_name}</span>
+                        
+                        <div className="space-y-2 mb-4">
+                           <div className="flex items-center gap-2 text-slate-400">
+                              <MapPin className="h-3 w-3 text-blue-500/50" />
+                              <span className="text-[10px] font-medium uppercase">{entity.department}</span>
+                           </div>
+                           <div className="flex items-center gap-2 text-slate-400">
+                              <Building2 className="h-3 w-3 text-blue-500/50" />
+                              <span className="text-[10px] font-medium uppercase">{entity.sector_name}</span>
+                           </div>
                         </div>
-                        <div className="flex items-center gap-2 mt-1 text-sm text-gray-500">
-                          <span>Lat: {entity.latitude?.toFixed(4)}, Lng: {entity.longitude?.toFixed(4)}</span>
+
+                        <div className="grid grid-cols-2 gap-2 p-2 bg-slate-900/50 rounded-lg border border-slate-800 mb-3">
+                           <div>
+                              <p className="text-[8px] font-black text-slate-500 uppercase tracking-tighter">Endpoints</p>
+                              <p className="text-xs font-bold text-white">{entity.services_count || 0} activos</p>
+                           </div>
+                           <div>
+                              <p className="text-[8px] font-black text-slate-500 uppercase tracking-tighter">Status</p>
+                              <p className="text-[10px] font-bold text-white">{xroadStatusConfig[entity.xroad_status]?.label}</p>
+                           </div>
                         </div>
-                        <div className="mt-3">
-                          <span
-                            className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium"
-                            style={{
-                              backgroundColor: xroadStatusConfig[entity.xroad_status]?.color + '20',
-                              color: xroadStatusConfig[entity.xroad_status]?.color
-                            }}
-                          >
-                            {xroadStatusConfig[entity.xroad_status]?.label}
-                          </span>
-                        </div>
-                        <div className="mt-2 text-xs text-gray-400">
-                          {entity.services_count || 0} servicios activos
+                        
+                        <div className="flex items-center justify-between">
+                           <p className="text-[8px] font-mono text-slate-600">MOD: {new Date().toLocaleDateString()}</p>
+                           <button className="text-[9px] font-black text-blue-400 uppercase tracking-widest px-2 py-1 bg-blue-500/10 rounded-md">Ver Perfil nodal</button>
                         </div>
                       </div>
                     </Popup>
@@ -330,83 +317,72 @@ export default function MapaInteractivo() {
                 )
               })}
             </MapContainer>
-          </div>
+          </GlassCard>
 
-          {/* Sidebar List */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 overflow-y-auto" style={{ maxHeight: '600px' }}>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-gray-900">Entidades</h3>
-              <span className="text-xs bg-gray-100 px-2 py-1 rounded-full">{filteredEntities.length}</span>
+          {/* Sidebar Area */}
+          <GlassCard className="flex flex-col border-slate-700/50 overflow-hidden" style={{ height: '700px' }}>
+            <div className="p-5 border-b border-slate-800">
+              <div className="flex items-center justify-between mb-1">
+                <h3 className="font-black text-sm text-white uppercase tracking-widest">Nodos en Radar</h3>
+                <span className="text-[10px] font-black bg-blue-500/10 text-blue-400 px-2 py-1 rounded-md">{filteredEntities.length}</span>
+              </div>
+              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-tighter">Despliegue operativo detectado</p>
             </div>
-            <div className="space-y-2">
+            
+            <div className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-2">
               {filteredEntities.map(entity => (
                 <div
                   key={entity.id}
                   onClick={() => handleEntityClick(entity)}
-                  className={`p-3 rounded-xl cursor-pointer transition-colors ${
+                  className={`p-4 rounded-xl cursor-pointer transition-all border ${
                     selectedEntity?.id === entity.id 
-                      ? 'bg-blue-50 border border-blue-200' 
-                      : 'bg-gray-50 hover:bg-gray-100'
+                      ? 'bg-blue-500/10 border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.1)]' 
+                      : 'bg-slate-900/40 border-slate-800 hover:border-slate-700'
                   }`}
                 >
-                  <div className="flex items-center gap-2">
-                    <div 
-                      className="w-2 h-2 rounded-full flex-shrink-0"
-                      style={{ backgroundColor: xroadStatusConfig[entity.xroad_status]?.color }}
-                    />
+                  <div className="flex items-center gap-3">
+                    <StatusPulse status={xroadStatusConfig[entity.xroad_status]?.status} size="sm" />
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">
+                      <p className="text-xs font-black text-slate-200 group-hover:text-white truncate uppercase tracking-tight">
                         {entity.name}
                       </p>
-                      <p className="text-xs text-gray-500 truncate">
+                      <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">
                         {entity.department}
                       </p>
                     </div>
                   </div>
                   {selectedEntity?.id === entity.id && (
-                    <div className="mt-2 pt-2 border-t border-gray-200">
-                      <div className="grid grid-cols-2 gap-2 text-xs">
-                        <div>
-                          <span className="text-gray-500">Sector:</span>
-                          <p className="font-medium">{entity.sector_name}</p>
-                        </div>
-                        <div>
-                          <span className="text-gray-500">Estado:</span>
-                          <p className="font-medium" style={{ color: xroadStatusConfig[entity.xroad_status]?.color }}>
-                            {xroadStatusConfig[entity.xroad_status]?.label}
-                          </p>
-                        </div>
-                      </div>
+                    <div className="mt-4 pt-3 border-t border-slate-800 flex justify-between items-center">
+                       <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{entity.sector_name}</span>
+                       <Activity className="h-3 w-3 text-blue-500 animate-pulse" />
                     </div>
                   )}
                 </div>
               ))}
             </div>
-          </div>
+            
+            <div className="p-4 bg-slate-900/60 border-t border-slate-800">
+               <div className="space-y-3">
+                  <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-2">Simbología Nodal</p>
+                  <div className="grid grid-cols-2 gap-2">
+                     <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-emerald-500 rounded-full" />
+                        <span className="text-[9px] font-bold text-slate-400">OPERATIVO</span>
+                     </div>
+                     <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-amber-500 rounded-full" />
+                        <span className="text-[9px] font-bold text-slate-400">PENDIENTE</span>
+                     </div>
+                     <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-red-500 rounded-full" />
+                        <span className="text-[9px] font-bold text-slate-400">DESCONEXIÓN</span>
+                     </div>
+                  </div>
+               </div>
+            </div>
+          </GlassCard>
         </div>
       )}
-
-      {/* Legend */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-        <div className="flex flex-wrap items-center gap-6">
-          <span className="text-sm font-medium text-gray-700">Leyenda:</span>
-          <div className="flex items-center gap-2">
-            <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png" alt="green" className="w-5 h-8" />
-            <span className="text-sm text-gray-600">Conectado X-Road</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-yellow.png" alt="yellow" className="w-5 h-8" />
-            <span className="text-sm text-gray-600">Pendiente</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png" alt="red" className="w-5 h-8" />
-            <span className="text-sm text-gray-600">No Conectado</span>
-          </div>
-          <div className="ml-auto text-sm text-gray-500">
-            Showing {filteredEntities.length} of {entities.length} entities on map
-          </div>
-        </div>
-      </div>
     </div>
   )
 }

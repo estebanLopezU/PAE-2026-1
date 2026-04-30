@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from ....database import get_db
 from ....models.sector import Sector
 from ....schemas.sector import Sector as SectorSchema, SectorCreate, SectorUpdate, SectorList
-from ....security import require_admin
+from ....security import require_admin, get_current_user
 
 router = APIRouter()
 
@@ -15,7 +15,8 @@ router = APIRouter()
 def list_sectors(
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: Dict[str, Any] = Depends(get_current_user)
 ):
     """List all sectors"""
     query = db.query(Sector)
@@ -30,7 +31,11 @@ def list_sectors(
 
 
 @router.get("/{sector_id}", response_model=SectorSchema)
-def get_sector(sector_id: int, db: Session = Depends(get_db)):
+def get_sector(
+    sector_id: int, 
+    db: Session = Depends(get_db),
+    current_user: Dict[str, Any] = Depends(get_current_user)
+):
     """Get a specific sector"""
     sector = db.query(Sector).filter(Sector.id == sector_id).first()
     if not sector:

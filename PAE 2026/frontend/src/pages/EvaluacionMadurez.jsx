@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react'
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts'
-import { Plus } from 'lucide-react'
+import { Plus, Award, Target, BarChart3, ChevronRight, Info, AlertOctagon, TrendingUp, Cpu, Shield } from 'lucide-react'
 import { maturityApi, entitiesApi, dashboardApi } from '../services/api'
 import { useAuth } from '../contexts/AuthContext'
+import GlassCard from '../components/common/GlassCard'
+import StatusPulse from '../components/common/StatusPulse'
 
 const maturityLevelLabels = {
-  1: 'Inicial',
-  2: 'Básico',
-  3: 'Intermedio',
-  4: 'Avanzado'
+  1: 'INICIAL',
+  2: 'BÁSICO',
+  3: 'INTERMEDIO',
+  4: 'AVANZADO'
 }
 
 const maturityLevelColors = {
@@ -19,10 +21,10 @@ const maturityLevelColors = {
 }
 
 const domainLabels = {
-  legal: 'Legal',
-  organizational: 'Organizacional',
-  semantic: 'Semántico',
-  technical: 'Técnico'
+  legal: 'LEGAL',
+  organizational: 'ORGANIZACIONAL',
+  semantic: 'SEMÁNTICO',
+  technical: 'TÉCNICO'
 }
 
 const criteriaLabels = {
@@ -90,7 +92,7 @@ export default function EvaluacionMadurez() {
       
     } catch (error) {
       console.error('Error fetching data:', error)
-      setError('Error al cargar los datos. Por favor, intente de nuevo.')
+      setError('Error al cargar los datos del sistema de madurez.')
     } finally {
       setLoading(false)
     }
@@ -117,35 +119,11 @@ export default function EvaluacionMadurez() {
     return assessments.some((assessment) => Number(assessment.entity_id) === normalizedEntityId)
   }
 
-  // Calculate overall score and level based on criteria
-  const calculateMaturity = (criteria) => {
-    const scores = Object.values(criteria)
-    const avgScore = scores.reduce((a, b) => a + b, 0) / scores.length
-    const normalizedScore = (avgScore / 4) * 100
-    
-    let level = 1
-    if (normalizedScore >= 75) level = 4
-    else if (normalizedScore >= 50) level = 3
-    else if (normalizedScore >= 25) level = 2
-    
-    return { score: Math.round(normalizedScore), level }
-  }
-
-  // Calculate domain scores based on criteria
-  const calculateDomainScores = (criteria) => {
-    return {
-      legal_domain_score: ((criteria.has_security_standards + criteria.has_interoperability_policy) / 2) * 25,
-      organizational_domain_score: ((criteria.has_trained_personnel + criteria.has_interoperability_policy) / 2) * 25,
-      semantic_domain_score: ((criteria.has_data_quality + criteria.uses_standard_protocols) / 2) * 25,
-      technical_domain_score: ((criteria.api_documentation + criteria.uses_standard_protocols + criteria.has_security_standards) / 3) * 25
-    }
-  }
-
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-      </div>
+       <div className="flex min-h-[60vh] items-center justify-center">
+         <StatusPulse size="lg" />
+       </div>
     )
   }
 
@@ -155,224 +133,213 @@ export default function EvaluacionMadurez() {
     fullMark: 100
   })) : []
 
-  const normalizedCriteria = radarData ? normalizeCriteria(radarData.criteria) : {}
+  const normalizedCriteriaData = radarData ? normalizeCriteria(radarData.criteria) : {}
   const criteriaChartData = radarData
     ? Object.keys(criteriaLabels).map((key) => ({
         criteria: criteriaLabels[key],
-        score: normalizedCriteria[key] ?? 0
+        score: normalizedCriteriaData[key] ?? 0
       }))
     : []
   const maxCriteriaScore = Math.max(4, ...criteriaChartData.map(item => item.score || 0))
 
-  if (error) {
-    return (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Evaluación de Madurez</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Análisis del nivel de madurez según el Marco de Interoperabilidad del MinTIC
-          </p>
-        </div>
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-              </svg>
-            </div>
-            <div className="ml-3">
-              <h3 className="text-sm font-medium text-red-800">Error al cargar datos</h3>
-              <div className="mt-2 text-sm text-red-700">
-                <p>{error}</p>
-              </div>
-              <div className="mt-4">
-                <button
-                  onClick={fetchData}
-                  className="bg-red-100 px-3 py-2 rounded-md text-sm font-medium text-red-800 hover:bg-red-200"
-                >
-                  Reintentar
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-start">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Evaluación de Madurez</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Visualización del nivel de madurez según el Marco de Interoperabilidad del MinTIC
+    <div className="space-y-8 pb-12">
+      {/* Header Section */}
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6">
+        <div className="space-y-2">
+          <div className="flex items-center gap-3">
+             <div className="p-3 bg-blue-500/10 rounded-2xl border border-blue-500/20">
+               <Target className="h-6 w-6 text-blue-400" />
+             </div>
+             <h1 className="text-4xl font-bold tracking-tight text-white uppercase">Evaluación de Madurez</h1>
+          </div>
+          <p className="text-slate-400 font-medium max-w-xl text-sm">
+             Métrica de evolución institucional basada en el Marco de Interoperabilidad del Gobierno de Colombia.
           </p>
         </div>
         {canCreate() && (
-          <button className="btn btn-primary flex items-center gap-2">
+          <button className="group relative flex items-center gap-3 px-8 py-4 bg-white hover:bg-slate-200 rounded-xl text-slate-900 font-black text-xs uppercase tracking-widest transition-all overflow-hidden shadow-[0_0_20px_rgba(255,255,255,0.1)]">
             <Plus className="h-4 w-4" />
-            Crear Evaluación
+            Nueva Auditoría
           </button>
         )}
       </div>
 
-      <>
-        {/* Entity Selector for Visualization */}
-        <div className="bg-white rounded-lg shadow p-4">
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div>
-                <label className="form-label">Seleccionar Entidad para Visualizar</label>
+      {error ? (
+        <GlassCard className="p-8 border-red-500/30 bg-red-500/5 text-center">
+             <AlertOctagon className="h-12 w-12 text-red-500 mx-auto mb-4" />
+             <h3 className="text-xl font-bold text-white uppercase mb-2">Error de Sincronización</h3>
+             <p className="text-slate-400 mb-6">{error}</p>
+             <button onClick={fetchData} className="px-6 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/30 rounded-lg text-xs font-black uppercase tracking-widest">
+                Reintentar Conexión
+             </button>
+        </GlassCard>
+      ) : (
+        <>
+          {/* Selector Panel */}
+          <GlassCard className="p-6 border-slate-700/50">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Entidad en Análisis</label>
                 <select
-                  className="form-select"
+                  className="w-full px-4 py-4 bg-slate-900/50 border border-slate-800 rounded-xl text-slate-200 font-bold focus:ring-2 focus:ring-blue-500/50 outline-none uppercase"
                   value={selectedEntity?.id || ''}
                   onChange={(e) => handleEntitySelect(e.target.value)}
                 >
-                  <option value="">Seleccione una entidad...</option>
+                  <option value="">SELECCIONAR NODO...</option>
                   {entities.map(entity => (
                     <option key={entity.id} value={entity.id}>
-                      {entity.name} {!hasAssessmentForEntity(entity.id) && '(Pendiente evaluación)'}
+                      {entity.name.toUpperCase()} {!hasAssessmentForEntity(entity.id) && '[PENDIENTE]'}
                     </option>
                   ))}
                 </select>
-                {entities.length === 0 && (
-                  <p className="mt-2 text-sm text-gray-500">No hay entidades disponibles</p>
-                )}
               </div>
-              {selectedEntity && radarData && (
-                <div className="flex items-center">
-                  <div className="text-sm text-gray-600">
-                    <strong>Nivel:</strong> {maturityLevelLabels[radarData.overall_level]} 
-                    <span className="ml-2"><strong>Score:</strong> {radarData.overall_score}%</span>
-                  </div>
+
+              {selectedEntity && radarData ? (
+                <div className="flex gap-6 items-center">
+                   <div className="flex flex-col">
+                      <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">SCORE GLOBAL</span>
+                      <div className="flex items-baseline gap-2">
+                         <span className="text-4xl font-black text-white">{radarData.overall_score}%</span>
+                         <TrendingUp className="h-4 w-4 text-emerald-400" />
+                      </div>
+                   </div>
+                   <div className="h-12 w-[1px] bg-slate-800 hidden md:block" />
+                   <div className="flex flex-col">
+                      <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">NIVEL ALCANZADO</span>
+                      <div className="flex items-center gap-3">
+                         <StatusPulse status={radarData.overall_level >= 3 ? 'success' : radarData.overall_level === 2 ? 'warning' : 'error'} size="sm" />
+                         <span className="text-xl font-black text-slate-200 tracking-tight uppercase" style={{ color: maturityLevelColors[radarData.overall_level] }}>
+                            {maturityLevelLabels[radarData.overall_level]}
+                         </span>
+                      </div>
+                   </div>
+                </div>
+              ) : (
+                <div className="flex items-center gap-3 text-slate-600 italic text-sm">
+                   <Info className="h-5 w-5" />
+                   Seleccione una entidad para desplegar el radar de madurez.
                 </div>
               )}
             </div>
-          </div>
+          </GlassCard>
 
-          {/* No Assessment Warning */}
+          {/* Pending Warning */}
           {selectedEntity && !hasAssessmentForEntity(selectedEntity.id) && (
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-              <div className="flex">
-                <div className="flex-shrink-0">
-                  <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                  </svg>
+            <GlassCard className="p-6 border-amber-500/30 bg-amber-500/5">
+              <div className="flex items-start gap-4">
+                <div className="p-2 bg-amber-500/20 rounded-lg">
+                  <AlertOctagon className="h-6 w-6 text-amber-500" />
                 </div>
-                <div className="ml-3">
-                  <h3 className="text-sm font-medium text-yellow-800">Evaluación Pendiente</h3>
-                  <div className="mt-2 text-sm text-yellow-700">
-                    <p>
-                      <strong>{selectedEntity.name}</strong> aún no tiene una evaluación de madurez registrada.
-                    </p>
-                    <p className="mt-2">
-                      <strong>Justificación:</strong> Esta entidad está en proceso de evaluación según el Marco de Interoperabilidad del MinTIC. 
-                      La evaluación se realizará próximamente por el equipo técnico responsable.
-                    </p>
-                    <p className="mt-2">
-                      <strong>Razones posibles:</strong>
-                    </p>
-                    <ul className="list-disc list-inside mt-1 space-y-1">
-                      <li>La entidad fue creada recientemente y aún no ha sido evaluada</li>
-                      <li>La evaluación está programada para el próximo período</li>
-                      <li>Se requiere información adicional de la entidad para completar la evaluación</li>
-                    </ul>
-                  </div>
+                <div>
+                  <h3 className="text-sm font-black text-amber-500 uppercase tracking-widest mb-2">Protocolo de Evaluación Pendiente</h3>
+                  <p className="text-xs text-slate-400 leading-relaxed max-w-2xl">
+                    Este nodo institucional aún no ha completado el ciclo de auditoría de madurez. Los datos mostrados podrían ser proyecciones basadas en infraestructura base. Se requiere ejecución de auditoría técnica dirigida.
+                  </p>
                 </div>
               </div>
-            </div>
+            </GlassCard>
           )}
 
-          {/* Charts */}
+          {/* Charts Grid */}
           {radarData && (
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-              {/* Radar Chart */}
-              <div className="bg-white rounded-lg shadow p-6">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">Dominios de Madurez</h3>
-                <ResponsiveContainer width="100%" height={300}>
-                  <RadarChart data={radarChartData}>
-                    <PolarGrid />
-                    <PolarAngleAxis dataKey="domain" />
-                    <PolarRadiusAxis angle={30} domain={[0, 100]} />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <GlassCard className="p-6 border-slate-700/50">
+                <div className="flex items-center justify-between mb-8">
+                   <h3 className="text-sm font-black text-white uppercase tracking-widest">Espectro de Dominios</h3>
+                   <Cpu className="h-4 w-4 text-slate-700" />
+                </div>
+                <ResponsiveContainer width="100%" height={350}>
+                  <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarChartData}>
+                    <PolarGrid stroke="#1e293b" />
+                    <PolarAngleAxis dataKey="domain" tick={{ fill: '#64748b', fontSize: 10, fontWeight: 900 }} />
+                    <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
                     <Radar
-                      name="Score"
+                      name="Audit Score"
                       dataKey="score"
                       stroke={maturityLevelColors[radarData.overall_level]}
                       fill={maturityLevelColors[radarData.overall_level]}
                       fillOpacity={0.6}
                     />
+                    <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderColor: '#1e293b', color: '#fff', fontSize: '10px', borderRadius: '12px' }} />
                   </RadarChart>
                 </ResponsiveContainer>
-              </div>
+              </GlassCard>
 
-              {/* Criteria Chart */}
-              <div className="bg-white rounded-lg shadow p-6">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">Criterios de Evaluación</h3>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={criteriaChartData} layout="vertical">
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis type="number" domain={[0, maxCriteriaScore]} />
-                    <YAxis dataKey="criteria" type="category" width={180} />
-                    <Tooltip />
-                    <Bar dataKey="score" fill={maturityLevelColors[radarData.overall_level]} />
+              <GlassCard className="p-6 border-slate-700/50">
+                <div className="flex items-center justify-between mb-8">
+                   <h3 className="text-sm font-black text-white uppercase tracking-widest">Análisis de Criterios</h3>
+                   <BarChart3 className="h-4 w-4 text-slate-700" />
+                </div>
+                <ResponsiveContainer width="100%" height={350}>
+                  <BarChart data={criteriaChartData} layout="vertical" margin={{ left: 20 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" horizontal={false} />
+                    <XAxis type="number" domain={[0, maxCriteriaScore]} hide />
+                    <YAxis dataKey="criteria" type="category" width={160} tick={{ fill: '#94a3b8', fontSize: 9, fontWeight: 700 }} axisLine={false} tickLine={false} />
+                    <Tooltip cursor={{ fill: 'rgba(255,255,255,0.05)' }} contentStyle={{ backgroundColor: '#0f172a', border: 'none', borderRadius: '8px' }} />
+                    <Bar 
+                        dataKey="score" 
+                        fill={maturityLevelColors[radarData.overall_level]} 
+                        radius={[0, 4, 4, 0]}
+                        barSize={20}
+                    />
                   </BarChart>
                 </ResponsiveContainer>
-              </div>
+              </GlassCard>
             </div>
           )}
 
-          {/* Assessments Table */}
-          <div className="table-scientific">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900">Evaluaciones Recientes</h3>
+          {/* Assessments Registry */}
+          <GlassCard className="overflow-hidden border-slate-700/50">
+            <div className="px-6 py-5 border-b border-slate-800 bg-slate-900/30 flex justify-between items-center">
+              <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Registro Histórico de Auditorías</h3>
+              <div className="p-1.5 bg-blue-500/10 rounded-lg">
+                 <Shield className="h-4 w-4 text-blue-500" />
+              </div>
             </div>
+            
             {assessments.length === 0 ? (
-              <div className="px-6 py-12 text-center">
-                <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                <h3 className="mt-2 text-sm font-semibold text-gray-900">No hay evaluaciones</h3>
-                <p className="mt-1 text-sm text-gray-500">No se encontraron evaluaciones de madurez registradas.</p>
-                <div className="mt-6">
-                  <p className="text-sm text-gray-500">
-                    No se encontraron evaluaciones de madurez registradas.
-                  </p>
-                </div>
+              <div className="p-16 text-center">
+                <Award className="h-12 w-12 text-slate-800 mx-auto mb-4" />
+                <p className="text-slate-600 font-bold uppercase tracking-widest text-xs">No se registran trazabilidades de madurez en el sistema</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="data-table">
+                <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr>
-                      <th>Entidad</th>
-                      <th>Nivel</th>
-                      <th>Score</th>
-                      <th>Fecha</th>
-                      <th>Evaluador</th>
+                    <tr className="bg-slate-900/50 border-b border-slate-800">
+                      <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Entidad Auditada</th>
+                      <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Nivel</th>
+                      <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Score</th>
+                      <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Fecha Sinc.</th>
+                      <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Auditor Responsable</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="divide-y divide-slate-800/50">
                     {assessments.map((assessment) => (
-                      <tr key={assessment.id}>
-                        <td>
-                          <span className="font-semibold text-gray-900">{assessment.entity_name}</span>
+                      <tr key={assessment.id} className="hover:bg-white/5 transition-colors">
+                        <td className="px-6 py-5 text-xs font-bold text-slate-200">
+                           {assessment.entity_name.toUpperCase()}
                         </td>
-                        <td>
-                          <span
-                            className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold text-white"
-                            style={{ backgroundColor: maturityLevelColors[assessment.overall_level] }}
-                          >
-                            {maturityLevelLabels[assessment.overall_level]}
-                          </span>
+                        <td className="px-6 py-5 text-center">
+                           <span
+                             className="inline-flex items-center px-4 py-1 rounded-lg text-[9px] font-black text-white uppercase tracking-widest"
+                             style={{ backgroundColor: `${maturityLevelColors[assessment.overall_level]}20`, color: maturityLevelColors[assessment.overall_level], border: `1px solid ${maturityLevelColors[assessment.overall_level]}40` }}
+                           >
+                             {maturityLevelLabels[assessment.overall_level]}
+                           </span>
                         </td>
-                        <td>
-                          <span className="font-semibold text-gray-900">{assessment.overall_score}%</span>
+                        <td className="px-6 py-5 text-center text-xs font-mono font-bold text-white">
+                           {assessment.overall_score}%
                         </td>
-                        <td>
-                          <span className="text-gray-600">{new Date(assessment.assessment_date).toLocaleDateString()}</span>
+                        <td className="px-6 py-5 text-center text-[10px] font-bold text-slate-500 font-mono">
+                           {new Date(assessment.assessment_date).toLocaleDateString()}
                         </td>
-                        <td>
-                          <span className="text-gray-600">{assessment.assessor_name}</span>
+                        <td className="px-6 py-5">
+                          <div className="flex items-center gap-2 text-xs font-bold text-slate-400">
+                             <div className="h-6 w-6 rounded-full bg-slate-800 flex items-center justify-center text-[8px]">{assessment.assessor_name[0]}</div>
+                             {assessment.assessor_name}
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -380,39 +347,31 @@ export default function EvaluacionMadurez() {
                 </table>
               </div>
             )}
-          </div>
+          </GlassCard>
 
-          {/* Statistics Summary */}
+          {/* Stats Summary */}
           {assessments.length > 0 && (
-            <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Resumen de Evaluaciones</h3>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-primary-600">{assessments.length}</div>
-                  <div className="text-sm text-gray-500">Total Evaluaciones</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-green-600">
-                    {assessments.filter(a => a.overall_level >= 3).length}
-                  </div>
-                  <div className="text-sm text-gray-500">Nivel Intermedio o Superior</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-yellow-600">
-                    {assessments.filter(a => a.overall_level === 2).length}
-                  </div>
-                  <div className="text-sm text-gray-500">Nivel Básico</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-red-600">
-                    {assessments.filter(a => a.overall_level === 1).length}
-                  </div>
-                  <div className="text-sm text-gray-500">Nivel Inicial</div>
-                </div>
-              </div>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+               <GlassCard className="p-5 text-center border-slate-700/50">
+                  <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">TOTAL AUDITS</p>
+                  <p className="text-2xl font-black text-white">{assessments.length}</p>
+               </GlassCard>
+               <GlassCard className="p-5 text-center border-l-2 border-emerald-500">
+                  <p className="text-[9px] font-black text-emerald-500 uppercase tracking-widest mb-1">HIGH MATURITY</p>
+                  <p className="text-2xl font-black text-white">{assessments.filter(a => a.overall_level >= 3).length}</p>
+               </GlassCard>
+               <GlassCard className="p-5 text-center border-l-2 border-amber-500">
+                  <p className="text-[9px] font-black text-amber-500 uppercase tracking-widest mb-1">BASIC N NODES</p>
+                  <p className="text-2xl font-black text-white">{assessments.filter(a => a.overall_level === 2).length}</p>
+               </GlassCard>
+               <GlassCard className="p-5 text-center border-l-2 border-red-500">
+                  <p className="text-[9px] font-black text-red-500 uppercase tracking-widest mb-1">INITIAL PHASE</p>
+                  <p className="text-2xl font-black text-white">{assessments.filter(a => a.overall_level === 1).length}</p>
+               </GlassCard>
             </div>
           )}
-      </>
+        </>
+      )}
     </div>
   )
 }

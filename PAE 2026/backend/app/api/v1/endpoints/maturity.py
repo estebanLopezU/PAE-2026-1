@@ -7,7 +7,7 @@ from ....database import get_db
 from ....models.maturity import MaturityAssessment
 from ....models.entity import Entity
 from ....schemas.maturity import MaturityAssessment as MaturitySchema, MaturityAssessmentCreate, MaturityAssessmentUpdate, MATURITY_LEVELS
-from ....security import require_admin
+from ....security import require_admin, get_current_user
 
 router = APIRouter()
 
@@ -25,7 +25,8 @@ def list_assessments(
     entity_id: Optional[int] = None,
     min_level: Optional[int] = None,
     max_level: Optional[int] = None,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: Dict[str, Any] = Depends(get_current_user)
 ):
     """List maturity assessments"""
     query = db.query(MaturityAssessment)
@@ -48,7 +49,11 @@ def list_assessments(
 
 
 @router.get("/assessments/{assessment_id}", response_model=MaturitySchema)
-def get_assessment(assessment_id: int, db: Session = Depends(get_db)):
+def get_assessment(
+    assessment_id: int, 
+    db: Session = Depends(get_db),
+    current_user: Dict[str, Any] = Depends(get_current_user)
+):
     """Get a specific assessment"""
     assessment = db.query(MaturityAssessment).filter(MaturityAssessment.id == assessment_id).first()
     if not assessment:
@@ -58,7 +63,11 @@ def get_assessment(assessment_id: int, db: Session = Depends(get_db)):
 
 
 @router.get("/entity/{entity_id}/latest", response_model=MaturitySchema)
-def get_latest_assessment(entity_id: int, db: Session = Depends(get_db)):
+def get_latest_assessment(
+    entity_id: int, 
+    db: Session = Depends(get_db),
+    current_user: Dict[str, Any] = Depends(get_current_user)
+):
     """Get latest assessment for an entity"""
     # Verify entity exists
     entity = db.query(Entity).filter(Entity.id == entity_id).first()
@@ -148,6 +157,7 @@ def delete_assessment(
 def generate_all_assessments(
     overwrite: bool = False,
     db: Session = Depends(get_db),
+    current_user: Dict[str, Any] = Depends(require_admin),
 ):
     """
     Generate automatic maturity assessments for all entities that don't have one.

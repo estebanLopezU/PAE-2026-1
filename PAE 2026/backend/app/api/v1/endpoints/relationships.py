@@ -6,11 +6,16 @@ from ....models.entity import Entity
 from ....models.relationship import Relationship
 from ....models.sector import Sector
 from ....schemas.relationship import GraphData, GraphNode, GraphLink
+from ....security import get_current_user
+from typing import List, Any
 
 router = APIRouter()
 
 @router.get("/graph", response_model=GraphData)
-def get_interaction_graph(db: Session = Depends(get_db)):
+def get_interaction_graph(
+    db: Session = Depends(get_db),
+    current_user: Any = Depends(get_current_user)
+):
     """Get the complete entity interaction graph"""
     entities = db.query(Entity).join(Sector).all()
     relationships = db.query(Relationship).all()

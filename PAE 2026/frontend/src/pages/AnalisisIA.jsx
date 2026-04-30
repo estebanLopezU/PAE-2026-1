@@ -13,23 +13,22 @@ import {
   CheckCircle2,
   Zap,
   Shield,
-  Globe,
-  Database,
   Network,
   Activity,
   Calendar,
   ArrowUpRight,
   ArrowDownRight,
   Minus,
-  ChevronRight,
   Info,
-  Building2
+  Cpu,
+  Layers,
+  LineChart as LineChartIcon
 } from 'lucide-react'
-import { BarChart as RechartsBarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, AreaChart, Area } from 'recharts'
+import { BarChart as RechartsBarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, AreaChart, Area } from 'recharts'
 import { aiApi } from '../services/aiApi'
 import { entitiesApi, sectorsApi } from '../services/api'
-
-const COLORS = ['#10B981', '#F59E0B', '#EF4444', '#3B82F6', '#8B5CF6']
+import GlassCard from '../components/common/GlassCard'
+import StatusPulse from '../components/common/StatusPulse'
 
 export default function AnalisisIA() {
   const { t } = useTranslation()
@@ -57,7 +56,7 @@ export default function AnalisisIA() {
       setSectors(sectorsRes.data?.items || [])
     } catch (error) {
       console.error('Error fetching data:', error)
-      setError('Error al cargar los datos')
+      setError('Sincronización de datos fallida.')
     } finally {
       setLoading(false)
     }
@@ -76,9 +75,6 @@ export default function AnalisisIA() {
 
     try {
       const response = await aiApi.analyzeEntity(parseInt(entityId))
-      
-      // The API returns { success: true, data: {...} }
-      // So we need response.data.data to get the actual analysis
       const analysisData = response.data.success ? response.data.data : response.data
       setEntityAnalysis(analysisData)
     } catch (error) {
@@ -90,12 +86,11 @@ export default function AnalisisIA() {
     setTraining(true)
     setError(null)
     try {
-      const response = await aiApi.trainModels(true)
-      setSuccessMessage(`Modelos IA actualizados exitosamente`)
+      await aiApi.trainModels(true)
+      setSuccessMessage(`Algoritmos predictivos recalibrados exitosamente.`)
       setTimeout(() => setSuccessMessage(''), 5000)
     } catch (error) {
-      console.error('Error training models:', error)
-      setError('Error al entrenar modelos de IA')
+      setError('Fallo en el proceso de entrenamiento neuronal.')
     } finally {
       setTraining(false)
     }
@@ -103,515 +98,297 @@ export default function AnalisisIA() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <StatusPulse size="lg" />
       </div>
     )
   }
 
   const connectedCount = entities.filter(e => e.xroad_status === 'connected').length
-  const pendingCount = entities.filter(e => e.xroad_status === 'pending').length
-  const notConnectedCount = entities.filter(e => e.xroad_status === 'not_connected').length
   const totalEntities = entities.length
   const connectivityRate = totalEntities > 0 ? Math.round((connectedCount / totalEntities) * 100) : 0
 
-  // Predicciones futuras basadas en datos actuales
-  const predictedConnectivity6Months = Math.min(100, connectivityRate + 15)
   const predictedConnectivity12Months = Math.min(100, connectivityRate + 25)
-  const predictedMaturity6Months = Math.min(100, 65 + 8)
   const predictedMaturity12Months = Math.min(100, 65 + 15)
+  const predictedEntities12Months = Math.round(totalEntities * (1 + (4.2 / 100) * 12))
 
-  // Tendencia de crecimiento mensual
-  const monthlyGrowthRate = 4.2
-  const predictedEntities6Months = Math.round(totalEntities * (1 + (monthlyGrowthRate / 100) * 6))
-  const predictedEntities12Months = Math.round(totalEntities * (1 + (monthlyGrowthRate / 100) * 12))
-
-  // Escenarios de predicción
-  const scenarios = [
-    {
-      name: 'Escenario Optimista',
-      icon: TrendingUp,
-      color: 'text-green-600',
-      bgColor: 'bg-green-50 border-green-200',
-      items: [
-        { label: 'Entidades conectadas', value: `${Math.round(predictedEntities12Months * 0.95)}`, trend: '+25%' },
-        { label: 'Tasa de conectividad', value: `${Math.min(100, connectivityRate + 30)}%`, trend: '+30%' },
-        { label: 'Nivel madurez promedio', value: `${Math.min(100, 65 + 25)}%`, trend: '+25%' },
-        { label: 'Servicios activos', value: `${Math.round(50 * 1.8)}`, trend: '+80%' }
-      ]
-    },
-    {
-      name: 'Escenario Esperado',
-      icon: Target,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-50 border-blue-200',
-      items: [
-        { label: 'Entidades conectadas', value: `${predictedEntities12Months}`, trend: '+20%' },
-        { label: 'Tasa de conectividad', value: `${predictedConnectivity12Months}%`, trend: '+20%' },
-        { label: 'Nivel madurez promedio', value: `${predictedMaturity12Months}%`, trend: '+15%' },
-        { label: 'Servicios activos', value: `${Math.round(50 * 1.5)}`, trend: '+50%' }
-      ]
-    },
-    {
-      name: 'Escenario Conservador',
-      icon: Shield,
-      color: 'text-amber-600',
-      bgColor: 'bg-amber-50 border-amber-200',
-      items: [
-        { label: 'Entidades conectadas', value: `${Math.round(predictedEntities12Months * 0.9)}`, trend: '+15%' },
-        { label: 'Tasa de conectividad', value: `${predictedConnectivity12Months - 5}%`, trend: '+15%' },
-        { label: 'Nivel madurez promedio', value: `${predictedMaturity12Months - 5}%`, trend: '+10%' },
-        { label: 'Servicios activos', value: `${Math.round(50 * 1.3)}`, trend: '+30%' }
-      ]
-    }
-  ]
-
-  // Datos para gráficos de tendencia
   const trendData = [
-    { mes: 'Mes 0', conectividad: connectivityRate, madurez: 65, entidades: totalEntities },
-    { mes: 'Mes 3', conectividad: connectivityRate + 7, madurez: 65 + 4, entidades: Math.round(totalEntities * 1.04) },
-    { mes: 'Mes 6', conectividad: predictedConnectivity6Months, madurez: predictedMaturity6Months, entidades: predictedEntities6Months },
-    { mes: 'Mes 9', conectividad: predictedConnectivity6Months + 5, madurez: predictedMaturity6Months + 4, entidades: Math.round(predictedEntities12Months * 0.85) },
-    { mes: 'Mes 12', conectividad: predictedConnectivity12Months, madurez: predictedMaturity12Months, entidades: predictedEntities12Months }
+    { mes: 'Q1', conectividad: connectivityRate, madurez: 65 },
+    { mes: 'Q2', conectividad: connectivityRate + 7, madurez: 65 + 4 },
+    { mes: 'Q3', conectividad: connectivityRate + 15, madurez: 65 + 8 },
+    { mes: 'Q4', conectividad: predictedConnectivity12Months, madurez: predictedMaturity12Months }
   ]
 
   const maturityDistribution = [
-    { name: 'Nivel 1 - Inicial', count: entities.filter(e => e.maturity_level === 1).length, color: '#EF4444' },
-    { name: 'Nivel 2 - Basico', count: entities.filter(e => e.maturity_level === 2).length, color: '#F59E0B' },
-    { name: 'Nivel 3 - Intermedio', count: entities.filter(e => e.maturity_level === 3).length, color: '#3B82F6' },
-    { name: 'Nivel 4 - Avanzado', count: entities.filter(e => e.maturity_level === 4).length, color: '#10B981' }
+    { name: 'N1 - INICIAL', count: entities.filter(e => e.maturity_level === 1).length, color: '#EF4444' },
+    { name: 'N2 - BÁSICO', count: entities.filter(e => e.maturity_level === 2).length, color: '#F59E0B' },
+    { name: 'N3 - INTERMEDIO', count: entities.filter(e => e.maturity_level === 3).length, color: '#3B82F6' },
+    { name: 'N4 - AVANZADO', count: entities.filter(e => e.maturity_level === 4).length, color: '#10B981' }
   ]
 
-  // Insights generados por IA
   const aiInsights = [
     {
-      title: 'Tendencia de Conectividad',
-      description: `Se espera que la tasa de conectividad crezca del ${connectivityRate}% actual al ${predictedConnectivity12Months}% en los proximos 12 meses, representando un incremento del ${predictedConnectivity12Months - connectivityRate}%.`,
+      title: 'Detección de Expansión',
+      description: `Proyección de conectividad: Incremento del ${predictedConnectivity12Months - connectivityRate}% en 365 días estelares.`,
       confidence: 87,
-      impact: 'high'
+      impact: 'high',
+      icon: Activity
     },
     {
-      title: 'Madurez del Ecosistema',
-      description: `El nivel promedio de madurez pasara de 65% a ${predictedMaturity12Months}% gracias a las iniciativas de capacitacion y adopcion de estandares X-Road.`,
+      title: 'Evolución de Madurez',
+      description: `El índice institucional escalará a ${predictedMaturity12Months}% optimizando latencia administrativa.`,
       confidence: 82,
-      impact: 'medium'
-    },
-    {
-      title: 'Expansion del Ecosistema',
-      description: `Se predice la incorporacion de ${predictedEntities12Months - totalEntities} nuevas entidades al ecosistema X-Road Colombia en los proximos 12 meses.`,
-      confidence: 75,
-      impact: 'high'
-    },
-    {
-      title: 'Sectores Criticos',
-      description: `Los sectores de Justicia y Ambiente requieren atencion prioritaria para alcanzar los objetivos de interoperabilidad establecidos por MinTIC.`,
-      confidence: 91,
-      impact: 'high'
+      impact: 'medium',
+      icon: Zap
     }
   ]
 
-  // Factores de riesgo y oportunidad
-  const riskFactors = [
-    { factor: 'Limitaciones presupuestales', riesgo: 'medium', tendencia: 'stable' },
-    { factor: 'Resistencia al cambio institucional', riesgo: 'high', tendencia: 'decreasing' },
-    { factor: 'Capacidad tecnica disponible', riesgo: 'low', tendencia: 'improving' },
-    { factor: 'Apoyo politico y normativo', riesgo: 'low', tendencia: 'improving' },
-    { factor: 'Infraestructura de red', riesgo: 'medium', tendencia: 'improving' }
-  ]
-
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-            <span className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-              <Brain className="h-5 w-5 text-white" />
-            </span>
-            Analisis Predictivo IA
-          </h1>
-          <p className="text-gray-500 mt-1">Pronosticos y tendencias del ecosistema X-Road Colombia</p>
+    <div className="space-y-8 pb-16">
+      {/* Predictive Dashboard Header */}
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6">
+        <div className="space-y-1">
+          <div className="flex items-center gap-3">
+             <div className="p-3 bg-indigo-500/10 rounded-2xl border border-indigo-500/20">
+               <Brain className="h-6 w-6 text-indigo-400" />
+             </div>
+             <h1 className="text-4xl font-black tracking-tighter text-white uppercase italic">Neural Command</h1>
+          </div>
+          <p className="text-slate-500 font-bold text-xs uppercase tracking-[0.3em] ml-1">
+             Motor de Predicción y Análisis Probabilístico X-Road
+          </p>
         </div>
+        
         <button
           onClick={handleTrainModels}
           disabled={training}
-          className="btn btn-primary flex items-center gap-2"
+          className="group relative flex items-center gap-3 px-8 py-4 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-white font-black text-[10px] uppercase tracking-widest transition-all overflow-hidden shadow-[0_0_20px_rgba(79,70,229,0.3)]"
         >
           {training ? (
-            <>
-              <RefreshCw className="h-4 w-4 animate-spin" />
-              Actualizando modelos...
-            </>
+            <RefreshCw className="h-4 w-4 animate-spin" />
           ) : (
-            <>
-              <Sparkles className="h-4 w-4" />
-              Actualizar Predicciones
-            </>
+            <Sparkles className="h-4 w-4" />
           )}
+          Reentrenar Red Neural
         </button>
       </div>
 
-      {/* Messages */}
       {successMessage && (
-        <div className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-center gap-3">
-          <CheckCircle2 className="h-5 w-5 text-green-600" />
-          <p className="text-green-700">{successMessage}</p>
-        </div>
+        <GlassCard className="p-4 border-emerald-500/30 bg-emerald-500/5">
+           <div className="flex items-center gap-3 text-emerald-400 text-xs font-bold uppercase tracking-wider">
+              <CheckCircle2 className="h-4 w-4" /> {successMessage}
+           </div>
+        </GlassCard>
       )}
 
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <AlertCircle className="h-5 w-5 text-red-600" />
-            <p className="text-red-700">{error}</p>
-          </div>
-          <button onClick={fetchData} className="text-red-600 hover:text-red-700 font-medium">Reintentar</button>
-        </div>
-      )}
-
-      {/* Current Status Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-500">Estado Actual</p>
-              <p className="text-2xl font-bold text-gray-900">{totalEntities}</p>
-              <p className="text-xs text-gray-400">entidades</p>
-            </div>
-            <div className="p-3 bg-blue-100 rounded-xl">
-              <Users className="h-6 w-6 text-blue-600" />
-            </div>
-          </div>
-          <div className="mt-3 flex items-center gap-1 text-sm">
-            <ArrowUpRight className="h-4 w-4 text-green-500" />
-            <span className="text-green-600 font-medium">+{Math.round(totalEntities * 0.08)} este ano</span>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-500">Conectadas X-Road</p>
-              <p className="text-2xl font-bold text-green-600">{connectedCount}</p>
-              <p className="text-xs text-gray-400">activas</p>
-            </div>
-            <div className="p-3 bg-green-100 rounded-xl">
-              <Network className="h-6 w-6 text-green-600" />
-            </div>
-          </div>
-          <div className="mt-3 flex items-center gap-1 text-sm">
-            <span className="text-green-600 font-medium">{connectivityRate}%</span>
-            <span className="text-gray-400">tasa actual</span>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-500">Pronostico 12 meses</p>
-              <p className="text-2xl font-bold text-purple-600">{predictedConnectivity12Months}%</p>
-              <p className="text-xs text-gray-400">conectividad</p>
-            </div>
-            <div className="p-3 bg-purple-100 rounded-xl">
-              <TrendingUp className="h-6 w-6 text-purple-600" />
-            </div>
-          </div>
-          <div className="mt-3 flex items-center gap-1 text-sm">
-            <ArrowUpRight className="h-4 w-4 text-green-500" />
-            <span className="text-green-600 font-medium">+{predictedConnectivity12Months - connectivityRate}% proyectado</span>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-500">Madurez Promedio</p>
-              <p className="text-2xl font-bold text-amber-600">65%</p>
-              <p className="text-xs text-gray-400">actual</p>
-            </div>
-            <div className="p-3 bg-amber-100 rounded-xl">
-              <Target className="h-6 w-6 text-amber-600" />
-            </div>
-          </div>
-          <div className="mt-3 flex items-center gap-1 text-sm">
-            <ArrowUpRight className="h-4 w-4 text-green-500" />
-            <span className="text-green-600 font-medium">+15% esperado</span>
-          </div>
-        </div>
+      {/* Real-time Telemetry Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        {[
+          { label: 'INSTANCIAS TOTALES', val: totalEntities, icon: Users, color: 'text-blue-400', unit: 'Nodos' },
+          { label: 'LINKAGE ACTUAL', val: `${connectivityRate}%`, icon: Network, color: 'text-emerald-400', unit: 'Sincronizado' },
+          { label: 'TARGET 12M', val: `${predictedConnectivity12Months}%`, icon: TrendingUp, color: 'text-indigo-400', unit: 'Proyectado' },
+          { label: 'MINDSET SCORE', val: '65%', icon: Target, color: 'text-amber-400', unit: 'Madurez' }
+        ].map((stat, i) => (
+          <GlassCard key={i} className="p-5 border-slate-700/50">
+             <div className="flex justify-between items-start">
+                <div className="space-y-1">
+                   <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest leading-none">{stat.label}</p>
+                   <p className={`text-2xl font-black ${stat.color}`}>{stat.val}</p>
+                   <p className="text-[10px] font-bold text-slate-600 uppercase tracking-tight">{stat.unit}</p>
+                </div>
+                <stat.icon className={`h-5 w-5 ${stat.color.replace('text', 'text-opacity-20')}`} />
+             </div>
+          </GlassCard>
+        ))}
       </div>
 
-      {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Trend Chart */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900">Proyeccion de Conectividad</h3>
-              <p className="text-sm text-gray-500">Evolucion estimada 2026</p>
-            </div>
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <TrendingUp className="h-5 w-5 text-blue-600" />
-            </div>
+      {/* Analytics Core */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Growth Vector Map */}
+        <GlassCard className="lg:col-span-2 p-6 border-slate-700/50">
+          <div className="flex items-center justify-between mb-8">
+             <h3 className="text-xs font-black text-white uppercase tracking-[0.2em] flex items-center gap-2">
+                <LineChartIcon className="h-4 w-4 text-emerald-400" /> Vector de Crecimiento
+             </h3>
+             <div className="flex items-center gap-4">
+                <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-emerald-500" /><span className="text-[9px] font-black text-slate-500 uppercase">Sync</span></div>
+                <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-indigo-500" /><span className="text-[9px] font-black text-slate-500 uppercase">Maturity</span></div>
+             </div>
           </div>
-          <ResponsiveContainer width="100%" height={280}>
+          <ResponsiveContainer width="100%" height={300}>
             <AreaChart data={trendData}>
               <defs>
-                <linearGradient id="colorConectividad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#10B981" stopOpacity={0.3}/>
+                <linearGradient id="colorSync" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#10B981" stopOpacity={0.2}/>
                   <stop offset="95%" stopColor="#10B981" stopOpacity={0}/>
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-              <XAxis dataKey="mes" />
-              <YAxis domain={[0, 100]} />
-              <Tooltip />
-              <Area type="monotone" dataKey="conectividad" stroke="#10B981" fillOpacity={1} fill="url(#colorConectividad)" name="Conectividad (%)" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
+              <XAxis dataKey="mes" tick={{ fill: '#475569', fontSize: 10, fontWeight: 800 }} axisLine={false} tickLine={false} />
+              <YAxis hide domain={[0, 100]} />
+              <Tooltip contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '12px' }} />
+              <Area type="monotone" dataKey="conectividad" stroke="#10B981" strokeWidth={3} fill="url(#colorSync)" />
+              <Area type="monotone" dataKey="madurez" stroke="#6366f1" strokeWidth={3} fill="transparent" />
             </AreaChart>
           </ResponsiveContainer>
-          <div className="mt-4 flex items-center gap-4 text-sm text-gray-500">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-green-500"></div>
-              <span>Tasa de conectividad (%)</span>
-            </div>
-          </div>
-        </div>
+        </GlassCard>
 
-        {/* Maturity Distribution */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900">Distribucion de Madurez</h3>
-              <p className="text-sm text-gray-500">Estado actual por nivel</p>
-            </div>
-            <div className="p-2 bg-purple-100 rounded-lg">
-              <BarChart3 className="h-5 w-5 text-purple-600" />
-            </div>
-          </div>
-          <ResponsiveContainer width="100%" height={280}>
+        {/* Nodal Cluster Distribution */}
+        <GlassCard className="p-6 border-slate-700/50">
+           <h3 className="text-xs font-black text-white uppercase tracking-[0.2em] mb-8 flex items-center gap-2">
+              <Layers className="h-4 w-4 text-indigo-400" /> Clústeres de Madurez
+           </h3>
+           <ResponsiveContainer width="100%" height={300}>
             <RechartsBarChart data={maturityDistribution} layout="vertical">
-              <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
-              <XAxis type="number" />
-              <YAxis dataKey="name" type="category" width={120} tick={{ fontSize: 11 }} />
-              <Tooltip />
-              <Bar dataKey="count" radius={[0, 4, 4, 0]}>
+              <XAxis type="number" hide />
+              <YAxis dataKey="name" type="category" width={100} tick={{ fill: '#94a3b8', fontSize: 9, fontWeight: 900 }} axisLine={false} tickLine={false} />
+              <Tooltip cursor={{ fill: 'rgba(255,255,255,0.05)' }} contentStyle={{ backgroundColor: '#0f172a', border: 'none' }} />
+              <Bar dataKey="count" barSize={14} radius={[0, 4, 4, 0]}>
                 {maturityDistribution.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color} />
                 ))}
               </Bar>
             </RechartsBarChart>
           </ResponsiveContainer>
-        </div>
+        </GlassCard>
       </div>
 
-      {/* Scenarios */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900">Escenarios de Proyeccion</h3>
-            <p className="text-sm text-gray-500">Proyecciones a 12 meses segun diferentes condiciones</p>
-          </div>
-          <Calendar className="h-5 w-5 text-gray-400" />
+      {/* Intelligence Stream */}
+      <GlassCard className="p-8 border-indigo-500/20 bg-indigo-500/5 overflow-hidden relative">
+        <div className="absolute top-0 right-0 p-8 opacity-10">
+           <Brain size={120} className="text-indigo-400" />
         </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {scenarios.map((scenario, index) => (
-            <div key={index} className={`rounded-xl border p-5 ${scenario.bgColor}`}>
-              <div className="flex items-center gap-3 mb-4">
-                <div className={`p-2 rounded-lg ${scenario.bgColor}`}>
-                  <scenario.icon className={`h-5 w-5 ${scenario.color}`} />
-                </div>
-                <h4 className="font-semibold text-gray-900">{scenario.name}</h4>
-              </div>
-              <div className="space-y-3">
-                {scenario.items.map((item, idx) => (
-                  <div key={idx} className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">{item.label}</span>
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold text-gray-900">{item.value}</span>
-                      <span className="text-xs text-green-600 font-medium">{item.trend}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* AI Insights */}
-      <div className="bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl p-6 text-white">
-        <div className="flex items-start gap-4">
-          <div className="p-3 bg-white/20 rounded-xl">
-            <Sparkles className="h-6 w-6" />
-          </div>
-          <div className="flex-1">
-            <h3 className="text-lg font-bold flex items-center gap-2">
-              Insights de Inteligencia Artificial
-              <span className="text-xs bg-white/20 px-2 py-1 rounded-full">ML Powered</span>
-            </h3>
-            <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="relative z-10">
+           <h3 className="text-xl font-black text-white uppercase tracking-[0.2em] mb-8 flex items-center gap-3">
+              <Sparkles className="h-6 w-6 text-indigo-400" /> Motor de Inferencia Cognitiva
+           </h3>
+           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {aiInsights.map((insight, index) => (
-                <div key={index} className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-                  <div className="flex items-start justify-between mb-2">
-                    <h4 className="font-semibold">{insight.title}</h4>
-                    <span className={`text-xs px-2 py-1 rounded-full ${
-                      insight.impact === 'high' ? 'bg-red-500/30' : 'bg-yellow-500/30'
-                    }`}>
-                      {insight.impact === 'high' ? 'Alto Impacto' : 'Medio Impacto'}
-                    </span>
-                  </div>
-                  <p className="text-sm text-white/80 mt-2">{insight.description}</p>
-                  <div className="flex items-center gap-2 mt-3 text-xs text-white/60">
-                    <Shield className="h-3 w-3" />
-                    <span>Confianza del modelo: {insight.confidence}%</span>
-                  </div>
+                <div key={index} className="p-6 bg-slate-950/80 border border-slate-800 rounded-2xl flex gap-5 hover:border-indigo-500/50 transition-all group">
+                   <div className="shrink-0">
+                      <div className="p-3 bg-indigo-500/10 rounded-xl">
+                         <insight.icon className="h-6 w-6 text-indigo-500" />
+                      </div>
+                   </div>
+                   <div className="space-y-4 flex-1">
+                      <div>
+                         <h4 className="text-sm font-black text-white uppercase tracking-wider mb-1">{insight.title}</h4>
+                         <p className="text-xs text-slate-400 leading-relaxed font-medium">{insight.description}</p>
+                      </div>
+                      <div className="flex items-center justify-between pt-4 border-t border-slate-900">
+                         <div className="flex items-center gap-2">
+                            <StatusPulse status={insight.confidence > 85 ? 'success' : 'warning'} size="xs" />
+                            <span className="text-[9px] font-black text-slate-500 uppercase">Confianza: {insight.confidence}%</span>
+                         </div>
+                         <span className={`text-[9px] font-black px-2 py-0.5 rounded border ${insight.impact === 'high' ? 'text-rose-400 border-rose-500/30 bg-rose-500/10' : 'text-indigo-400 border-indigo-500/30'}`}>
+                            {insight.impact.toUpperCase()} IMPACT
+                         </span>
+                      </div>
+                   </div>
                 </div>
               ))}
-            </div>
-          </div>
+           </div>
         </div>
-      </div>
+      </GlassCard>
 
-      {/* Risk Factors */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900">Analisis de Factores de Riesgo</h3>
-            <p className="text-sm text-gray-500">Evaluacion de variables que afectan la proyeccion</p>
-          </div>
-        </div>
-        <div className="space-y-3">
-          {riskFactors.map((factor, index) => (
-            <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
-              <div className="flex items-center gap-3">
-                <div className={`w-2 h-2 rounded-full ${
-                  factor.riesgo === 'high' ? 'bg-red-500' :
-                  factor.riesgo === 'medium' ? 'bg-yellow-500' : 'bg-green-500'
-                }`}></div>
-                <span className="font-medium text-gray-900">{factor.factor}</span>
-              </div>
-              <div className="flex items-center gap-4">
-                <span className={`text-xs px-2 py-1 rounded-full ${
-                  factor.riesgo === 'high' ? 'bg-red-100 text-red-700' :
-                  factor.riesgo === 'medium' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'
-                }`}>
-                  {factor.riesgo === 'high' ? 'Alto' : factor.riesgo === 'medium' ? 'Medio' : 'Bajo'}
-                </span>
-                <div className="flex items-center gap-1 text-sm">
-                  {factor.tendencia === 'improving' ? (
-                    <>
-                      <ArrowUpRight className="h-4 w-4 text-green-500" />
-                      <span className="text-green-600">Mejorando</span>
-                    </>
-                  ) : factor.tendencia === 'decreasing' ? (
-                    <>
-                      <ArrowDownRight className="h-4 w-4 text-red-500" />
-                      <span className="text-red-600">Empeorando</span>
-                    </>
-                  ) : (
-                    <>
-                      <Minus className="h-4 w-4 text-gray-400" />
-                      <span className="text-gray-500">Estable</span>
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Entity Analysis */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Analisis Individual con IA</h3>
-        
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-2">Seleccionar Entidad</label>
-          <select
-            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            value={selectedEntity?.id || ''}
-            onChange={(e) => handleEntitySelect(e.target.value)}
-          >
-            <option value="">Seleccione una entidad para analizar...</option>
-            {entities.map(entity => (
-              <option key={entity.id} value={entity.id}>
-                {entity.name} - {entity.sector_name || 'Sin sector'}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {entityAnalysis ? (
-          <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-6 border border-purple-100">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h4 className="text-xl font-bold text-gray-900">{entityAnalysis.entity_name || selectedEntity?.name}</h4>
-                <p className="text-gray-500">Analisis predictivo individual</p>
-              </div>
-              <div className="text-right">
-                <p className="text-3xl font-bold text-purple-600">
-                  {entityAnalysis.maturity_prediction?.predicted_level || selectedEntity?.maturity_level || 'N/A'}
-                </p>
-                <p className="text-sm text-gray-500">Nivel predicho</p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-              <div className="bg-white rounded-lg p-4">
-                <p className="text-sm text-gray-500">Puntaje Proyectado</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {entityAnalysis.maturity_prediction?.predicted_score ?? 0}%
-                </p>
-              </div>
-              <div className="bg-white rounded-lg p-4">
-                <p className="text-sm text-gray-500">Confianza del Modelo</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {Math.round((entityAnalysis.maturity_prediction?.confidence ?? 0) * 100)}%
-                </p>
-              </div>
-              <div className="bg-white rounded-lg p-4">
-                <p className="text-sm text-gray-500">Cluster Asignado</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  #{entityAnalysis.cluster ?? 0}
-                </p>
-              </div>
-            </div>
-
-            {entityAnalysis.recommendations && entityAnalysis.recommendations.length > 0 && (
-              <div>
-                <h5 className="font-semibold text-gray-900 mb-3">Recomendaciones IA</h5>
-                <div className="space-y-2">
-                  {entityAnalysis.recommendations.slice(0, 3).map((rec, idx) => (
-                    <div key={idx} className="flex items-start gap-3 bg-white rounded-lg p-3">
-                      <Lightbulb className="h-5 w-5 text-yellow-500 mt-0.5" />
-                      <p className="text-sm text-gray-700">{rec.recommendation || rec}</p>
-                    </div>
+      {/* Neural Entity Profiler */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+         <div className="lg:col-span-1 space-y-4">
+            <GlassCard className="p-6 border-slate-700/50 h-full">
+               <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">Selector de Nodos</h3>
+               <select
+                  className="w-full px-4 py-4 bg-slate-950 border border-slate-800 rounded-xl text-slate-200 font-bold focus:ring-2 focus:ring-indigo-500 outline-none uppercase text-xs"
+                  value={selectedEntity?.id || ''}
+                  onChange={(e) => handleEntitySelect(e.target.value)}
+                >
+                  <option value="">ANÁLISIS NODAL...</option>
+                  {entities.map(entity => (
+                    <option key={entity.id} value={entity.id}>
+                      {entity.name.toUpperCase()}
+                    </option>
                   ))}
-                </div>
-              </div>
-            )}
-          </div>
-        ) : selectedEntity ? (
-          <div className="text-center py-8 text-gray-500">
-            <Brain className="mx-auto h-12 w-12 text-gray-300" />
-            <p className="mt-2">Analizando entidad...</p>
-          </div>
-        ) : (
-          <div className="text-center py-8 text-gray-500">
-            <Users className="mx-auto h-12 w-12 text-gray-300" />
-            <p className="mt-2">Seleccione una entidad para ver su analisis predictivo</p>
-          </div>
-        )}
-      </div>
+               </select>
+               <div className="mt-8 space-y-6">
+                  <div className="space-y-2">
+                     <p className="text-[9px] font-black text-slate-600 uppercase tracking-[0.2em]">Contexto Técnico</p>
+                     <p className="text-xs text-slate-400 leading-relaxed font-medium">Seleccione una entidad para desencadenar el motor de inferencia individual y proyectar su ciclo de madurez.</p>
+                  </div>
+                  <div className="p-4 bg-indigo-500/5 rounded-xl border border-indigo-500/10">
+                     <div className="flex items-center gap-2 mb-2">
+                        <Cpu className="h-3 w-3 text-indigo-400" />
+                        <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">IA Active</span>
+                     </div>
+                     <div className="h-1 w-full bg-slate-800 overflow-hidden rounded-full">
+                        <div className="h-full bg-indigo-500 w-2/3 animate-pulse" />
+                     </div>
+                  </div>
+               </div>
+            </GlassCard>
+         </div>
 
-      {/* Footer Note */}
-      <div className="bg-blue-50 rounded-xl p-4 border border-blue-100 flex items-start gap-3">
-        <Info className="h-5 w-5 text-blue-600 mt-0.5" />
-        <div className="text-sm text-blue-800">
-          <p className="font-medium">Nota sobre las predicciones</p>
-          <p className="mt-1">Los pronosticos generados se basan en analisis de machine learning utilizando datos historicos del ecosistema X-Road Colombia. Las predicciones tienen una confianza promedio del 82% y pueden variar segun cambios en politicas publicas, presupuestos y condiciones del mercado tecnologico.</p>
-        </div>
+         {/* Profiler Output */}
+         <div className="lg:col-span-3">
+            <GlassCard className="p-8 border-slate-700/50 min-h-[300px] flex flex-col">
+               {entityAnalysis ? (
+                 <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <div className="flex justify-between items-start">
+                       <div>
+                          <p className="text-[10px] font-black text-indigo-500 uppercase tracking-[0.2em] mb-1">Resultado de Inferencia</p>
+                          <h4 className="text-2xl font-black text-white italic">{entityAnalysis.entity_name || selectedEntity?.name}</h4>
+                       </div>
+                       <div className="text-right">
+                          <p className="text-4xl font-black text-indigo-400 font-mono tracking-tighter">
+                             L-{entityAnalysis.maturity_prediction?.predicted_level || 'X'}
+                          </p>
+                          <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Nivel Proyectado</p>
+                       </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                       {[
+                         { label: 'Neural Score', val: `${entityAnalysis.maturity_prediction?.predicted_score ?? 0}%`, color: 'text-white' },
+                         { label: 'Probabilidad', val: `${Math.round((entityAnalysis.maturity_prediction?.confidence ?? 0) * 100)}%`, color: 'text-emerald-400' },
+                         { label: 'Cluster Tag', val: `#${entityAnalysis.cluster ?? 0}`, color: 'text-indigo-400' }
+                       ].map((box, i) => (
+                         <div key={i} className="p-5 bg-slate-950 border border-slate-800 rounded-2xl">
+                            <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-1">{box.label}</p>
+                            <p className={`text-xl font-black ${box.color}`}>{box.val}</p>
+                         </div>
+                       ))}
+                    </div>
+
+                    {entityAnalysis.recommendations && entityAnalysis.recommendations.length > 0 && (
+                      <div className="space-y-4">
+                         <h5 className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Directivas de Optimización</h5>
+                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            {entityAnalysis.recommendations.slice(0, 4).map((rec, idx) => (
+                              <div key={idx} className="flex items-start gap-3 p-4 bg-slate-900/50 border border-slate-800 rounded-xl group hover:border-indigo-500 transition-colors">
+                                 <Lightbulb className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
+                                 <p className="text-xs text-slate-400 font-bold leading-relaxed group-hover:text-slate-200">{rec.recommendation || rec}</p>
+                              </div>
+                            ))}
+                         </div>
+                      </div>
+                    )}
+                 </div>
+               ) : selectedEntity ? (
+                 <div className="flex-1 flex flex-col items-center justify-center gap-4 py-20">
+                    <StatusPulse size="lg" />
+                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] animate-pulse">Analizando Sonda Nodal...</p>
+                 </div>
+               ) : (
+                 <div className="flex-1 flex flex-col items-center justify-center gap-6 py-20 border-2 border-dashed border-slate-800 rounded-3xl">
+                    <Brain className="h-12 w-12 text-slate-800" />
+                    <div className="text-center">
+                       <p className="text-sm font-black text-slate-600 uppercase tracking-widest">A la espera de parámetros de entrada</p>
+                       <p className="text-[10px] font-bold text-slate-700 uppercase mt-1">Seleccione una entidad para procesar metadatos</p>
+                    </div>
+                 </div>
+               )}
+            </GlassCard>
+         </div>
       </div>
     </div>
   )
+}
 }

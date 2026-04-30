@@ -8,7 +8,7 @@ from ....models.service import Service
 from ....models.entity import Entity
 from ....models.maturity import MaturityAssessment
 from ....schemas.service import Service as ServiceSchema, ServiceCreate, ServiceUpdate, ServiceList
-from ....security import require_admin
+from ....security import require_admin, get_current_user
 
 router = APIRouter()
 
@@ -21,7 +21,8 @@ def list_services(
     protocol: Optional[str] = None,
     status: Optional[str] = None,
     category: Optional[str] = None,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: Dict[str, Any] = Depends(get_current_user)
 ):
     """List all services with filters"""
     query = db.query(Service)
@@ -51,7 +52,11 @@ def list_services(
 
 
 @router.get("/{service_id}", response_model=ServiceSchema)
-def get_service(service_id: int, db: Session = Depends(get_db)):
+def get_service(
+    service_id: int, 
+    db: Session = Depends(get_db),
+    current_user: Dict[str, Any] = Depends(get_current_user)
+):
     """Get a specific service"""
     service = db.query(Service).filter(Service.id == service_id).first()
     if not service:
@@ -113,6 +118,7 @@ def update_service(
 @router.post("/purge-all")
 def purge_all_services(
     db: Session = Depends(get_db),
+    current_user: Dict[str, Any] = Depends(require_admin),
 ):
     """Delete all services (use with caution)"""
     count = db.query(Service).delete()
@@ -144,6 +150,7 @@ def delete_service(
 def generate_all_services(
     overwrite: bool = False,
     db: Session = Depends(get_db),
+    current_user: Dict[str, Any] = Depends(require_admin),
 ):
     """
     Generate standard services for entities that are connected to X-Road.

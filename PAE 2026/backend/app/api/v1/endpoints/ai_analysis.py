@@ -9,6 +9,7 @@ from ....models.entity import Entity
 from ....models.maturity import MaturityAssessment
 from ....services.ai_analyzer import ai_analyzer, convert_numpy_types
 from pydantic import BaseModel
+from ....security import get_current_user, require_admin
 
 
 router = APIRouter()
@@ -29,7 +30,8 @@ class TrainModelsRequest(BaseModel):
 @router.post("/analyze/entity")
 async def analyze_entity(
     request: EntityAnalysisRequest,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: Dict = Depends(get_current_user)
 ):
     """
     Perform advanced AI analysis on a specific entity
@@ -87,7 +89,8 @@ async def analyze_entity(
 @router.post("/analyze/sector")
 async def analyze_sector(
     request: SectorAnalysisRequest,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: Dict = Depends(get_current_user)
 ):
     """
     Generate AI insights for a sector or all entities
@@ -139,7 +142,8 @@ async def analyze_sector(
 @router.post("/train")
 async def train_models(
     request: TrainModelsRequest,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: Dict = Depends(require_admin)
 ):
     """
     Train AI models with current data
@@ -197,7 +201,8 @@ async def train_models(
 @router.get("/recommendations/{entity_id}")
 async def get_recommendations(
     entity_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: Dict = Depends(get_current_user)
 ):
     """
     Get AI-powered recommendations for an entity
@@ -244,7 +249,8 @@ async def get_recommendations(
 @router.get("/clusters")
 async def get_cluster_insights(
     sector_id: Optional[int] = None,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: Dict = Depends(get_current_user)
 ):
     """
     Get insights about entity clusters
@@ -299,7 +305,8 @@ async def get_cluster_insights(
 @router.get("/predict/{entity_id}")
 async def predict_maturity(
     entity_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: Dict = Depends(get_current_user)
 ):
     """
     Predict maturity level for an entity using AI

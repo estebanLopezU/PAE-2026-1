@@ -9,7 +9,7 @@ from ....models.entity import Entity
 from ....models.sector import Sector
 from ....models.maturity import MaturityAssessment
 from ....schemas.entity import Entity as EntitySchema, EntityCreate, EntityUpdate, EntityList
-from ....security import require_admin
+from ....security import require_admin, get_current_user
 
 router = APIRouter()
 
@@ -22,7 +22,8 @@ def list_entities(
     xroad_status: Optional[str] = None,
     department: Optional[str] = None,
     search: Optional[str] = None,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: Dict[str, Any] = Depends(get_current_user)
 ):
     """List all entities with filters"""
     query = db.query(Entity)
@@ -62,7 +63,11 @@ def list_entities(
 
 
 @router.get("/{entity_id}", response_model=EntitySchema)
-def get_entity(entity_id: int, db: Session = Depends(get_db)):
+def get_entity(
+    entity_id: int, 
+    db: Session = Depends(get_db),
+    current_user: Dict[str, Any] = Depends(get_current_user)
+):
     """Get a specific entity"""
     entity = db.query(Entity).filter(Entity.id == entity_id).first()
     if not entity:

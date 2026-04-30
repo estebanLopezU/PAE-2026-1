@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
+from ....security import get_current_user
+from typing import Any
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from collections import Counter, defaultdict
@@ -245,7 +247,10 @@ def _build_excel_response(
 
 
 @router.get("/entities/csv")
-def download_entities_csv(db: Session = Depends(get_db)):
+def download_entities_csv(
+    db: Session = Depends(get_db),
+    current_user: Any = Depends(get_current_user)
+):
     """Download entities report as CSV"""
     entities = db.query(
         Entity.name,
@@ -341,7 +346,10 @@ def download_entities_csv(db: Session = Depends(get_db)):
 
 
 @router.get("/entities/xlsx")
-def download_entities_xlsx(db: Session = Depends(get_db)):
+def download_entities_xlsx(
+    db: Session = Depends(get_db),
+    current_user: Any = Depends(get_current_user)
+):
     """Download entities report as XLSX with full entity lists"""
     entities = db.query(
         Entity.id,
@@ -470,7 +478,10 @@ def download_entities_xlsx(db: Session = Depends(get_db)):
 
 
 @router.get("/services/csv")
-def download_services_csv(db: Session = Depends(get_db)):
+def download_services_csv(
+    db: Session = Depends(get_db),
+    current_user: Any = Depends(get_current_user)
+):
     """Download services report as CSV"""
     services = db.query(
         Service.name,
@@ -528,7 +539,10 @@ def download_services_csv(db: Session = Depends(get_db)):
 
 
 @router.get("/services/xlsx")
-def download_services_xlsx(db: Session = Depends(get_db)):
+def download_services_xlsx(
+    db: Session = Depends(get_db),
+    current_user: Any = Depends(get_current_user)
+):
     """Download services report as XLSX"""
     services = db.query(
         Service.name,
@@ -573,7 +587,10 @@ def download_services_xlsx(db: Session = Depends(get_db)):
 
 
 @router.get("/maturity/csv")
-def download_maturity_csv(db: Session = Depends(get_db)):
+def download_maturity_csv(
+    db: Session = Depends(get_db),
+    current_user: Any = Depends(get_current_user)
+):
     """Download maturity assessments report as CSV"""
     # Get all assessments with entity information
     assessments = db.query(
@@ -639,7 +656,10 @@ def download_maturity_csv(db: Session = Depends(get_db)):
 
 
 @router.get("/maturity/xlsx")
-def download_maturity_xlsx(db: Session = Depends(get_db)):
+def download_maturity_xlsx(
+    db: Session = Depends(get_db),
+    current_user: Any = Depends(get_current_user)
+):
     """Download maturity assessments report as XLSX"""
     assessments = db.query(
         MaturityAssessment.id,

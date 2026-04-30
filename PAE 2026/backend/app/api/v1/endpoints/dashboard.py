@@ -7,6 +7,8 @@ from ....models.entity import Entity
 from ....models.sector import Sector
 from ....models.service import Service
 from ....models.maturity import MaturityAssessment
+from ....security import get_current_user
+from typing import Any
 
 router = APIRouter()
 
@@ -14,7 +16,8 @@ router = APIRouter()
 @router.get("/kpis")
 def get_dashboard_kpis(
     sector: Optional[str] = Query(None, description="Filter by sector name"),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: Any = Depends(get_current_user)
 ):
     """Get main dashboard KPIs with optional sector filter"""
     query = db.query(Entity).filter(Entity.is_active == True)
@@ -61,7 +64,10 @@ def get_dashboard_kpis(
 
 
 @router.get("/by-sector")
-def get_entities_by_sector(db: Session = Depends(get_db)):
+def get_entities_by_sector(
+    db: Session = Depends(get_db),
+    current_user: Any = Depends(get_current_user)
+):
     """Get entities count grouped by sector"""
     results = db.query(
         Sector.name,
@@ -78,7 +84,10 @@ def get_entities_by_sector(db: Session = Depends(get_db)):
 
 
 @router.get("/by-department")
-def get_entities_by_department(db: Session = Depends(get_db)):
+def get_entities_by_department(
+    db: Session = Depends(get_db),
+    current_user: Any = Depends(get_current_user)
+):
     """Get entities count grouped by department"""
     results = db.query(
         Entity.department,
@@ -97,7 +106,8 @@ def get_entities_by_department(db: Session = Depends(get_db)):
 @router.get("/by-xroad-status")
 def get_xroad_status_distribution(
     sector: Optional[str] = Query(None, description="Filter by sector name"),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: Any = Depends(get_current_user)
 ):
     """Get X-Road connection status distribution"""
     query = db.query(
@@ -117,7 +127,10 @@ def get_xroad_status_distribution(
 
 
 @router.get("/services-by-protocol")
-def get_services_by_protocol(db: Session = Depends(get_db)):
+def get_services_by_protocol(
+    db: Session = Depends(get_db),
+    current_user: Any = Depends(get_current_user)
+):
     """Get services count by protocol"""
     results = db.query(
         Service.protocol,
@@ -131,7 +144,11 @@ def get_services_by_protocol(db: Session = Depends(get_db)):
 
 
 @router.get("/top-mature-entities")
-def get_top_mature_entities(limit: int = 10, db: Session = Depends(get_db)):
+def get_top_mature_entities(
+    limit: int = 10, 
+    db: Session = Depends(get_db),
+    current_user: Any = Depends(get_current_user)
+):
     """Get top entities by maturity score"""
     from sqlalchemy import desc
     
@@ -176,7 +193,11 @@ def get_top_mature_entities(limit: int = 10, db: Session = Depends(get_db)):
 
 
 @router.get("/maturity-radar/{entity_id}")
-def get_entity_maturity_radar(entity_id: int, db: Session = Depends(get_db)):
+def get_entity_maturity_radar(
+    entity_id: int, 
+    db: Session = Depends(get_db),
+    current_user: Any = Depends(get_current_user)
+):
     """Get maturity radar data for a specific entity"""
     # Verify entity exists
     entity = db.query(Entity).filter(Entity.id == entity_id).first()
