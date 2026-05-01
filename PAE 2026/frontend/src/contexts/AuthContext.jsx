@@ -8,6 +8,7 @@ const STORAGE_KEYS = {
   USERS: 'xroad_users',
   CURRENT_USER: 'xroad_current_user',
   ACCESS_TOKEN: 'xroad_access_token',
+  REFRESH_TOKEN: 'xroad_refresh_token',
 }
 
 export function AuthProvider({ children }) {
@@ -18,12 +19,19 @@ export function AuthProvider({ children }) {
   // Cargar usuario desde localStorage al iniciar
   useEffect(() => {
     const savedUser = localStorage.getItem(STORAGE_KEYS.CURRENT_USER)
+    const savedToken = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN)
     if (savedUser) {
       try {
-        setUser(JSON.parse(savedUser))
+        if (!savedToken) {
+          localStorage.removeItem(STORAGE_KEYS.CURRENT_USER)
+          localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN)
+        } else {
+          setUser(JSON.parse(savedUser))
+        }
       } catch (e) {
         localStorage.removeItem(STORAGE_KEYS.CURRENT_USER)
         localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN)
+        localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN)
       }
     }
     setLoading(false)
@@ -60,7 +68,7 @@ export function AuthProvider({ children }) {
     // Primero intentar autenticación backend (roles institucionales)
     try {
       const response = await authApi.login(email, password)
-      const { access_token, user: backendUser } = response.data
+      const { access_token, refresh_token, user: backendUser } = response.data
 
       if (!backendUser) {
         throw new Error('Respuesta de autenticación inválida')
@@ -78,31 +86,14 @@ export function AuthProvider({ children }) {
       if (access_token) {
         localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, access_token)
       }
+      if (refresh_token) {
+        localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, refresh_token)
+      }
 
       return userData
     } catch {
-      // Fallback local para no romper flujo existente
-    }
-
-    const users = JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS) || '[]')
-    const foundUser = users.find(u => u.email === email && u.password === password)
-    
-    if (!foundUser) {
       throw new Error('Correo o contraseña incorrectos')
     }
-    
-    const userData = {
-      id: foundUser.id,
-      email: foundUser.email,
-      name: foundUser.name,
-      role: 'user'
-    }
-    
-    setUser(userData)
-    localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(userData))
-    localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN)
-    
-    return userData
   }
 
   // Iniciar sesión como administrador
@@ -115,7 +106,7 @@ export function AuthProvider({ children }) {
 
     try {
       const response = await authApi.login(email, password)
-      const { access_token, user: backendUser } = response.data
+      const { access_token, refresh_token, user: backendUser } = response.data
 
       if (!backendUser || backendUser.role !== 'admin') {
         throw new Error('El usuario no tiene rol de administrador')
@@ -135,6 +126,9 @@ export function AuthProvider({ children }) {
       if (access_token) {
         localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, access_token)
       }
+      if (refresh_token) {
+        localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, refresh_token)
+      }
 
       return userData
     } catch {
@@ -150,6 +144,7 @@ export function AuthProvider({ children }) {
     setAdminAttempts(0)
     localStorage.removeItem(STORAGE_KEYS.CURRENT_USER)
     localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN)
+    localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN)
   }
 
   // Verificar si el usuario es administrador
@@ -159,7 +154,7 @@ export function AuthProvider({ children }) {
 
   // Verificar si el usuario está autenticado
   const isAuthenticated = () => {
-    return user !== null
+    return user !== null && !!localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN)
   }
 
   // Verificar permisos

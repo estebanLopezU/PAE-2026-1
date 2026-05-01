@@ -3,7 +3,13 @@ from typing import Dict
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 
-from ....security import authenticate_user, create_access_token, get_current_user
+from ....security import (
+    authenticate_user,
+    create_access_token,
+    create_refresh_token,
+    decode_refresh_token,
+    get_current_user,
+)
 
 
 router = APIRouter()
@@ -12,6 +18,10 @@ router = APIRouter()
 class LoginRequest(BaseModel):
     email: str
     password: str
+
+
+class RefreshRequest(BaseModel):
+    refresh_token: str
 
 
 @router.post("/login")
@@ -25,9 +35,11 @@ def login(payload: LoginRequest):
         )
 
     token = create_access_token(subject=user["email"], role=user["role"])
+    refresh_token = create_refresh_token(subject=user["email"], role=user["role"])
 
     return {
         "access_token": token,
+        "refresh_token": refresh_token,
         "token_type": "bearer",
         "user": {
             "email": user["email"],
@@ -35,6 +47,13 @@ def login(payload: LoginRequest):
             "role": user["role"],
         },
     }
+
+
+@router.post("/refresh")
+def refresh(payload: RefreshRequest):
+    data = decode_refresh_token(payload.refresh_token)
+    access_token = create_access_token(subject=data["sub"], role=data.get("role", "viewer"))
+    return {"access_token": access_token, "token_type": "bearer"}
 
 
 @router.get("/me")

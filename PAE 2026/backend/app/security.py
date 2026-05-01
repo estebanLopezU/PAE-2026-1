@@ -30,6 +30,24 @@ def create_access_token(subject: str, role: str, expires_minutes: Optional[int] 
     to_encode = {
         "sub": subject,
         "role": role,
+        "type": "access",
+        "exp": expire,
+        "iat": datetime.now(timezone.utc),
+    }
+
+    return jwt.encode(to_encode, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
+
+
+def create_refresh_token(subject: str, role: str, expires_minutes: Optional[int] = None) -> str:
+    settings = get_settings()
+    expire = datetime.now(timezone.utc) + timedelta(
+        minutes=expires_minutes or settings.REFRESH_TOKEN_EXPIRE_MINUTES
+    )
+
+    to_encode = {
+        "sub": subject,
+        "role": role,
+        "type": "refresh",
         "exp": expire,
         "iat": datetime.now(timezone.utc),
     }
@@ -40,6 +58,16 @@ def create_access_token(subject: str, role: str, expires_minutes: Optional[int] 
 def decode_token(token: str) -> Dict[str, Any]:
     settings = get_settings()
     return jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
+
+
+def decode_refresh_token(token: str) -> Dict[str, Any]:
+    payload = decode_token(token)
+    if payload.get("type") != "refresh":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Refresh token inválido",
+        )
+    return payload
 
 
 def _validate_demo_user(email: str, password: str) -> Optional[Dict[str, str]]:

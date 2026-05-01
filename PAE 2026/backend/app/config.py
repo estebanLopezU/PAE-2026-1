@@ -13,6 +13,8 @@ class Settings(BaseSettings):
     JWT_SECRET_KEY: str
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 120
+    REFRESH_TOKEN_EXPIRE_MINUTES: int = 10080
+    RATE_LIMIT_PER_MINUTE: int = 120
 
     # Demo users (move to DB/users service in next phase)
     ADMIN_EMAIL: str

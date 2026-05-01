@@ -41,9 +41,13 @@ export default function Reportes() {
 
   const fetchRecommendations = async () => {
     try {
+      const token = localStorage.getItem('xroad_access_token')
       const res = await fetch('/api/v1/ai/analyze/sector', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
         body: JSON.stringify({ sector_id: null })
       })
       const data = await res.json()
@@ -108,6 +112,7 @@ export default function Reportes() {
   const handleDownload = async (type) => {
     setDownloadingType(type)
     try {
+      const token = localStorage.getItem('xroad_access_token')
       let filename
       let directUrl
       
@@ -128,13 +133,23 @@ export default function Reportes() {
           return
       }
       
+      const response = await fetch(directUrl, {
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        }
+      })
+      
+      if (!response.ok) throw new Error('Download failed')
+      
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
       const link = document.createElement('a')
-      link.href = directUrl
-      link.download = filename
-      link.style.display = 'none'
+      link.href = url
+      link.setAttribute('download', filename)
       document.body.appendChild(link)
       link.click()
-      setTimeout(() => document.body.removeChild(link), 100)
+      link.remove()
+      window.URL.revokeObjectURL(url)
     } catch (error) {
       console.error('Download error:', error)
     } finally {

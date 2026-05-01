@@ -52,13 +52,40 @@ const STATUS_CONFIG = {
 
 async function fetchAPI(url, signal) {
   const token = localStorage.getItem('xroad_access_token')
-  const response = await fetch(url, {
+  let response = await fetch(url, {
     headers: {
       'Content-Type': 'application/json',
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
     signal,
   })
+
+  if (response.status === 401) {
+    const refreshToken = localStorage.getItem('xroad_refresh_token')
+    if (refreshToken) {
+      const refreshResponse = await fetch('/api/v1/auth/refresh', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh_token: refreshToken }),
+        signal,
+      })
+
+      if (refreshResponse.ok) {
+        const refreshData = await refreshResponse.json()
+        const newAccessToken = refreshData?.access_token
+        if (newAccessToken) {
+          localStorage.setItem('xroad_access_token', newAccessToken)
+          response = await fetch(url, {
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${newAccessToken}`,
+            },
+            signal,
+          })
+        }
+      }
+    }
+  }
 
   if (!response.ok) {
     throw new Error(`Error HTTP ${response.status}`)

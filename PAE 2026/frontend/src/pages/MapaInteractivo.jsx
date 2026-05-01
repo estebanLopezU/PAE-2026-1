@@ -7,15 +7,12 @@ import 'leaflet/dist/leaflet.css'
 import GlassCard from '../components/common/GlassCard'
 import StatusPulse from '../components/common/StatusPulse'
 
-import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png'
-import markerIcon from 'leaflet/dist/images/marker-icon.png'
-import markerShadow from 'leaflet/dist/images/marker-shadow.png'
-
+// Fix for default marker icons in production
 delete L.Icon.Default.prototype._getIconUrl
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl: markerIcon2x,
-  iconUrl: markerIcon,
-  shadowUrl: markerShadow,
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 })
 
 const xroadStatusConfig = {
@@ -25,10 +22,9 @@ const xroadStatusConfig = {
 }
 
 function createCustomIcon(color) {
-  // Using custom SVG or better looking markers could be an enhancement
   return L.icon({
     iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${color}.png`,
-    shadowUrl: markerShadow,
+    shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
     iconSize: [25, 41],
     iconAnchor: [12, 41],
     popupAnchor: [1, -34],
@@ -66,8 +62,13 @@ export default function MapaInteractivo() {
         entitiesApi.getAll({ limit: 200 }),
         sectorsApi.getAll({ limit: 100 })
       ])
-      setEntities(entitiesRes.data.items)
-      setSectors(sectorsRes.data.items)
+      
+      // Robust data parsing for both direct array or paginated object
+      const entitiesData = entitiesRes.data?.items || entitiesRes.data || []
+      const sectorsData = sectorsRes.data?.items || sectorsRes.data || []
+      
+      setEntities(Array.isArray(entitiesData) ? entitiesData : [])
+      setSectors(Array.isArray(sectorsData) ? sectorsData : [])
     } catch (error) {
       console.error('Error fetching data:', error)
     } finally {
@@ -257,14 +258,13 @@ export default function MapaInteractivo() {
             <MapContainer
               center={[4.5709, -74.2973]}
               zoom={6}
-              style={{ height: '100%', width: '100%', background: '#0A0E1A' }}
-              zoomControl={false} // Customizing zoom control could be next
+              style={{ height: '700px', width: '100%', background: '#0A0E1A', position: 'relative' }}
+              zoomControl={true}
             >
               <MapController center={mapCenter} zoom={initialZoom} />
-              {/* Dark mode satellite look tile layer */}
               <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               />
               {filteredEntities.map((entity) => {
                 const statusKind = entity.xroad_status === 'connected' ? 'green' : entity.xroad_status === 'pending' ? 'yellow' : 'red'

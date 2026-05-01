@@ -2,6 +2,7 @@ import axios from 'axios'
 
 const API_BASE_URL = '/api/v1'
 const ACCESS_TOKEN_KEY = 'xroad_access_token'
+const REFRESH_TOKEN_KEY = 'xroad_refresh_token'
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -17,6 +18,38 @@ api.interceptors.request.use((config) => {
   }
   return config
 })
+
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config
+    if (error?.response?.status === 401 && !originalRequest?._retry) {
+      originalRequest._retry = true
+      const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY)
+      if (!refreshToken) {
+        localStorage.removeItem(ACCESS_TOKEN_KEY)
+        return Promise.reject(error)
+      }
+
+      try {
+        const refreshResponse = await axios.post(`${API_BASE_URL}/auth/refresh`, {
+          refresh_token: refreshToken,
+        })
+
+        const newAccessToken = refreshResponse.data?.access_token
+        if (newAccessToken) {
+          localStorage.setItem(ACCESS_TOKEN_KEY, newAccessToken)
+          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`
+          return api(originalRequest)
+        }
+      } catch {
+        localStorage.removeItem(ACCESS_TOKEN_KEY)
+        localStorage.removeItem(REFRESH_TOKEN_KEY)
+      }
+    }
+    return Promise.reject(error)
+  }
+)
 
 // Auth API
 export const authApi = {
