@@ -103,6 +103,58 @@ El frontend se configura automáticamente a través de Docker.
 
 ## ▶️ Ejecución del Proyecto
 
+### Opción 0: Frontend local (`npm run dev`) + Backend/DB en Docker (Recomendada para desarrollo)
+
+Esta opción te permite tener:
+- **Hot reload rápido en frontend** con Vite.
+- **Mismos datos de Docker** (backend + postgres).
+
+#### Paso A: Levantar backend y base de datos en Docker
+
+```bash
+cd "PAE 2026"
+docker compose up -d postgres backend
+```
+
+> Nota: En este proyecto existe `docker-compose.override.yml` para desarrollo, que habilita:
+> - `backend` con `--reload`
+> - `postgres` expuesto en `5432:5432`
+
+#### Paso B: Ejecutar frontend en local
+
+En otra terminal:
+
+```bash
+cd "PAE 2026/frontend"
+npm run dev
+```
+
+Frontend disponible en:
+- `http://localhost:5173`
+
+#### Error común y solución
+
+Si ves:
+
+```bash
+npm error Missing script: "dev"
+```
+
+estás en la carpeta incorrecta. Debes ejecutar en `PAE 2026/frontend`.
+
+También puedes lanzarlo desde la raíz con:
+
+```bash
+npm --prefix "PAE 2026/frontend" run dev
+```
+
+#### ¿Qué se actualiza automáticamente?
+
+- Cambios en `frontend/src`: **sí** (hot reload).
+- Cambios en `backend/app`: **sí** (uvicorn `--reload` en Docker).
+- Cambios de datos en PostgreSQL: **sí**, al refrescar/reconsultar API.
+- Cambios en `Dockerfile`, dependencias o `docker-compose*.yml`: requieren reinicio/rebuild.
+
 ### Opción 1: Ejecución Simple (Recomendada)
 
 ```bash
