@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Boolean
+from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Boolean, Float
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from ..database import Base
@@ -20,6 +20,8 @@ class Service(Base):
     protocol = Column(String(50), default="REST")  # REST, SOAP, X-Road
     endpoint_url = Column(String(500))
     api_version = Column(String(20))
+    latitude = Column(Float)
+    longitude = Column(Float)
     
     # Standards Compliance
     data_standard = Column(String(100))  # e.g., "NTC-6195", "ISO-27001"

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
-import { entitiesApi, sectorsApi } from '../services/api'
+import { entitiesApi, sectorsApi, servicesApi } from '../services/api'
 import { Search, Filter, MapPin, Building2, Link2, Clock, XCircle, Layers, Maximize2, List, Activity, Shield, Box } from 'lucide-react'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
@@ -51,6 +51,8 @@ export default function MapaInteractivo() {
   const [selectedEntity, setSelectedEntity] = useState(null)
   const [mapCenter, setMapCenter] = useState(null)
   const [initialZoom, setInitialZoom] = useState(6)
+  const [highlightedEntityEndpoints, setHighlightedEntityEndpoints] = useState([])
+  const [loadingEndpoints, setLoadingEndpoints] = useState(false)
 
   useEffect(() => {
     fetchData()
@@ -91,6 +93,33 @@ export default function MapaInteractivo() {
     setSelectedEntity(entity)
     setMapCenter([entity.latitude, entity.longitude])
     setInitialZoom(12)
+  }
+
+  const handleLocateEntityEndpoints = async (entity) => {
+    handleEntityClick(entity)
+    setShowList(false)
+    setLoadingEndpoints(true)
+
+    try {
+      const response = await servicesApi.getAll({ limit: 100, entity_id: entity.id })
+      const services = response?.data?.items || []
+      const endpointMarkers = services
+        .filter((service) => service.latitude != null && service.longitude != null)
+        .map((service) => ({
+          id: service.id,
+          name: service.name || 'Endpoint sin nombre',
+          code: service.code || 'SIN_CODIGO',
+          protocol: service.protocol || 'N/A',
+          latitude: Number(service.latitude),
+          longitude: Number(service.longitude)
+        }))
+      setHighlightedEntityEndpoints(endpointMarkers)
+    } catch (error) {
+      console.error('Error loading entity endpoints:', error)
+      setHighlightedEntityEndpoints([])
+    } finally {
+      setLoadingEndpoints(false)
+    }
   }
 
   const connectedCount = filteredEntities.filter(e => e.xroad_status === 'connected').length
@@ -236,7 +265,15 @@ export default function MapaInteractivo() {
                       <Box className="h-3 w-3" />
                       {entity.services_count || 0} ENDPOINTS
                    </div>
-                   <button className="text-[9px] font-black text-blue-400 uppercase hover:text-blue-300">Localizar →</button>
+                   <button
+                     onClick={(e) => {
+                       e.stopPropagation()
+                       handleLocateEntityEndpoints(entity)
+                     }}
+                     className="text-[9px] font-black text-blue-400 uppercase hover:text-blue-300"
+                   >
+                     Localizar →
+                   </button>
                 </div>
               </div>
             ))}
@@ -316,6 +353,23 @@ export default function MapaInteractivo() {
                   </Marker>
                 )
               })}
+
+              {highlightedEntityEndpoints.map((endpoint) => (
+                <Marker
+                  key={`endpoint-${endpoint.id}`}
+                  position={[endpoint.latitude, endpoint.longitude]}
+                  icon={createCustomIcon('violet')}
+                >
+                  <Popup className="custom-leaflet-popup">
+                    <div className="p-3 min-w-[220px] bg-[#111827] text-white rounded-xl -m-3 border border-violet-500/40">
+                      <p className="text-[10px] font-black text-violet-400 uppercase tracking-widest mb-1">Endpoint</p>
+                      <p className="text-xs font-bold text-white uppercase leading-tight">{endpoint.name}</p>
+                      <p className="text-[10px] font-mono text-slate-400 mt-1">{endpoint.code}</p>
+                      <p className="text-[10px] text-slate-500 mt-1">{endpoint.protocol}</p>
+                    </div>
+                  </Popup>
+                </Marker>
+              ))}
             </MapContainer>
           </GlassCard>
 
@@ -327,6 +381,13 @@ export default function MapaInteractivo() {
                 <span className="text-[10px] font-black bg-blue-500/10 text-blue-400 px-2 py-1 rounded-md">{filteredEntities.length}</span>
               </div>
               <p className="text-[10px] text-slate-500 font-bold uppercase tracking-tighter">Despliegue operativo detectado</p>
+              {selectedEntity && (
+                <p className="text-[10px] text-violet-400 font-bold uppercase tracking-tighter mt-2">
+                  {loadingEndpoints
+                    ? 'Cargando endpoints...'
+                    : `${highlightedEntityEndpoints.length} endpoint(s) resaltados para ${selectedEntity.name}`}
+                </p>
+              )}
             </div>
             
             <div className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-2">

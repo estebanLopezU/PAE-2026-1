@@ -235,6 +235,8 @@ def seed_everything():
     for ent in added_entities:
         num_services = random.randint(1, 5) if ent.xroad_status == "connected" else random.randint(0, 2)
         for _ in range(num_services):
+            endpoint_lat = round(ent.latitude + random.uniform(-0.02, 0.02), 6)
+            endpoint_lon = round(ent.longitude + random.uniform(-0.02, 0.02), 6)
             service = Service(
                 entity_id=ent.id,
                 name=f"Servicio {random.choice(['Consulta', 'Validación', 'Registro', 'Integración', 'Reporte'])} {ent.acronym}",
@@ -243,7 +245,9 @@ def seed_everything():
                 description=f"Servicio oficial de {ent.name}",
                 endpoint_url=f"https://{ent.acronym.lower()}.gov.co/api/v{random.randint(1,3)}/endpoint",
                 status=random.choice(status_options),
-                api_version=f"{random.randint(1,3)}.{random.randint(0,9)}.{random.randint(0,9)}"
+                api_version=f"{random.randint(1,3)}.{random.randint(0,9)}.{random.randint(0,9)}",
+                latitude=endpoint_lat,
+                longitude=endpoint_lon
             )
             db.add(service)
             service_count += 1

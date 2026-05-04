@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 from .config import get_settings
 from .database import engine, Base
 from .api.v1.router import api_router
+from sqlalchemy import text
 
 settings = get_settings()
 
@@ -53,6 +54,16 @@ async def rate_limit_middleware(request: Request, call_next):
 async def startup_event():
     """Create database tables on startup"""
     Base.metadata.create_all(bind=engine)
+    # Lightweight schema evolution for existing SQLite/Postgres without Alembic
+    with engine.begin() as conn:
+        try:
+            conn.execute(text("ALTER TABLE services ADD COLUMN latitude FLOAT"))
+        except Exception:
+            pass
+        try:
+            conn.execute(text("ALTER TABLE services ADD COLUMN longitude FLOAT"))
+        except Exception:
+            pass
 
 
 @app.get("/")

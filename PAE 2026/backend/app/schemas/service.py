@@ -11,6 +11,8 @@ class ServiceBase(BaseModel):
     protocol: str = "REST"
     endpoint_url: Optional[str] = None
     api_version: Optional[str] = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
     data_standard: Optional[str] = None
     semantic_standard: Optional[str] = None
     security_standard: Optional[str] = None
@@ -31,6 +33,8 @@ class ServiceUpdate(BaseModel):
     protocol: Optional[str] = None
     endpoint_url: Optional[str] = None
     api_version: Optional[str] = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
     data_standard: Optional[str] = None
     semantic_standard: Optional[str] = None
     security_standard: Optional[str] = None

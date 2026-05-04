@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Search, Eye, Plus, Filter, X, Building2, MapPin, Activity, ShieldCheck, Zap } from 'lucide-react'
-import { entitiesApi, sectorsApi } from '../services/api'
+import { Search, Eye, Plus, Filter, X, Building2, ShieldCheck, Zap, Box } from 'lucide-react'
+import { entitiesApi, sectorsApi, servicesApi } from '../services/api'
 import { useAuth } from '../contexts/AuthContext'
 import clsx from 'clsx'
 import GlassCard from '../components/common/GlassCard'
@@ -35,6 +35,9 @@ export default function Entidades() {
     pageSize: 12,
     total: 0
   })
+  const [expandedEntityId, setExpandedEntityId] = useState(null)
+  const [entityServices, setEntityServices] = useState({})
+  const [servicesLoadingByEntity, setServicesLoadingByEntity] = useState({})
 
   useEffect(() => {
     fetchSectors()
@@ -81,6 +84,32 @@ export default function Entidades() {
   const clearFilters = () => {
     setFilters({ search: '', sector_id: '', xroad_status: '' })
     setPagination(prev => ({ ...prev, page: 1 }))
+  }
+
+  const fetchServicesByEntity = async (entityId) => {
+    try {
+      setServicesLoadingByEntity(prev => ({ ...prev, [entityId]: true }))
+      const response = await servicesApi.getAll({ limit: 100, entity_id: entityId })
+      setEntityServices(prev => ({ ...prev, [entityId]: response?.data?.items || [] }))
+    } catch (error) {
+      console.error('Error fetching services by entity:', error)
+      setEntityServices(prev => ({ ...prev, [entityId]: [] }))
+    } finally {
+      setServicesLoadingByEntity(prev => ({ ...prev, [entityId]: false }))
+    }
+  }
+
+  const handleToggleServices = async (entityId) => {
+    if (expandedEntityId === entityId) {
+      setExpandedEntityId(null)
+      return
+    }
+
+    setExpandedEntityId(entityId)
+
+    if (!entityServices[entityId]) {
+      await fetchServicesByEntity(entityId)
+    }
   }
 
   const hasActiveFilters = filters.search || filters.sector_id || filters.xroad_status
@@ -198,6 +227,10 @@ export default function Entidades() {
           const status = xroadStatusConfig[entity.xroad_status] || xroadStatusConfig.not_connected
           const maturity = entity.maturity_level ? maturityConfig[entity.maturity_level] : null
           
+          const isExpanded = expandedEntityId === entity.id
+          const services = entityServices[entity.id] || []
+          const isServicesLoading = servicesLoadingByEntity[entity.id]
+
           return (
             <GlassCard 
               key={entity.id}
@@ -254,11 +287,51 @@ export default function Entidades() {
                     <p className="text-[10px] font-black text-slate-500 uppercase leading-none">SERVICES</p>
                     <p className="text-lg font-mono font-black text-white">{entity.services_count || 0}</p>
                   </div>
-                  <button className="p-3 bg-slate-800 hover:bg-blue-600 text-slate-400 hover:text-white rounded-xl transition-all shadow-lg hover:shadow-blue-500/20">
+                  <button
+                    onClick={() => handleToggleServices(entity.id)}
+                    className={clsx(
+                      'p-3 rounded-xl transition-all shadow-lg',
+                      isExpanded
+                        ? 'bg-blue-600 text-white shadow-blue-500/20'
+                        : 'bg-slate-800 hover:bg-blue-600 text-slate-400 hover:text-white hover:shadow-blue-500/20'
+                    )}
+                    title="Ver servicios de la entidad"
+                  >
                     <Eye className="h-5 w-5" />
                   </button>
                 </div>
               </div>
+
+              {isExpanded && (
+                <div className="mt-5 rounded-xl border border-slate-800/70 bg-slate-900/40 p-4">
+                  <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">
+                    Servicios de la entidad
+                  </p>
+
+                  {isServicesLoading ? (
+                    <div className="flex items-center justify-center py-6">
+                      <StatusPulse size="md" />
+                    </div>
+                  ) : services.length === 0 ? (
+                    <div className="flex items-center gap-2 text-slate-500 text-sm py-2">
+                      <Box className="h-4 w-4" />
+                      <span>No hay servicios registrados para esta entidad.</span>
+                    </div>
+                  ) : (
+                    <div className="space-y-2 max-h-56 overflow-auto pr-1">
+                      {services.map((service) => (
+                        <div
+                          key={service.id}
+                          className="rounded-lg border border-slate-800 bg-slate-950/50 px-3 py-2"
+                        >
+                          <p className="text-sm font-bold text-slate-200">{service.name}</p>
+                          <p className="text-[11px] text-slate-500 font-mono">{service.code || 'SIN CÓDIGO'}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </GlassCard>
           )
         })}
