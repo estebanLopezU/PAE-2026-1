@@ -205,7 +205,7 @@ function AppRoutes() {
         path="/dashboard" 
         element={
           <ProtectedRoute>
-            <Layout>
+            <Layout enableVideoBackground>
               <Dashboard />
             </Layout>
           </ProtectedRoute>
@@ -216,7 +216,7 @@ function AppRoutes() {
         path="/entidades" 
         element={
           <ProtectedRoute>
-            <Layout>
+            <Layout enableVideoBackground>
               <Entidades />
             </Layout>
           </ProtectedRoute>
@@ -227,7 +227,7 @@ function AppRoutes() {
         path="/matriz" 
         element={
           <ProtectedRoute>
-            <Layout>
+            <Layout enableVideoBackground>
               <MatrizServicios />
             </Layout>
           </ProtectedRoute>
@@ -238,7 +238,7 @@ function AppRoutes() {
         path="/mapa" 
         element={
           <ProtectedRoute>
-            <Layout>
+            <Layout enableVideoBackground>
               <MapaInteractivo />
             </Layout>
           </ProtectedRoute>
@@ -249,7 +249,7 @@ function AppRoutes() {
         path="/evaluacion" 
         element={
           <ProtectedRoute>
-            <Layout>
+            <Layout enableVideoBackground>
               <EvaluacionMadurez />
             </Layout>
           </ProtectedRoute>
@@ -260,7 +260,7 @@ function AppRoutes() {
         path="/reportes" 
         element={
           <ProtectedRoute>
-            <Layout>
+            <Layout enableVideoBackground>
               <Reportes />
             </Layout>
           </ProtectedRoute>
@@ -271,7 +271,7 @@ function AppRoutes() {
         path="/analisis-ia" 
         element={
           <ProtectedRoute>
-            <Layout>
+            <Layout enableVideoBackground>
               <AnalisisIA />
             </Layout>
           </ProtectedRoute>

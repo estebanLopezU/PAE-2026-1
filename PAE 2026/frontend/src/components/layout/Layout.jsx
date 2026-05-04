@@ -23,6 +23,7 @@ import clsx from 'clsx'
 import LanguageSelector from '../LanguageSelector'
 import ThemeToggle from '../ThemeToggle'
 import { useAuth } from '../../contexts/AuthContext'
+import backgroundVideo from '../../../video/New Project (online-video-cutter.com).mp4'
 
 const navigation = [
   { nameKey: 'navigation.dashboard', href: '/', icon: LayoutDashboard },
@@ -44,7 +45,7 @@ const pageTitles = {
   '/analisis-ia': 'Análisis IA'
 }
 
-export default function Layout({ children }) {
+export default function Layout({ children, enableVideoBackground = false }) {
   const location = useLocation()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
@@ -61,6 +62,21 @@ export default function Layout({ children }) {
 
   return (
     <div className="min-h-screen bg-[#050a18] text-slate-100 relative overflow-x-hidden">
+      {enableVideoBackground && (
+        <>
+          <video
+            className="fixed inset-0 w-full h-full object-cover pointer-events-none z-0"
+            autoPlay
+            loop
+            muted
+            playsInline
+          >
+            <source src={backgroundVideo} type="video/mp4" />
+          </video>
+          <div className="fixed inset-0 bg-[#050a18]/70 pointer-events-none z-0" />
+        </>
+      )}
+
       {/* Animated background orbs */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
         <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full bg-blue-600/5 blur-[120px] animate-pulse" />
