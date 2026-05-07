@@ -160,6 +160,101 @@ El sistema ha sido fortalecido mediante una auditoría de seguridad rigurosa, im
 
 ---
 
+## ESTRUCTURA DEL PROYECTO Y ORGANIZACIÓN TÉCNICA
+
+El desarrollo del Visor de Interoperabilidad se organizó con una arquitectura **full-stack desacoplada**, separando responsabilidades entre frontend, backend y orquestación de infraestructura con Docker.
+
+### Estructura general del repositorio
+
+```text
+PAE-2026-1/
+├── INFORME_PRACTICA_ACADEMICA.md
+└── PAE 2026/
+    ├── docker-compose.yml
+    ├── docker-compose.override.yml
+    ├── README.md
+    ├── GUIA_EJECUCION.md
+    ├── SECURITY_HARDENING.md
+    ├── backend/
+    └── frontend/
+```
+
+### Estructura del backend
+
+```text
+backend/
+├── Dockerfile
+├── requirements.txt
+├── .env
+├── app/
+│   ├── main.py
+│   ├── config.py
+│   ├── database.py
+│   ├── security.py
+│   ├── api/
+│   ├── models/
+│   ├── schemas/
+│   ├── services/
+│   └── seeds/
+├── scripts/
+│   ├── seed_data.py
+│   ├── seed_relationships.py
+│   └── add_entities.py
+└── reports/
+```
+
+**Organización funcional del backend:**
+
+- `app/main.py`: punto de entrada de la API y configuración de arranque.
+- `app/api/`: definición de endpoints y lógica de exposición de servicios.
+- `app/models/`: modelos de datos de dominio para persistencia.
+- `app/schemas/`: contratos de entrada/salida para validación y serialización.
+- `app/services/`: lógica de negocio y procesamiento del motor de evaluación.
+- `app/security.py`: componentes de autenticación/autorización y controles de seguridad.
+- `scripts/`: utilidades de carga inicial y mantenimiento de datos.
+
+### Estructura del frontend
+
+```text
+frontend/
+├── Dockerfile
+├── package.json
+├── vite.config.js
+├── tailwind.config.js
+├── index.html
+├── public/
+└── src/
+    ├── main.jsx
+    ├── App.jsx
+    ├── components/
+    ├── pages/
+    ├── services/
+    ├── contexts/
+    ├── i18n/
+    └── styles/
+```
+
+**Organización funcional del frontend:**
+
+- `src/pages/`: vistas principales del sistema (dashboard, análisis, visualizaciones).
+- `src/components/`: componentes reutilizables de interfaz.
+- `src/services/`: capa de consumo de API y manejo de datos remotos.
+- `src/contexts/`: estado global de la aplicación y proveedores de contexto.
+- `src/i18n/`: internacionalización y textos multilenguaje.
+- `src/styles/`: estilos globales y personalizaciones visuales.
+
+### Estructura de despliegue e infraestructura
+
+La carpeta raíz de `PAE 2026/` centraliza la orquestación con Docker:
+
+- `docker-compose.yml`: definición de servicios (frontend, backend y dependencias).
+- `docker-compose.override.yml`: configuración adicional para entornos de desarrollo.
+- `SECURITY_HARDENING.md`: lineamientos de endurecimiento de seguridad aplicados al despliegue.
+
+Esta separación por capas favorece la mantenibilidad, escalabilidad y seguridad del sistema, permitiendo evolucionar cada componente (interfaz, lógica de negocio y despliegue) de forma independiente y controlada.
+
+---
+
 ## HALLAZGOS Y RESULTADOS PRINCIPALES
 
 Tras la aplicación del motor de evaluación sobre la muestra de 127 entidades, se obtuvieron los siguientes resultados:

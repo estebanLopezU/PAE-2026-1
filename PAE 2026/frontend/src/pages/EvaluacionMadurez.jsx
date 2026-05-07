@@ -45,6 +45,13 @@ const criteriaDescriptions = {
   trained_personnel: '¿El personal está capacitado en interoperabilidad?'
 }
 
+const getCriteriaInterpretation = (percentage) => {
+  if (percentage >= 80) return 'ALTO CUMPLIMIENTO'
+  if (percentage >= 60) return 'CUMPLIMIENTO MEDIO'
+  if (percentage >= 40) return 'CUMPLIMIENTO BÁSICO'
+  return 'CUMPLIMIENTO BAJO'
+}
+
 const criteriaKeyAliases = {
   has_api_documentation: 'api_documentation',
   uses_standard_protocols: 'standard_protocols',
@@ -137,10 +144,20 @@ export default function EvaluacionMadurez() {
   const criteriaChartData = radarData
     ? Object.keys(criteriaLabels).map((key) => ({
         criteria: criteriaLabels[key],
+        key,
         score: normalizedCriteriaData[key] ?? 0
       }))
     : []
   const maxCriteriaScore = Math.max(4, ...criteriaChartData.map(item => item.score || 0))
+  const criteriaTechnicalTableData = criteriaChartData.map((item) => {
+    const normalizedPercentage = maxCriteriaScore > 0 ? (item.score / maxCriteriaScore) * 100 : 0
+    return {
+      ...item,
+      percentage: normalizedPercentage,
+      interpretation: getCriteriaInterpretation(normalizedPercentage),
+      description: criteriaDescriptions[item.key]
+    }
+  })
 
   return (
     <div className="space-y-8 pb-12">
@@ -287,6 +304,46 @@ export default function EvaluacionMadurez() {
                 </ResponsiveContainer>
               </GlassCard>
             </div>
+          )}
+
+          {radarData && (
+            <GlassCard className="overflow-hidden border-slate-700/50">
+              <div className="px-6 py-5 border-b border-slate-800 bg-slate-900/30 flex justify-between items-center">
+                <h3 className="text-xs font-black text-slate-300 uppercase tracking-widest">Matriz Técnica de Evaluación de Criterios</h3>
+                <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                  Escala normalizada: 0% a 100%
+                </div>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-slate-900/50 border-b border-slate-800">
+                      <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Criterio</th>
+                      <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Valor Obtenido</th>
+                      <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Porcentaje</th>
+                      <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Interpretación</th>
+                      <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Criterio Técnico Evaluado</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800/50">
+                    {criteriaTechnicalTableData.map((row) => (
+                      <tr key={row.key} className="hover:bg-white/5 transition-colors align-top">
+                        <td className="px-6 py-4 text-xs font-bold text-slate-200">{row.criteria}</td>
+                        <td className="px-6 py-4 text-center text-xs font-mono font-bold text-white">{row.score.toFixed(2)}</td>
+                        <td className="px-6 py-4 text-center">
+                          <span className="inline-flex items-center px-3 py-1 rounded-lg text-[10px] font-black tracking-widest border border-blue-500/30 text-blue-300 bg-blue-500/10">
+                            {row.percentage.toFixed(1)}%
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-amber-300">{row.interpretation}</td>
+                        <td className="px-6 py-4 text-xs text-slate-400 leading-relaxed">{row.description}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </GlassCard>
           )}
 
           {/* Assessments Registry */}

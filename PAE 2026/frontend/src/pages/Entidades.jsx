@@ -325,7 +325,12 @@ export default function Entidades() {
                           className="rounded-lg border border-slate-800 bg-slate-950/50 px-3 py-2"
                         >
                           <p className="text-sm font-bold text-slate-200">{service.name}</p>
-                          <p className="text-[11px] text-slate-500 font-mono">{service.code || 'SIN CÓDIGO'}</p>
+                          <p className="text-[11px] text-slate-500 font-mono">
+                            Código: {service.code || 'NO REGISTRADO'}
+                          </p>
+                          <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">
+                            {service.description || 'Sin descripción funcional registrada para este servicio.'}
+                          </p>
                         </div>
                       ))}
                     </div>

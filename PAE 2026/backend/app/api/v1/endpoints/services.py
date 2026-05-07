@@ -1,4 +1,5 @@
 from typing import Any, Dict, List, Optional
+import re
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
@@ -11,6 +12,42 @@ from ....schemas.service import Service as ServiceSchema, ServiceCreate, Service
 from ....security import require_admin, get_current_user
 
 router = APIRouter()
+
+
+def _sanitize_token(value: Optional[str], max_len: int = 8, fallback: str = "GEN") -> str:
+    raw = (value or "").strip().upper()
+    cleaned = re.sub(r"[^A-Z0-9]", "", raw)
+    if not cleaned:
+        return fallback
+    return cleaned[:max_len]
+
+
+def build_official_service_code(entity: Entity, category: Optional[str], seq: int) -> str:
+    """
+    Convención oficial:
+    CO-{ENTITY_ID_4D}-{ACRONYM_8}-{CATEGORY_3}-{SEQ_3}
+    Ejemplo: CO-0001-DAPRE-INT-001
+    """
+    acronym = _sanitize_token(entity.acronym or entity.name, max_len=8, fallback=f"ENT{entity.id}")
+    category_token = _sanitize_token(category, max_len=3, fallback="GEN")
+    return f"CO-{entity.id:04d}-{acronym}-{category_token}-{seq:03d}"
+
+
+def build_default_service_description(entity: Entity, category: Optional[str], protocol: Optional[str]) -> str:
+    category_label = (category or "integración").strip().lower()
+    protocol_label = (protocol or "REST").strip().upper()
+    return (
+        f"Servicio de {category_label} de {entity.name} para interoperabilidad "
+        f"{protocol_label} con intercambio seguro de información institucional."
+    )
+
+
+def next_service_sequence(db: Session, entity_id: int, category: Optional[str]) -> int:
+    count = db.query(Service).filter(
+        Service.entity_id == entity_id,
+        Service.category == category
+    ).count()
+    return count + 1
 
 
 @router.get("/", response_model=ServiceList)
@@ -77,13 +114,24 @@ def create_service(
     if not entity:
         raise HTTPException(status_code=400, detail="Entity not found")
     
-    # Check if code already exists (if provided)
-    if service.code:
-        existing = db.query(Service).filter(Service.code == service.code).first()
-        if existing:
-            raise HTTPException(status_code=400, detail="Service code already exists")
-    
-    db_service = Service(**service.model_dump())
+    payload = service.model_dump()
+
+    if not payload.get("code"):
+        seq = next_service_sequence(db, entity.id, payload.get("category"))
+        payload["code"] = build_official_service_code(entity, payload.get("category"), seq)
+
+    existing = db.query(Service).filter(Service.code == payload["code"]).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="Service code already exists")
+
+    if not payload.get("description"):
+        payload["description"] = build_default_service_description(
+            entity,
+            payload.get("category"),
+            payload.get("protocol")
+        )
+
+    db_service = Service(**payload)
     db.add(db_service)
     db.commit()
     db.refresh(db_service)
@@ -105,6 +153,30 @@ def update_service(
         raise HTTPException(status_code=404, detail="Service not found")
     
     update_data = service.model_dump(exclude_unset=True)
+
+    if "code" in update_data and update_data["code"]:
+        existing = db.query(Service).filter(
+            Service.code == update_data["code"],
+            Service.id != service_id
+        ).first()
+        if existing:
+            raise HTTPException(status_code=400, detail="Service code already exists")
+
+    if "code" in update_data and (update_data["code"] is None or str(update_data["code"]).strip() == ""):
+        seq = next_service_sequence(db, db_service.entity_id, update_data.get("category", db_service.category))
+        update_data["code"] = build_official_service_code(
+            db_service.entity,
+            update_data.get("category", db_service.category),
+            seq
+        )
+
+    if "description" in update_data and (update_data["description"] is None or str(update_data["description"]).strip() == ""):
+        update_data["description"] = build_default_service_description(
+            db_service.entity,
+            update_data.get("category", db_service.category),
+            update_data.get("protocol", db_service.protocol)
+        )
+
     for field, value in update_data.items():
         setattr(db_service, field, value)
     
@@ -188,7 +260,7 @@ def generate_all_services(
         
         for i in range(min(num_services, len(services_to_create))):
             svc = services_to_create[i]
-            code = f"{entity.id}-{entity.acronym or entity.name[:3].upper()}-{svc['category'][:3].upper()}-{i+1:03d}"
+            code = build_official_service_code(entity, svc["category"], i + 1)
             
             existing = db.query(Service).filter(
                 Service.entity_id == entity.id,
@@ -202,7 +274,7 @@ def generate_all_services(
                 entity_id=entity.id,
                 name=svc["name"],
                 code=code,
-                description=f"Servicio de {svc['category'].lower()} para {entity.name}",
+                description=build_default_service_description(entity, svc["category"], svc["protocol"]),
                 protocol=svc["protocol"],
                 category=svc["category"],
                 status="active"
