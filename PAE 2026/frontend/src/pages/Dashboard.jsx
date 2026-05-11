@@ -12,8 +12,7 @@ import {
   Activity,
   Zap,
 } from 'lucide-react'
-import jsPDF from 'jspdf'
-import autoTable from 'jspdf-autotable'
+import { exportComprehensivePDF } from '../services/pdfExportService'
 import {
   Bar,
   BarChart,
@@ -253,25 +252,20 @@ export default function Dashboard() {
     return () => controller.abort()
   }, [selectedSector])
 
-  const exportToPDF = () => {
-    const doc = new jsPDF('landscape', 'mm', 'a4')
-    doc.setFillColor(15, 23, 42)
-    doc.rect(0, 0, 297, 28, 'F')
-    doc.setTextColor(255, 255, 255)
-    doc.setFontSize(18)
-    doc.text('Reporte Ejecutivo - Dashboard X-Road Colombia', 14, 12)
-    doc.setFontSize(10)
-    doc.text(`Fecha de generación: ${new Date().toLocaleString('es-CO')}`, 14, 20)
-    doc.text(`Filtro sector: ${selectedSector || 'Todos los sectores'}`, 205, 20)
+  const [exporting, setExporting] = useState(false)
+  const [exportStatus, setExportStatus] = useState('')
 
-    autoTable(doc, {
-      startY: 35,
-      head: [['Indicador', 'Valor']],
-      body: kpiCards.map((kpi) => [kpi.title, String(kpi.value)]),
-      theme: 'striped',
-    })
-
-    doc.save(`dashboard_xroad_${new Date().toISOString().slice(0, 10)}.pdf`)
+  const exportToPDF = async () => {
+    setExporting(true)
+    setExportStatus('Iniciando generación del informe...')
+    try {
+      await exportComprehensivePDF((msg) => setExportStatus(msg))
+    } catch (err) {
+      console.error('Error al exportar PDF:', err)
+    } finally {
+      setExporting(false)
+      setExportStatus('')
+    }
   }
 
   if (loading) {
@@ -321,9 +315,11 @@ export default function Dashboard() {
 
             <button
               onClick={exportToPDF}
-              className="flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2 text-sm font-bold shadow-lg shadow-blue-600/20 hover:bg-blue-500 transition-all"
+              disabled={exporting}
+              className="flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2 text-sm font-bold shadow-lg shadow-blue-600/20 hover:bg-blue-500 transition-all disabled:opacity-60 disabled:cursor-wait"
             >
-              <Download className="h-4 w-4" /> EXPORT
+              <Download className={`h-4 w-4 ${exporting ? 'animate-spin' : ''}`} />
+              {exporting ? exportStatus || 'EXPORTANDO...' : 'EXPORT'}
             </button>
           </div>
         </div>

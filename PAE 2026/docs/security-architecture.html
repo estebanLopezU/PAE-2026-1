@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arquitectura de Seguridad - Visor de Interoperabilidad</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .mermaid {
+            max-width: 1200px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="mermaid">
+        graph TB
+            subgraph Cliente["🌐 Cliente (Frontend - React/Vite)"]
+                A[Navegador Web]
+                AC[AuthContext.jsx<br/>Gestión de tokens]
+                API[api.js<br/>Interceptor HTTP]
+                DASH[Dashboard.jsx<br/>Reportes.jsx<br/>Headers Bearer]
+            end
+
+            subgraph Backend["🛡️ Backend (FastAPI - Python)"]
+                direction TB
+                RL[Rate Limiter<br/>120 req/min]
+                AUTH[security.py<br/>Autenticación JWT]
+                ROLE[Control de Roles<br/>admin / analyst / viewer]
+                EP[Endpoints API]
+            end
+
+            subgraph Token["🔑 JWT Token Service"]
+                AT[Access Token<br/>Expira: 120 min<br/>type=access]
+                RT[Refresh Token<br/>Expira: 10080 min<br/>type=refresh]
+            end
+
+            subgraph Config["⚙️ Configuración"]
+                ENV[.env / config.py]
+                SEC[AUTH_ENABLED<br/>JWT_SECRET_KEY<br/>RATE_LIMIT_PER_MINUTE]
+                USERS[Usuarios Demo<br/>admin@xroad.co<br/>analyst@xroad.co]
+            end
+
+            subgraph Storage["💾 Persistencia"]
+                DB[(PostgreSQL / SQLite<br/>xroad_colombia)]
+            end
+
+            A -->|POST /auth/login| AUTH
+            AUTH -->|Valida credenciales| USERS
+            AUTH -->|Genera tokens| AT
+            AUTH -->|Genera tokens| RT
+            AT -->|Almacena| AC
+            RT -->|Almacena| AC
+
+            DASH -->|Authorization: Bearer AT| RL
+            RL -->|Si quota ok| AUTH
+            AUTH -->|decode_token + get_current_user| ROLE
+            ROLE -->|require_admin / require_analyst| EP
+            EP -->|CRUD| DB
+
+            API -->|HTTP 401 → POST /auth/refresh| AUTH
+            AUTH -->|Valida refresh_token| RT
+            AUTH -->|Nuevo access_token| AT
+            AT -->|Actualiza en frontend| AC
+
+            ENV -->|Lee variables| SEC
+            SEC -->|Configura| AUTH
+            SEC -->|Configura| RL
+            SEC -->|Configura| AT
+            SEC -->|Configura| RT
+    </div>
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true,
+                curve: 'basis'
+            }
+        });
+    </script>
+</body>
+</html>

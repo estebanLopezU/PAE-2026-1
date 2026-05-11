@@ -45,6 +45,8 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: /api/v1
     container_name: xroad-frontend
     ports:
       - "5173:80"
@@ -52,8 +54,7 @@ services:
       - backend
     networks:
       - xroad-network
-    volumes:
-      - ./frontend/src:/app/src:ro
+    restart: unless-stopped
 
 networks:
   xroad-network:
