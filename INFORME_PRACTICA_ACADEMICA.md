@@ -85,7 +85,7 @@ La validez de este estudio reposa en el uso de información pública oficial de 
 
 1.  **Fuente Primaria:** Respuesta oficial al Derecho de Petición radicado ante la Agencia Nacional Digital (Radicado: AND-2026-0014789).
     - Fecha de corte: 20 de marzo de 2026.
-    - Entidades analizadas: 127 entidades operativas.
+    - Entidades analizadas: 124 entidades operativas.
     - Entidades en fase de conexión: 67 adicionales identificadas.
 
 2.  **Fuentes Secundarias:**
