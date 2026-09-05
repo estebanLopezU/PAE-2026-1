@@ -56,8 +56,8 @@ htmlcov/
 docs/_build/
 
 # PAE specific
-PAE 2026/backend/__pycache__/
-PAE 2026/backend/app/__pycache__/
-PAE 2026/backend/app/**/__pycache__/
-PAE 2026/frontend/node_modules/
-PAE 2026/frontend/package-lock.json
+PAE 2026/BackendInteroperabilidad/__pycache__/
+PAE 2026/BackendInteroperabilidad/app/__pycache__/
+PAE 2026/BackendInteroperabilidad/app/**/__pycache__/
+PAE 2026/FrontendInteroperabilidad/node_modules/
+PAE 2026/FrontendInteroperabilidad/package-lock.json

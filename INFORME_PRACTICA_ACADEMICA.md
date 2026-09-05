@@ -3,7 +3,7 @@
 
 **Autor:** Esteban Lopez Usma  
 **Carrera:** Administración de Sistemas Informáticos  
-**Fecha:** 23 de abril de 2026
+**Fecha:** 23 de Mayo de 2026
 
 ---
 
@@ -276,8 +276,7 @@ Tras la aplicación del motor de evaluación sobre la muestra de 127 entidades, 
 ---
 
 ## REFERENCIAS Y EVIDENCIAS
-
-1.  **Agencia Nacional Digital.** Respuesta Oficial Derecho de Petición N° AND-2026-0014789.
+1   **Agencia Nacional Digital (AND). *Datos y documentación pública de interoperabilidad* (2025)**
 2.  **Ministerio de TIC.** Marco de Interoperabilidad para Gobierno Digital. Edición 2025.
 3.  **Congreso de la República.** Ley 1581 de 2012 (Protección de Datos Personales).
 4.  **Departamento Administrativo Nacional de Estadística (DANE).** Directorio de Entidades Públicas 2025.

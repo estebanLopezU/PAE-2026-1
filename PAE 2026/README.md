@@ -60,10 +60,12 @@ docker-compose down
 
 ## 📁 Estructura del Proyecto
 
-*   **`/frontend`**: Aplicación React con Vite y Tailwind CSS.
-*   **`/backend`**: API construida con FastAPI, SQLAlchemy y PostgreSQL.
-*   **`/backend/app/models`**: Definiciones de tablas de la base de datos.
-*   **`/backend/app/api`**: Endpoints de la lógica de negocio.
+*   **`/FrontendInteroperabilidad`**: Aplicación React con Vite y Tailwind CSS (módulo INTEROP).
+*   **`/BackendInteroperabilidad`**: API construida con FastAPI, SQLAlchemy y PostgreSQL.
+*   **`/BackendInteroperabilidad/app/models`**: Definiciones de tablas de la base de datos.
+*   **`/BackendInteroperabilidad/app/api`**: Endpoints de la lógica de negocio.
+*   **`/PortalEntrada`**: Portal de entrada (Landing) que enlaza a los módulos.
+*   **`/FrontendGovstacke`**: Frontend del módulo GOVStake 360.
 *   **`docker-compose.yml`**: Orquestación de servicios.
 
 ---

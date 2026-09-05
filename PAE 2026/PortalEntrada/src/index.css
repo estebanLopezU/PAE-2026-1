@@ -1,0 +1,291 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap');
+
+:root {
+  --bg: #0a0616;
+  --bg2: #150a2e;
+  --panel: #1a0f33;
+  --line: #37255e;
+  --ink: #f4efff;
+  --muted: #a99bc6;
+  --pink: #e879f9;
+  --purple: #a78bfa;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body, #root { height: 100%; }
+
+body {
+  min-height: 100svh;
+  font-family: 'Inter', sans-serif;
+  color: var(--ink);
+  background: var(--bg);
+  overflow-x: hidden;
+}
+
+/* ================= LOADING SCREEN ================= */
+.loading-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2.2rem;
+  background: radial-gradient(120% 90% at 50% 0%, #1a0f33 0%, #0a0616 60%);
+  opacity: 1;
+}
+.loading-screen.fade-out {
+  animation: loadFadeOut 0.7s ease forwards;
+}
+@keyframes loadFadeOut {
+  to { opacity: 0; visibility: hidden; }
+}
+
+.loader-orbit { position: relative; width: 130px; height: 130px; }
+.loader-ring { position: absolute; inset: 0; border-radius: 50%; }
+.loader-ring.ring-a {
+  border: 3px solid transparent;
+  border-top-color: var(--pink);
+  border-right-color: var(--purple);
+  animation: spinRing 1.2s linear infinite;
+}
+.loader-ring.ring-b {
+  inset: 13px;
+  border: 3px dashed var(--purple);
+  opacity: 0.5;
+  animation: spinRing 2.4s linear infinite reverse;
+}
+.loader-core {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--pink);
+  filter: drop-shadow(0 0 12px rgba(232,121,249,0.7));
+}
+.loader-spin { animation: spinRing 2s linear infinite; }
+@keyframes spinRing { to { transform: rotate(360deg); } }
+
+.loader-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+.loader-brand {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.3em;
+  font-size: 0.9rem;
+  color: var(--ink);
+  text-shadow: 0 0 20px rgba(167,139,250,0.6);
+}
+.loader-bar { width: 170px; height: 3px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; }
+.loader-bar i { display: block; height: 100%; width: 40%; background: linear-gradient(90deg, var(--purple), var(--pink)); border-radius: 3px; animation: loadBar 1.3s ease-in-out infinite; }
+@keyframes loadBar { 0% { margin-left: -40%; } 100% { margin-left: 100%; } }
+.loader-status { font-size: 0.78rem; color: var(--muted); letter-spacing: 0.06em; }
+/* ================= OCEAN BACKGROUND ================= */
+.ocean-bg {
+  position: fixed; inset: 0; z-index: 0;
+  overflow: hidden;
+}
+.ocean-canvas {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  display: block;
+}
+.ocean-vignette {
+  position: absolute; inset: 0; z-index: 1;
+  pointer-events: none;
+  background: radial-gradient(120% 90% at 50% 0%, rgba(0,0,0,0) 40%, rgba(6,3,14,0.55) 100%);
+  box-shadow: inset 0 0 120px rgba(6,3,14,0.5);
+}
+
+.grain-overlay {
+  position: absolute; inset: 0; z-index: 2;
+  pointer-events: none; opacity: 0.05; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+/* ================= PORTAL ================= */
+.svg-portal {
+  position: relative;
+  z-index: 2;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 7vh 6vw 6vh;
+  gap: 3rem;
+  opacity: 0;
+  transform: translateY(20px);
+}
+.svg-portal.is-started {
+  animation: portalIn 0.9s ease forwards;
+}
+@keyframes portalIn {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.portal-header { text-align: center; max-width: 760px; }
+.portal-badge {
+  display: inline-block;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--purple);
+  border: 1px solid rgba(167,139,250,0.4);
+  background: rgba(167,139,250,0.08);
+  padding: 0.55rem 1.2rem;
+  border-radius: 6px;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 0 24px rgba(167,139,250,0.25);
+}
+.portal-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(1.9rem, 5vw, 3.3rem);
+  font-weight: 700;
+  line-height: 1.08;
+}
+.portal-title span {
+  background: linear-gradient(90deg, var(--purple), var(--pink));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.portal-tagline {
+  margin-top: 1rem;
+  color: var(--muted);
+  font-size: 1.02rem;
+}
+
+/* ================= MODULES ================= */
+.portal-modules {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+  width: 100%;
+  max-width: 880px;
+}
+
+.module-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 2rem 1.9rem 1.7rem;
+  background: rgba(26,15,51,0.6);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  text-decoration: none;
+  color: var(--ink);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 24px 50px rgba(0,0,0,0.4);
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(30px);
+  animation: cardIn 0.7s ease forwards;
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+@keyframes cardIn {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* lazy border accent */
+.module-card::after {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px;
+  background: linear-gradient(180deg, var(--accent), transparent);
+  opacity: 0.7;
+  transition: width 0.25s ease, opacity 0.25s ease;
+}
+
+/* soft glow that appears behind */
+.module-glow {
+  position: absolute;
+  right: -30%; top: -30%;
+  width: 70%; height: 70%;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--accent) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+/* sweeping shine */
+.card-shine {
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 60%;
+  left: -80%;
+  background: linear-gradient(100deg, transparent, rgba(255,255,255,0.12), transparent);
+  transform: skewX(-18deg);
+  pointer-events: none;
+  transition: left 0.6s ease;
+}
+
+.module-card:hover { transform: translateY(-8px) scale(1.02); border-color: var(--accent); box-shadow: 0 30px 70px rgba(0,0,0,0.55), 0 0 30px color-mix(in srgb, var(--accent) 35%, transparent); }
+.module-card:hover::after { width: 6px; opacity: 1; }
+.module-card:hover .module-glow { opacity: 0.55; }
+.module-card:hover .card-shine { left: 130%; }
+
+.module-card.is-hovered { transform: translateY(-8px) scale(1.02); border-color: var(--accent); }
+
+.module-icon {
+  display: grid;
+  place-items: center;
+  width: 58px; height: 58px;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  color: var(--accent);
+  box-shadow: 0 0 22px color-mix(in srgb, var(--accent) 30%, transparent);
+  transition: transform 0.25s ease;
+}
+.module-card:hover .module-icon { transform: rotate(-6deg) scale(1.08); }
+
+.module-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.55rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  margin-top: 0.2rem;
+}
+.module-subtitle {
+  font-size: 0.8rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.module-desc { font-size: 0.92rem; color: var(--muted); line-height: 1.5; }
+
+.module-enter {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  font-size: 0.85rem;
+  color: var(--accent);
+  transition: gap 0.25s ease;
+}
+.module-card:hover .module-enter { gap: 0.9rem; }
+
+/* ================= FOOTER ================= */
+.portal-footer { text-align: center; color: var(--muted); font-size: 0.82rem; }
+
+@media (max-width: 520px) {
+  .portal-modules { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition: none !important; }
+}

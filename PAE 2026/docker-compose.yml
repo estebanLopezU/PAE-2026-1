@@ -24,7 +24,7 @@ services:
   # Backend API
   backend:
     build:
-      context: ./backend
+      context: ./BackendInteroperabilidad
       dockerfile: Dockerfile
     container_name: xroad-backend
     environment:
@@ -36,14 +36,14 @@ services:
       postgres:
         condition: service_healthy
     volumes:
-      - ./backend:/app
+      - ./BackendInteroperabilidad:/app
     networks:
       - xroad-network
 
   # Frontend
   frontend:
     build:
-      context: ./frontend
+      context: ./FrontendInteroperabilidad
       dockerfile: Dockerfile
       args:
         VITE_API_BASE_URL: /api/v1

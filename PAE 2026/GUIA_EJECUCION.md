@@ -80,7 +80,7 @@ dir
 
 ### Variables de Entorno del Backend:
 
-El archivo `backend/.env` ya está configurado con valores por defecto:
+El archivo `BackendInteroperabilidad/.env` ya está configurado con valores por defecto:
 
 ```env
 # Base de datos
@@ -125,7 +125,7 @@ docker compose up -d postgres backend
 En otra terminal:
 
 ```bash
-cd "PAE 2026/frontend"
+cd "PAE 2026/FrontendInteroperabilidad"
 npm run dev
 ```
 
