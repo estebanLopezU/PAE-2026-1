@@ -24,6 +24,7 @@ import clsx from 'clsx'
 import LanguageSelector from '../LanguageSelector'
 import ThemeToggle from '../ThemeToggle'
 import { useAuth } from '../../contexts/AuthContext'
+import AgentGDChat from '../chatbot/AgentGDChat'
 import backgroundVideo from '../../../video/New Project (online-video-cutter.com).mp4'
 
 const navigation = [
@@ -198,6 +199,7 @@ export default function Layout({ children, enableVideoBackground = false }) {
           </div>
         </footer>
       </div>
+      <AgentGDChat platform="interop" />
     </div>
   )
 }

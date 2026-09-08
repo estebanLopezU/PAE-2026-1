@@ -15,6 +15,7 @@ import {
   X,
 } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
+import AgentGDChat from '../chatbot/AgentGDChat'
 
 const NAV_ITEMS = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -26,6 +27,8 @@ const NAV_ITEMS = [
   { to: '/protocolo', label: 'Protocolo', icon: ScrollText },
   { to: '/reportes', label: 'Reportes', icon: FileBarChart },
 ]
+
+import AgentGDChat from '../chatbot/AgentGDChat'
 
 export default function Layout() {
   const { user, logout } = useAuth()
@@ -139,6 +142,7 @@ export default function Layout() {
           <Outlet />
         </main>
       </div>
+      <AgentGDChat platform="govstake" />
     </div>
   )
 }
