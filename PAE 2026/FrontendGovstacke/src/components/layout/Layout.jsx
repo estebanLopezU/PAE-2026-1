@@ -28,8 +28,6 @@ const NAV_ITEMS = [
   { to: '/reportes', label: 'Reportes', icon: FileBarChart },
 ]
 
-import AgentGDChat from '../chatbot/AgentGDChat'
-
 export default function Layout() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
