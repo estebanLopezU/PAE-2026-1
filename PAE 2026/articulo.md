@@ -174,3 +174,9 @@ Future work:
 3. Agencia Nacional Digital (AND). *Datos y documentación pública de interoperabilidad* (2025).  
 4. Wahyuni, H. *Maturity of data interoperability cross-organizations in E-Government* (2024).  
 5. Okan, A.A. *Exploring the Landscape of e-Government Maturity Models* (2024).  
+
+---
+
+## Note on Scope Extension (September 2026)
+
+Beyond the interoperability assessment described in this article, the platform was extended into a multi-platform digital government suite: an entry portal (port 3000), **GOVStake 360** — an AI-driven stakeholder management system for public-sector interest groups (ports 3002/8002) — and **AgentGD**, an OpenRouter-powered AI assistant embedded in both dashboards that queries the live databases. Both microservices implement hardened security: database-backed users with bcrypt hashing, role-based access control, brute-force lockout, and access auditing.

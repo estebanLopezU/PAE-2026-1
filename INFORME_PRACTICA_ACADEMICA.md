@@ -283,3 +283,16 @@ Tras la aplicación del motor de evaluación sobre la muestra de 127 entidades, 
 5.  **Agencia Nacional Digital.** Guía Técnica de Implementación X-Road Colombia.
 
 *Este informe constituye la entrega final de la Práctica Académica Especial y cuenta con todas las evidencias técnicas almacenadas en el sistema de auditoría de la plataforma.*
+
+---
+
+## ANEXO (Septiembre 2026): Extensión de la plataforma — GOVStake 360
+
+Como segunda fase de la práctica, la plataforma evolucionó de un visor único a una **suite multi-plataforma de gobierno digital**:
+
+- **Portal de entrada** (puerto 3000): landing unificada de acceso a las dos plataformas.
+- **GOVStake 360** (puertos 3002/8002): nuevo sistema inteligente de caracterización y gestión de grupos de interés públicos, con registro de actores, 10 variables de análisis, mapa poder-legitimidad-influencia, matriz de priorización, tablero de relacionamiento, historial de compromisos, alertas relacionales, protocolos de participación por tipo de actor y reportes para la toma de decisiones.
+- **AgentGD**: chatbot de IA (OpenRouter, modelo gratuito) integrado en ambos dashboards como asistente flotante que analiza los datos reales de cada base de datos.
+- **Seguridad reforzada**: autenticación JWT con usuarios en base de datos (bcrypt), control de roles admin/usuario, bloqueo por fuerza bruta y auditoría de accesos en ambos microservicios.
+
+Toda la suite opera con arquitectura de microservicios (FastAPI + React + PostgreSQL) orquestada con Docker.

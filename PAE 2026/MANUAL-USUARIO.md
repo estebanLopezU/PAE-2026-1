@@ -28,16 +28,37 @@
 
 ## 1. Introducción
 
-**X-Road Colombia** es una plataforma integral para la gestión y monitoreo de la interoperabilidad entre entidades gubernamentales colombianas. Está diseñada para facilitar el seguimiento del Marco de Interoperabilidad del MinTIC.
+**Gobierno Digital Colombia** es una suite de plataformas para la gestión pública, compuesta por un portal de entrada y dos módulos independientes:
+
+- **X-Road Colombia** (Interoperabilidad): seguimiento del Marco de Interoperabilidad del MinTIC.
+- **GOVStake 360** (Estratégico): caracterización y gestión de grupos de interés públicos (actores, matriz de priorización, compromisos, alertas, protocolos y reportes).
+- **AgentGD**: chatbot de IA (OpenRouter, modelo gratuito) integrado en ambos dashboards como nube flotante arrastrable, con contexto real de la base de datos.
 
 ### Arquitectura General
 
 ```
-┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│   Frontend      │────▶│   Backend API   │────▶│   PostgreSQL    │
-│  (React/Vite)   │◀────│   (FastAPI)     │◀────│   (Base Datos)  │
-│   Puerto 5173   │     │   Puerto 8000   │     │   Puerto 5432   │
-└─────────────────┘     └─────────────────┘     └─────────────────┘
+                 ┌──────────────────────┐
+                 │  PORTAL DE ENTRADA   │
+                 │   (Puerto 3000)      │
+                 └──────────┬───────────┘
+            ┌───────────────┴───────────────┐
+            ▼                               ▼
+┌─────────────────────┐         ┌─────────────────────┐
+│ Frontend X-Road     │         │ Frontend GOVStake   │
+│ (Puerto 5173)       │         │ (Puerto 3002)       │
+└──────────┬──────────┘         └──────────┬──────────┘
+           ▼                               ▼
+┌─────────────────────┐         ┌─────────────────────┐
+│ Backend X-Road      │         │ Backend GOVStake    │
+│ FastAPI (8000)      │         │ FastAPI (8002)      │
+└──────────┬──────────┘         └──────────┬──────────┘
+           ▼                               ▼
+┌─────────────────────┐         ┌─────────────────────┐
+│ PostgreSQL          │         │ PostgreSQL          │
+│ xroad_colombia      │         │ govstake            │
+└─────────────────────┘         └─────────────────────┘
+
+🤖 AgentGD (OpenRouter) conectado a ambos backends
 ```
 
 ---
@@ -509,12 +530,23 @@ docker exec -i xroad-postgres psql -U postgres -d xroad_colombia < respaldo_xroa
 
 ## 10. Credenciales de Acceso
 
+### X-Road Colombia (Interoperabilidad) — http://localhost:5173
+
 | Rol | Correo Electrónico | Contraseña |
 |-----|--------------------|------------|
-| 👑 **Administrador** | `elopezu@unal.edu.co` | `BZTfne48` |
-| 🔍 **Analista** | `analista@xroad.gov.co` | `Analista123*` |
+| 👑 **Administrador** | `elopezu@unal.edu.co` | Configurada en `BackendInteroperabilidad/.env` |
+| 🔍 **Analista** | `analista@xroad.gov.co` | Configurada en `BackendInteroperabilidad/.env` |
 
-> **⚠️ Importante:** Cambia estas credenciales en `backend/.env` antes de usar el sistema en producción.
+### GOVStake 360 — http://localhost:3002
+
+| Rol | Correo Electrónico | Contraseña | Permisos |
+|-----|--------------------|------------|----------|
+| 🛡️ **Administrador** | `elopezu@unal.edu.co` | Configurada en `BackendGovstacke/.env` | Acceso completo (crear, editar, eliminar) |
+| 👤 **Usuario** | `gestor@govstake.gov.co` | Configurada en `BackendGovstacke/.env` | Solo lectura (visualizar) |
+
+> **⚠️ Importante:** Las contraseñas se gestionan en los archivos `.env` de cada backend (no versionados en git) y se almacenan **hasheadas con bcrypt** en la base de datos. Tras 5 intentos fallidos la cuenta se bloquea 15 minutos y todo acceso queda registrado en la tabla de auditoría. Cámbialas antes de usar el sistema en producción.
+
+> 🤖 **AgentGD:** en ambos dashboards encontrarás la nube flotante del chatbot de IA (esquina inferior derecha); puedes arrastrarla por toda la pantalla y preguntarle sobre los datos del dashboard.
 
 ---
 

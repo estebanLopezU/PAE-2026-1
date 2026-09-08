@@ -128,3 +128,20 @@ RATE_LIMIT_PER_MINUTE=120
 - Añadir persistencia/blacklist de refresh tokens.
 - Auditoría estructurada (SIEM) y alertas.
 - MFA para cuentas administrativas.
+---
+
+## 🔄 Anexo (Septiembre 2026): Endurecimiento aplicado a ambos microservicios
+
+Las mejoras siguientes se aplicaron a **BackendInteroperabilidad (8000)** y **BackendGovstacke (8002)**:
+
+| Mejora | Detalle |
+|--------|---------|
+| ✅ Usuarios en base de datos | Tabla `usuarios` con contraseñas **hasheadas (bcrypt)** — ya no dependen de variables de entorno |
+| ✅ Roles server-side | `admin` (escritura) / `viewer` (solo lectura) validados con JWT en cada endpoint |
+| ✅ Bloqueo por fuerza bruta | 5 intentos fallidos → cuenta bloqueada **15 minutos** (HTTP 423) |
+| ✅ Auditoría de accesos | Tabla `auditoria`: usuario, acción (`login_ok` / `login_fallido` / `cuenta_bloqueada`), IP y fecha |
+| ✅ Selector de tipo de acceso | Login con tarjetas Usuario / Administrador (validación de rol en el servidor) |
+| ✅ Rate limiting | 120 req/min por IP en ambos backends |
+| ✅ Secretos fuera del repo | `.env` en `.gitignore`; sin credenciales en el historial de git |
+
+**Pendiente para producción:** HTTPS/TLS en reverse proxy, rotación de `JWT_SECRET_KEY`, revocación de refresh tokens y headers de seguridad HTTP (CSP, HSTS).
