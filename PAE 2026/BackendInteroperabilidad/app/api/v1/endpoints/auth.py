@@ -1,14 +1,17 @@
 from typing import Dict
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
 
+from ....database import get_db
 from ....security import (
     authenticate_user,
     create_access_token,
     create_refresh_token,
     decode_refresh_token,
     get_current_user,
+    registrar_auditoria,
 )
 
 
@@ -25,17 +28,29 @@ class RefreshRequest(BaseModel):
 
 
 @router.post("/login")
-def login(payload: LoginRequest):
-    """Autenticación simple con JWT para fase inicial segura."""
-    user = authenticate_user(payload.email, payload.password)
+def login(payload: LoginRequest, request: Request, db: Session = Depends(get_db)):
+    """Autenticación con JWT (usuarios en BD + auditoría de seguridad)."""
+    ip = request.client.host if request.client else "unknown"
+    email_norm = payload.email.strip().lower()
+
+    try:
+        user = authenticate_user(email_norm, payload.password, db=db)
+    except HTTPException as exc:
+        # Cuenta bloqueada por intentos fallidos
+        registrar_auditoria(db, email_norm, "cuenta_bloqueada", str(exc.detail), ip)
+        raise
+
     if not user:
+        registrar_auditoria(db, email_norm, "login_fallido", "Credenciales inválidas", ip)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Credenciales inválidas",
         )
 
-    token = create_access_token(subject=user["email"], role=user["role"])
-    refresh_token = create_refresh_token(subject=user["email"], role=user["role"])
+    registrar_auditoria(db, user["email"], "login_ok", f"Rol: {user['role']}", ip)
+
+    token = create_access_token(subject=user["email"], role=user["role"], name=user["name"])
+    refresh_token = create_refresh_token(subject=user["email"], role=user["role"], name=user["name"])
 
     return {
         "access_token": token,
@@ -52,7 +67,7 @@ def login(payload: LoginRequest):
 @router.post("/refresh")
 def refresh(payload: RefreshRequest):
     data = decode_refresh_token(payload.refresh_token)
-    access_token = create_access_token(subject=data["sub"], role=data.get("role", "viewer"))
+    access_token = create_access_token(subject=data["sub"], role=data.get("role", "viewer"), name=data.get("name"))
     return {"access_token": access_token, "token_type": "bearer"}
 
 

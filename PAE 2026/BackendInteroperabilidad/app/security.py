@@ -21,7 +21,7 @@ def get_password_hash(password: str) -> str:
     return pwd_context.hash(password)
 
 
-def create_access_token(subject: str, role: str, expires_minutes: Optional[int] = None) -> str:
+def create_access_token(subject: str, role: str, name: Optional[str] = None, expires_minutes: Optional[int] = None) -> str:
     settings = get_settings()
     expire = datetime.now(timezone.utc) + timedelta(
         minutes=expires_minutes or settings.ACCESS_TOKEN_EXPIRE_MINUTES
@@ -30,6 +30,7 @@ def create_access_token(subject: str, role: str, expires_minutes: Optional[int] 
     to_encode = {
         "sub": subject,
         "role": role,
+        "name": name or subject,
         "type": "access",
         "exp": expire,
         "iat": datetime.now(timezone.utc),
@@ -38,7 +39,7 @@ def create_access_token(subject: str, role: str, expires_minutes: Optional[int] 
     return jwt.encode(to_encode, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
 
 
-def create_refresh_token(subject: str, role: str, expires_minutes: Optional[int] = None) -> str:
+def create_refresh_token(subject: str, role: str, name: Optional[str] = None, expires_minutes: Optional[int] = None) -> str:
     settings = get_settings()
     expire = datetime.now(timezone.utc) + timedelta(
         minutes=expires_minutes or settings.REFRESH_TOKEN_EXPIRE_MINUTES
@@ -47,6 +48,7 @@ def create_refresh_token(subject: str, role: str, expires_minutes: Optional[int]
     to_encode = {
         "sub": subject,
         "role": role,
+        "name": name or subject,
         "type": "refresh",
         "exp": expire,
         "iat": datetime.now(timezone.utc),
@@ -70,12 +72,68 @@ def decode_refresh_token(token: str) -> Dict[str, Any]:
     return payload
 
 
-def _validate_demo_user(email: str, password: str) -> Optional[Dict[str, str]]:
-    """Validación de usuarios básicos por configuración.
+MAX_INTENTOS = 5
+BLOQUEO_MINUTOS = 15
 
-    Nota: diseñado como mejora incremental sin romper el proyecto actual.
-    Puede reemplazarse más adelante por usuarios persistidos en base de datos.
+
+def registrar_auditoria(db, usuario: str, accion: str, detalle: str = None, ip: str = None):
+    """Guarda un evento de auditoría; nunca interrumpe el flujo principal."""
+    if db is None:
+        return
+    try:
+        from .models import Auditoria
+        db.add(Auditoria(usuario=usuario[:255], accion=accion[:100], detalle=(detalle or "")[:500], ip=ip))
+        db.commit()
+    except Exception:
+        db.rollback()
+
+
+def autenticar_db(db, email: str, password: str):
+    """Valida credenciales contra la tabla usuarios (hash bcrypt).
+
+    - Bloqueo temporal tras MAX_INTENTOS fallidos.
+    - Reset de contador al acertar.
+    Retorna dict de usuario o None. Lanza HTTPException 423 si está bloqueada.
     """
+    from .models import Usuario
+
+    user = db.query(Usuario).filter(Usuario.email == email.strip().lower()).first()
+    if not user or not user.activo:
+        return None
+
+    now = datetime.now(timezone.utc)
+    if user.bloqueado_hasta:
+        bloqueo = user.bloqueado_hasta
+        if bloqueo.tzinfo is None:
+            bloqueo = bloqueo.replace(tzinfo=timezone.utc)
+        if now < bloqueo:
+            raise HTTPException(
+                status_code=status.HTTP_423_LOCKED,
+                detail=f"Cuenta bloqueada temporalmente. Intenta después de {BLOQUEO_MINUTOS} minutos.",
+            )
+
+    if not verify_password(password, user.password_hash):
+        user.intentos_fallidos = (user.intentos_fallidos or 0) + 1
+        if user.intentos_fallidos >= MAX_INTENTOS:
+            user.bloqueado_hasta = now + timedelta(minutes=BLOQUEO_MINUTOS)
+            user.intentos_fallidos = 0
+            db.commit()
+            raise HTTPException(
+                status_code=status.HTTP_423_LOCKED,
+                detail=f"Demasiados intentos fallidos. Cuenta bloqueada por {BLOQUEO_MINUTOS} minutos.",
+            )
+        db.commit()
+        return None
+
+    user.intentos_fallidos = 0
+    user.bloqueado_hasta = None
+    user.ultimo_acceso = now
+    db.commit()
+    return {"email": user.email, "role": user.role, "name": user.nombre or user.email}
+
+
+def _validate_demo_user(email: str, password: str) -> Optional[Dict[str, str]]:
+    """Fallback de emergencia por configuración, solo si la BD no tiene usuarios."""
     settings = get_settings()
 
     if email == settings.ADMIN_EMAIL and password == settings.ADMIN_PASSWORD:
@@ -87,7 +145,22 @@ def _validate_demo_user(email: str, password: str) -> Optional[Dict[str, str]]:
     return None
 
 
-def authenticate_user(email: str, password: str) -> Optional[Dict[str, str]]:
+def authenticate_user(email: str, password: str, db=None) -> Optional[Dict[str, str]]:
+    """Autenticación principal: BD con bcrypt; fallback a env si la BD no tiene usuarios."""
+    if db is not None:
+        try:
+            user = autenticar_db(db, email, password)
+            if user is not None:
+                return user
+            # No coincide en BD: permitir fallback solo si la tabla está vacía (primer arranque)
+            from .models import Usuario
+            if db.query(Usuario).count() == 0:
+                return _validate_demo_user(email, password)
+            return None
+        except HTTPException:
+            raise
+        except Exception:
+            pass
     return _validate_demo_user(email, password)
 
 

@@ -3,8 +3,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from collections import defaultdict, deque
 from datetime import datetime, timedelta
 from .config import get_settings
-from .database import engine, Base
+from .database import engine, Base, SessionLocal
 from .api.v1.router import api_router
+from . import models  # noqa: F401  ensure models (incl. Usuario/Auditoria) registered
 from sqlalchemy import text
 
 settings = get_settings()
@@ -64,6 +65,36 @@ async def startup_event():
             conn.execute(text("ALTER TABLE services ADD COLUMN longitude FLOAT"))
         except Exception:
             pass
+    _seed_usuarios()
+
+
+def _seed_usuarios():
+    """Crea los usuarios iniciales (bcrypt) si la tabla usuarios está vacía."""
+    try:
+        from .models import Usuario
+        from .security import get_password_hash
+
+        db = SessionLocal()
+        try:
+            if db.query(Usuario).count() == 0:
+                db.add(Usuario(
+                    email=settings.ADMIN_EMAIL.strip().lower(),
+                    nombre="Administrador X-Road",
+                    password_hash=get_password_hash(settings.ADMIN_PASSWORD),
+                    role="admin",
+                ))
+                db.add(Usuario(
+                    email=settings.ANALYST_EMAIL.strip().lower(),
+                    nombre="Analista X-Road",
+                    password_hash=get_password_hash(settings.ANALYST_PASSWORD),
+                    role="analyst",
+                ))
+                db.commit()
+                print("✅ Usuarios iniciales creados en BD (bcrypt)")
+        finally:
+            db.close()
+    except Exception as exc:
+        print(f"⚠️ Seed de usuarios omitido: {exc}")
 
 
 @app.get("/")
