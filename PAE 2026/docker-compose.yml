@@ -56,10 +56,49 @@ services:
       - xroad-network
     restart: unless-stopped
 
+  # PostgreSQL database for GOVStake 360
+  govstake-db:
+    image: postgres:15-alpine
+    container_name: govstake-db
+    environment:
+      POSTGRES_DB: govstake360
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - govstake_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - xroad-network
+
+  # GOVStake 360 Backend API
+  govstake-backend:
+    build:
+      context: ./BackendGovstacke
+      dockerfile: Dockerfile
+    container_name: govstake-backend
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@govstake-db:5432/govstake360
+      DEBUG: "false"
+    ports:
+      - "8002:8002"
+    depends_on:
+      govstake-db:
+        condition: service_healthy
+    volumes:
+      - ./BackendGovstacke:/app
+    networks:
+      - xroad-network
+
 networks:
   xroad-network:
     driver: bridge
 
 volumes:
   postgres_data:
+    driver: local
+  govstake_data:
     driver: local
