@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { Eye, EyeOff, ArrowLeft } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 
@@ -73,6 +73,7 @@ function LoginBackground() {
 export default function LoginPage() {
   const { login } = useAuth()
   const navigate = useNavigate()
+  const [accessType, setAccessType] = useState(null) // 'admin' | 'usuario'
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPass, setShowPass] = useState(false)
@@ -84,7 +85,18 @@ export default function LoginPage() {
     setError('')
     setLoading(true)
     try {
-      await login(email, password)
+      const user = await login(email, password)
+      const esAdmin = user.role === 'admin'
+      if (accessType === 'admin' && !esAdmin) {
+        setError('Esta cuenta no tiene permisos de administrador. Usa el acceso de Usuario.')
+        setLoading(false)
+        return
+      }
+      if (accessType === 'usuario' && esAdmin) {
+        setError('Esta cuenta es de administrador. Selecciona "Administrador" para ingresar.')
+        setLoading(false)
+        return
+      }
       navigate('/dashboard')
     } catch (err) {
       setError(err.message || 'Error al iniciar sesión')
@@ -110,9 +122,51 @@ export default function LoginPage() {
 
       <div className="card">
         <div className="card-head">
-          <div className="tag">LOGIN</div>
-          <div className="desc">Ingresa a tu cuenta institucional</div>
+          <div className="tag">ACCESO</div>
+          <div className="desc">
+            {accessType
+              ? accessType === 'admin'
+                ? 'Acceso completo · Administrador'
+                : 'Acceso de solo lectura · Usuario'
+              : 'Selecciona tu tipo de acceso'}
+          </div>
         </div>
+
+        {!accessType ? (
+          <div className="grid grid-cols-1 gap-3">
+            <button
+              type="button"
+              onClick={() => setAccessType('admin')}
+              className="group flex items-center gap-4 rounded-xl border border-[#3a1616] bg-black/40 p-4 text-left transition-all hover:border-[#ff3b3b]/70 hover:bg-[#ff3b3b]/5"
+            >
+              <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-[#ff3b3b]/10 text-xl">🛡️</span>
+              <span>
+                <span className="block text-sm font-bold text-white">Administrador</span>
+                <span className="block text-xs text-[#8a6363]">Acceso completo</span>
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setAccessType('usuario')}
+              className="group flex items-center gap-4 rounded-xl border border-[#3a1616] bg-black/40 p-4 text-left transition-all hover:border-[#ff8a3d]/70 hover:bg-[#ff8a3d]/5"
+            >
+              <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-[#ff8a3d]/10 text-xl">👤</span>
+              <span>
+                <span className="block text-sm font-bold text-white">Usuario</span>
+                <span className="block text-xs text-[#8a6363]">Acceso de solo lectura</span>
+              </span>
+            </button>
+          </div>
+        ) : (
+        <>
+        <button
+          type="button"
+          onClick={() => { setAccessType(null); setError('') }}
+          className="mb-4 text-xs text-[#8a6363] transition-colors hover:text-white"
+          style={{ display: 'inline-block' }}
+        >
+          ← Cambiar tipo de acceso
+        </button>
 
         <form onSubmit={handleSubmit}>
           <div className="field">
@@ -163,10 +217,14 @@ export default function LoginPage() {
         </form>
 
         <p className="foot-note">
-          <Link to="/login" style={{ color: 'inherit' }}>
-            Gestor demo: gestor@govstake.gov.co · Govstake360*
-          </Link>
+          {accessType === 'admin' ? (
+            <>Admin: elopezu@unal.edu.co</>
+          ) : (
+            <>Usuario demo: gestor@govstake.gov.co · Govstake360*</>
+          )}
         </p>
+        </>
+        )}
       </div>
       </div>
     </>

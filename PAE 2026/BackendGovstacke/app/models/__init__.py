@@ -3,8 +3,18 @@ from .actor_variables import ActorVariables
 from .compromiso import Compromiso
 from .alerta import Alerta
 from .relacionamiento import Relacionamiento
+from .usuario import Usuario
+from .auditoria import Auditoria
 
-__all__ = ["Actor", "ActorVariables", "Compromiso", "Alerta", "Relacionamiento"]
+__all__ = [
+    "Actor",
+    "ActorVariables",
+    "Compromiso",
+    "Alerta",
+    "Relacionamiento",
+    "Usuario",
+    "Auditoria",
+]
 
 
 # ---------------------------------------------------------------------------

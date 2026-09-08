@@ -110,6 +110,46 @@ ACTORES_DE_EJEMPLO = [
                       "historial_participacion": 60, "riesgo_conflicto": 25, "canales_relacionamiento": 70},
     },
 ]
+
+USUARIOS_INICIALES = [
+    {
+        "email": "elopezu@unal.edu.co",
+        "nombre": "Esteban López (Administrador)",
+        "password": "BZTfne48",
+        "role": "admin",
+    },
+    {
+        "email": "gestor@govstake.gov.co",
+        "nombre": "Gestor GOVStake (solo lectura)",
+        "password": "Govstake360*",
+        "role": "viewer",
+    },
+]
+
+
+def seed_usuarios(db: Session) -> int:
+    """Crea usuarios iniciales con contraseña hasheada (bcrypt) si no existen."""
+    from ..models import Usuario
+    from ..security import get_password_hash
+
+    creados = 0
+    for datos in USUARIOS_INICIALES:
+        email = datos["email"].strip().lower()
+        if db.query(Usuario).filter(Usuario.email == email).first():
+            continue
+        db.add(Usuario(
+            email=email,
+            nombre=datos["nombre"],
+            password_hash=get_password_hash(datos["password"]),
+            role=datos["role"],
+            activo=True,
+        ))
+        creados += 1
+    if creados:
+        db.commit()
+    return creados
+
+
 def seed_if_empty(db: Session) -> int:
     """Inserta actores de ejemplo si la tabla está vacía. Retorna cantidad creada."""
     if db.query(Actor).count() > 0:

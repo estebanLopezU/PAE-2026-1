@@ -72,20 +72,97 @@ def decode_refresh_token(token: str) -> Dict[str, Any]:
     return payload
 
 
+MAX_INTENTOS = 5
+BLOQUEO_MINUTOS = 15
+
+
+def registrar_auditoria(db, usuario: str, accion: str, detalle: str = None, ip: str = None):
+    """Guarda un evento de auditoría; nunca interrumpe el flujo principal."""
+    try:
+        from .models import Auditoria
+        db.add(Auditoria(usuario=usuario[:255], accion=accion[:100], detalle=(detalle or "")[:500], ip=ip))
+        db.commit()
+    except Exception:
+        db.rollback()
+
+
+def autenticar_db(db, email: str, password: str):
+    """Valida credenciales contra la tabla usuarios (hash bcrypt).
+
+    - Bloqueo temporal tras MAX_INTENTOS fallidos.
+    - Reset de contador al acertar.
+    Retorna dict de usuario o None. Lanza HTTPException 423 si está bloqueada.
+    """
+    from .models import Usuario
+    from datetime import datetime, timedelta, timezone
+
+    user = db.query(Usuario).filter(Usuario.email == email.strip().lower()).first()
+    if not user or not user.activo:
+        return None
+
+    now = datetime.now(timezone.utc)
+    if user.bloqueado_hasta:
+        bloqueo = user.bloqueado_hasta
+        if bloqueo.tzinfo is None:
+            bloqueo = bloqueo.replace(tzinfo=timezone.utc)
+        if now < bloqueo:
+            restante = int((bloqueo - now).total_seconds() // 60) + 1
+            raise HTTPException(
+                status_code=status.HTTP_423_LOCKED,
+                detail=f"Cuenta bloqueada temporalmente por intentos fallidos. Intente en {restante} min.",
+            )
+        user.bloqueado_hasta = None
+        user.intentos_fallidos = 0
+
+    if not verify_password(password, user.password_hash):
+        user.intentos_fallidos += 1
+        if user.intentos_fallidos >= MAX_INTENTOS:
+            user.bloqueado_hasta = now + timedelta(minutes=BLOQUEO_MINUTOS)
+            user.intentos_fallidos = 0
+            db.commit()
+            raise HTTPException(
+                status_code=status.HTTP_423_LOCKED,
+                detail=f"Demasiados intentos fallidos. Cuenta bloqueada por {BLOQUEO_MINUTOS} minutos.",
+            )
+        db.commit()
+        return None
+
+    user.intentos_fallidos = 0
+    user.bloqueado_hasta = None
+    user.ultimo_acceso = now
+    db.commit()
+    return {"email": user.email, "role": user.role, "name": user.nombre or user.email}
+
+
 def _validate_demo_user(email: str, password: str) -> Optional[Dict[str, str]]:
-    """Validación de usuarios por configuración para fase inicial."""
+    """Fallback de emergencia por configuración, solo si la BD no tiene usuarios."""
     settings = get_settings()
 
     if email == settings.ADMIN_EMAIL and password == settings.ADMIN_PASSWORD:
         return {"email": email, "role": "admin", "name": "Administrador GOVStake"}
 
     if email == settings.ANALYST_EMAIL and password == settings.ANALYST_PASSWORD:
-        return {"email": email, "role": "analyst", "name": "Analista GOVStake"}
+        return {"email": email, "role": "viewer", "name": "Usuario GOVStake (solo lectura)"}
 
     return None
 
 
-def authenticate_user(email: str, password: str) -> Optional[Dict[str, str]]:
+def authenticate_user(email: str, password: str, db=None) -> Optional[Dict[str, str]]:
+    """Autenticación principal: BD con bcrypt; fallback a env si la BD no tiene usuarios."""
+    if db is not None:
+        try:
+            user = autenticar_db(db, email, password)
+            if user is not None:
+                return user
+            # No coincide en BD: permitir fallback solo si la tabla está vacía (primer arranque)
+            from .models import Usuario
+            if db.query(Usuario).count() == 0:
+                return _validate_demo_user(email, password)
+            return None
+        except HTTPException:
+            raise
+        except Exception:
+            pass
     return _validate_demo_user(email, password)
 
 

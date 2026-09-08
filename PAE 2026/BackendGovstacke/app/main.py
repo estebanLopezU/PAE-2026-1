@@ -7,7 +7,7 @@ from .database import engine, Base
 from .api.v1.router import api_router
 from . import models  # noqa: F401  ensure models registered
 from .database import SessionLocal
-from .seeds.seed_data import seed_if_empty
+from .seeds.seed_data import seed_if_empty, seed_usuarios
 
 settings = get_settings()
 
@@ -62,6 +62,9 @@ async def startup_event():
         if creados:
             db.commit()
             print(f"[GOVStake360] Seed inicial: {creados} actores de ejemplo creados.")
+        usuarios = seed_usuarios(db)
+        if usuarios:
+            print(f"[GOVStake360] Seed de seguridad: {usuarios} usuarios creados (contraseñas hasheadas con bcrypt).")
     finally:
         db.close()
 
