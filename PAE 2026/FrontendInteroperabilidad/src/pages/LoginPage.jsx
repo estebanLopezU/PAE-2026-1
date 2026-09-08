@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import AgentGDChat from '../components/chatbot/AgentGDChat'
 import { Eye, EyeOff, User, Shield, Volume2, VolumeX } from 'lucide-react'
 
 export default function LoginPage() {
@@ -422,6 +423,7 @@ export default function LoginPage() {
         </svg>
         <span>Volver al portal</span>
       </a>
+      <AgentGDChat platform="interop" />
       <style>{`
         .back-portal-btn {
           position: absolute;
