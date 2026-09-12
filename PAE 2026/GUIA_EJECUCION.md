@@ -26,6 +26,31 @@
 
 ---
 
+## ⚡ Ejecución Rápida (recomendada — un solo comando)
+
+> **NOTA:** La carpeta del proyecto se llama `PAE 2026` (con espacio), por lo que en PowerShell debes **entrecomillarla**: `cd "PAE 2026"`.
+
+```powershell
+# Levantar TODO el stack (Docker + frontends locales)
+cd "PAE 2026"
+.\start-all.ps1
+
+# o desde la raiz del repo, sin entrar a la carpeta:
+powershell -ExecutionPolicy Bypass -File ".\PAE 2026\start-all.ps1"
+
+# Detener todo
+powershell -ExecutionPolicy Bypass -File ".\PAE 2026\stop-all.ps1"
+```
+
+- Tambien puedes hacer **doble clic** en `PAE 2026\start-all.cmd`.
+- Al terminar veras el resumen `STACK LEVANTADO` con las URLs: Portal `:3000`, GOVStake `:3002`, Interoperabilidad `:5173`.
+- El detalle completo de este comando esta en `MANUAL_LEVANTAR_PROYECTO.md` (raiz del repo).
+
+Las secciones siguientes describen la ejecucion **manual** paso a paso (alternativa al script).
+
+---
+
+
 ## âœ… Requisitos Previos
 
 ### Software Necesario:

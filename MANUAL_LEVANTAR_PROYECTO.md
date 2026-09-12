@@ -29,6 +29,13 @@
 powershell -ExecutionPolicy Bypass -File "PAE 2026\start-all.ps1"
 ```
 
+> ⚠️ **Importante:** la carpeta se llama `PAE 2026` (con espacio). En PowerShell debes entrecomillarla:
+> ```powershell
+> cd "PAE 2026"      # ✅ correcto
+> cd PAE 2026        # ❌ error: '2026' no es un argumento válido
+> ```
+> Ya dentro de la carpeta, basta con: `.\start-all.ps1`
+
 ### ¿Qué hace el script?
 1. **Verifica prerequisitos** (Docker instalado; si Docker Desktop no corre, intenta iniciarlo y espera).
 2. **Docker Compose** (`PAE 2026/docker-compose.yml`): levanta backends, bases de datos y el frontend de interoperabilidad. Además reintentará `xroad-frontend` si nginx arrancó antes que su backend (error conocido *"host not found in upstream backend"*).
