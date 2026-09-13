@@ -62,6 +62,11 @@ function Ensure-Vite {
         return
     }
     Write-Host ("      [dev ] $Name -> http://localhost:$Port") -ForegroundColor DarkGray
+    # Auto-reparacion: si faltan node_modules, instalar dependencias primero
+    if (-not (Test-Path (Join-Path $Dir 'node_modules'))) {
+        Write-Host ("             [setup] node_modules no existe: ejecutando npm install...") -ForegroundColor Yellow
+        $null = Start-Process -FilePath 'cmd.exe' -ArgumentList '/c','npm install' -WorkingDirectory $Dir -Wait -WindowStyle Hidden
+    }
     $logFile = Join-Path $script:logsDir ("$Name.log")
     $p = Start-Process -FilePath 'cmd.exe' `
         -ArgumentList "/c npm run dev > `"$logFile`" 2>&1" `

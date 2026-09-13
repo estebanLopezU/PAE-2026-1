@@ -44,6 +44,9 @@ Thumbs.db
 *.log
 logs/
 
+# Marcador de dependencias instaladas
+.deps_installed
+
 # Distribution
 *.tar.gz
 

@@ -1,7 +1,37 @@
 # Manual: Cómo levantar el proyecto (un solo comando)
 
 **Proyecto:** PAE-2026-1 (GOVStake 360 + Interoperabilidad X-Road + Portal de Entrada)
-**Scripts:** `PAE 2026/start-all.ps1` · `PAE 2026/stop-all.ps1` · `PAE 2026/start-all.cmd`
+**Scripts:** `PAE 2026/start-all.ps1` · `PAE 2026/stop-all.ps1` · `PAE 2026/setup-all.ps1` · `PAE 2026/start-all.cmd`
+
+---
+
+## 0. Instalar todo (primera vez) — `setup-all.ps1`
+
+Si es la primera vez en una máquina (o algo no corre por falta de dependencias), ejecuta **una sola vez**:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File ".\PAE 2026\setup-all.ps1"
+```
+
+o doble clic en `PAE 2026\setup-all.cmd`.
+
+**Qué instala automáticamente (vía `winget` si falta):**
+
+| Aplicación | ID winget | Para qué |
+|------------|-----------|----------|
+| Docker Desktop | `Docker.DockerDesktop` | backends, BDs y frontend interop |
+| Node.js LTS | `OpenJS.NodeJS.LTS` | frontends Vite + npm |
+| Python 3.12 | `Python.Python.3.12` | backends (utilidades locales) |
+
+**Y luego:**
+- `npm install` en los 3 frontends (`FrontendGovstacke`, `FrontendInteroperabilidad`, `PortalEntrada`)
+- `pip install -r requirements.txt` en los 2 backends
+- Con `-Build`: además reconstruye las imágenes Docker (`docker compose build`)
+- Con `-Force`: reinstala las dependencias aunque ya existan
+
+**Es idempotente:** lo puedes ejecutar cuantas veces quieras; solo instala lo que falte.
+
+> 💡 **Auto-reparación:** además, `start-all.ps1` detecta si a un frontend le faltan `node_modules` y ejecuta `npm install` automáticamente antes de arrancarlo. Así el flujo normal es siempre: `setup-all` (una vez) → `start-all` (siempre).
 
 ---
 
@@ -13,7 +43,7 @@
 | **Node.js 18+** (incluye npm) | `node -v` y `npm -v` |
 | PowerShell 5.1+ (viene con Windows) | — |
 
-> La primera ejecución descarga imágenes (`postgres:15-alpine`) y puede tardar varios minutos.
+> La primera ejecución descarga imágenes (`postgres:15-alpine`) y puede tardar varios minutos. Si no tienes nada instalado, ejecuta primero `setup-all.ps1` (sección 0).
 
 ---
 

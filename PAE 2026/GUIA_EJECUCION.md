@@ -46,6 +46,19 @@ powershell -ExecutionPolicy Bypass -File ".\PAE 2026\stop-all.ps1"
 - Al terminar veras el resumen `STACK LEVANTADO` con las URLs: Portal `:3000`, GOVStake `:3002`, Interoperabilidad `:5173`.
 - El detalle completo de este comando esta en `MANUAL_LEVANTAR_PROYECTO.md` (raiz del repo).
 
+### 📦 Primera vez en una maquina: instalar dependencias automaticamente
+
+```powershell
+powershell -ExecutionPolicy Bypass -File ".\PAE 2026\setup-all.ps1"
+```
+
+o doble clic en `PAE 2026\setup-all.cmd`. Instala via **winget** lo que falte (Docker Desktop, Node.js LTS, Python 3.12) y luego:
+- `npm install` en los 3 frontends
+- `pip install -r requirements.txt` en los 2 backends
+- Opciones: `-Build` (reconstruye imagenes Docker) · `-Force` (reinstala dependencias)
+
+Es **idempotente**: solo instala lo que falta. Ademas, `start-all.ps1` auto-instala `node_modules` si un frontend no lo tiene.
+
 Las secciones siguientes describen la ejecucion **manual** paso a paso (alternativa al script).
 
 ---
