@@ -1,0 +1,76 @@
+# Render Blueprint — PAE 2026 (GOVStake 360 + Interoperabilidad X-Road)
+# Despliegue: https://dashboard.render.com/select-repo?type=blueprint
+# Notas del plan gratuito:
+#   - Los servicios web se "duermen" tras 15 min sin tráfico (primer request tarda ~50 s).
+#   - Las bases PostgreSQL gratuitas expiran a los 30 días (se pueden recrear o actualizar de plan).
+
+databases:
+  - name: govstake-db
+    databaseName: govstake360
+    user: postgres
+    plan: free
+  - name: xroad-db
+    databaseName: xroad_colombia
+    user: postgres
+    plan: free
+
+services:
+  # ------------------------------------------------------------------ GOVStake
+  - type: web
+    name: govstake-api
+    runtime: docker
+    dockerfilePath: PAE 2026/BackendGovstacke/Dockerfile
+    dockerContext: PAE 2026/BackendGovstacke
+    plan: free
+    healthCheckPath: /api/health
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: govstake-db
+          property: connectionString
+      - key: CORS_ORIGINS
+        value: '["http://localhost:3002","http://localhost:3000","http://localhost:5173","https://pae-govstake.vercel.app","https://pae-interop.vercel.app","https://pae-portal.vercel.app"]'
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: ADMIN_EMAIL
+        value: elopezu@unal.edu.co
+      - key: ANALYST_EMAIL
+        value: gestor@govstake.gov.co
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: ANALYST_PASSWORD
+        sync: false
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: PYTHONUTF8
+        value: "1"
+
+  # ---------------------------------------------------------- Interoperabilidad
+  - type: web
+    name: xroad-api
+    runtime: docker
+    dockerfilePath: PAE 2026/BackendInteroperabilidad/Dockerfile
+    dockerContext: PAE 2026/BackendInteroperabilidad
+    plan: free
+    healthCheckPath: /api/health
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: xroad-db
+          property: connectionString
+      - key: CORS_ORIGINS
+        value: '["http://localhost:3002","http://localhost:3000","http://localhost:5173","https://pae-govstake.vercel.app","https://pae-interop.vercel.app","https://pae-portal.vercel.app"]'
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: ADMIN_EMAIL
+        value: elopezu@unal.edu.co
+      - key: ANALYST_EMAIL
+        value: analista@xroad.gov.co
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: ANALYST_PASSWORD
+        sync: false
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: PYTHONUTF8
+        value: "1"

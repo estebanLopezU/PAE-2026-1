@@ -20,8 +20,10 @@ COPY . .
 # Create scripts directory if not exists
 RUN mkdir -p scripts
 
-# Expose port
+# Expose default port (Render inyecta $PORT; en local/docker usa 8000)
 EXPOSE 8000
 
-# Run application
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+ENV PYTHONUTF8=1
+
+# Run application (usa $PORT si el proveedor la define, p. ej. Render)
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]

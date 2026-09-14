@@ -17,8 +17,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY . .
 
-# Expose port
+# Expose default port (Render inyecta $PORT; en local/docker usa 8002)
 EXPOSE 8002
 
-# Run application
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8002"]
+ENV PYTHONUTF8=1
+
+# Run application (usa $PORT si el proveedor la define, p. ej. Render)
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8002}"]

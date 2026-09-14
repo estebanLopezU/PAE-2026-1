@@ -1,13 +1,14 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link2, Target, ArrowRight, Loader2 } from 'lucide-react'
 
-// Puerto de cada módulo
+// URLs de cada módulo: configurables con VITE_INTEROP_URL / VITE_GOVSTAKE_URL
+// (en producción apuntan a los frontends desplegados; en local, a los puertos de Vite)
 const MODULES = {
   interop: {
     title: 'INTEROP',
     subtitle: 'Dashboard Técnico',
     description: 'Mapeo y diagnóstico de interoperabilidad X-Road para entidades públicas colombianas.',
-    url: 'http://localhost:5173', // Frontend INTEROP existente
+    url: import.meta.env.VITE_INTEROP_URL || 'http://localhost:5173',
     accent: '#a78bfa', // púrpura
     icon: Link2,
   },
@@ -15,7 +16,7 @@ const MODULES = {
     title: 'GOVSTAKE',
     subtitle: 'Dashboard Estratégico',
     description: 'Sistema de gestión de grupos de interés públicos (GOVStake 360).',
-    url: 'http://localhost:3002', // Frontend GOVSTAKE
+    url: import.meta.env.VITE_GOVSTAKE_URL || 'http://localhost:3002',
     accent: '#f472b6', // rosa / magenta
     icon: Target,
   },

@@ -1,6 +1,8 @@
 import axios from 'axios'
 
-const API_BASE_URL = '/api/v1'
+// En producción (Vercel) se define VITE_API_BASE_URL con la URL del backend en Render.
+// En desarrollo local se usa el proxy de Vite (/api → localhost:8002).
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/v1'
 const ACCESS_TOKEN_KEY = 'govstake_access_token'
 const REFRESH_TOKEN_KEY = 'govstake_refresh_token'
 
