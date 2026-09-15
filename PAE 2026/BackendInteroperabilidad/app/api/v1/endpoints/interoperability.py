@@ -640,6 +640,80 @@ async def get_api_quality_report(
 # ENDPOINTS DE ANÁLISIS DE BRECHAS
 # ============================================
 
+def _build_gap_sources(entities, services):
+    """Construye las fuentes del análisis de brechas a partir de los modelos ORM.
+
+    ``GapAnalyzer.analyze_ecosystem()`` requiere tres colecciones: servicios, APIs
+    y documentos. Aquí se derivan de las entidades y servicios de la base de datos.
+    """
+    entities_data: List[Dict] = []
+    services_data: List[Dict] = []
+    apis_data: List[Dict] = []
+    documents_data: List[Dict] = []
+
+    for e in entities:
+        entity_code = e.acronym or e.nit or ""
+        entities_data.append({
+            "name": e.name,
+            "code": entity_code,
+            "sector": e.sector.name if e.sector else "Sin sector",
+            "xroad_status": e.xroad_status,
+            "department": e.department,
+            "website": e.website,
+        })
+        if e.website:
+            documents_data.append({
+                "entity_code": entity_code or e.name,
+                "entity_name": e.name,
+                "type": "Technical",
+                "url": e.website,
+            })
+
+    for s in services:
+        entity = s.entity
+        entity_name = entity.name if entity else ""
+        entity_code = (entity.acronym or entity.nit or "") if entity else ""
+        base_url = s.endpoint_url or (entity.website if entity else "") or ""
+        auth_methods = ["OAuth2", "API Key"] if s.security_standard else []
+
+        services_data.append({
+            "name": s.name,
+            "code": s.code,
+            "category": s.category,
+            "entity_name": entity_name,
+            "entity_code": entity_code,
+            "protocol": s.protocol,
+            "status": s.status,
+            "success_rate": 100,
+            "documentation_url": s.documentation_url,
+            "base_url": base_url,
+            "url": base_url,
+            "authentication_methods": auth_methods,
+            "avg_response_time": 0.5,
+        })
+
+        apis_data.append({
+            "entity_name": entity_name,
+            "entity_code": entity_code,
+            "protocol": s.protocol or "REST",
+            "is_available": bool(base_url),
+            "has_documentation": bool(s.documentation_url),
+            "base_url": base_url,
+            "url": base_url,
+            "authentication_methods": auth_methods,
+            "avg_response_time": 0.5,
+        })
+
+        if s.documentation_url:
+            documents_data.append({
+                "entity_code": entity_code,
+                "entity_name": entity_name,
+                "type": "API",
+                "url": s.documentation_url,
+            })
+
+    return entities_data, services_data, apis_data, documents_data
+
 @router.post("/gaps/analyze")
 async def analyze_gaps(
     request: GapAnalysisRequest,
@@ -660,32 +734,12 @@ async def analyze_gaps(
         # Obtener servicios
         services = db.query(Service).filter(Service.status == "active").all()
         
-        # Preparar datos
-        entities_data = [
-            {
-                "name": e.name,
-                "sector": e.sector.name if e.sector else "Sin sector",
-                "xroad_status": e.xroad_status,
-                "department": e.department
-            }
-            for e in entities
-        ]
-        
-        services_data = [
-            {
-                "name": s.name,
-                "code": s.code,
-                "category": s.category,
-                "entity_name": s.entity.name if s.entity else "",
-                "protocol": s.protocol,
-                "documentation_url": s.documentation_url
-            }
-            for s in services
-        ]
-        
+        # Construir las fuentes del análisis (entidades, servicios, APIs, documentos)
+        entities_data, services_data, apis_data, documents_data = _build_gap_sources(entities, services)
+
         # Analizar brechas
-        gaps = await gap_analyzer.analyze_ecosystem(entities_data, services_data)
-        report = await gap_analyzer.generate_gap_report(gaps)
+        result = await gap_analyzer.analyze_ecosystem(services_data, apis_data, documents_data)
+        report = await gap_analyzer.generate_detailed_report(result)
         
         return {
             "success": True,
@@ -713,30 +767,11 @@ async def get_gaps_report(
         entities = entities_query.all()
         services = db.query(Service).filter(Service.status == "active").all()
         
-        entities_data = [
-            {
-                "name": e.name,
-                "sector": e.sector.name if e.sector else "Sin sector",
-                "xroad_status": e.xroad_status,
-                "department": e.department
-            }
-            for e in entities
-        ]
-        
-        services_data = [
-            {
-                "name": s.name,
-                "code": s.code,
-                "category": s.category,
-                "entity_name": s.entity.name if s.entity else "",
-                "protocol": s.protocol,
-                "documentation_url": s.documentation_url
-            }
-            for s in services
-        ]
-        
-        gaps = await gap_analyzer.analyze_ecosystem(entities_data, services_data)
-        report = await gap_analyzer.generate_gap_report(gaps)
+        # Construir las fuentes del análisis (entidades, servicios, APIs, documentos)
+        entities_data, services_data, apis_data, documents_data = _build_gap_sources(entities, services)
+
+        gaps = await gap_analyzer.analyze_ecosystem(services_data, apis_data, documents_data)
+        report = await gap_analyzer.generate_detailed_report(gaps)
         
         return {
             "success": True,
