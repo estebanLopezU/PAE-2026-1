@@ -114,6 +114,21 @@ curl -X POST https://xroad-api.onrender.com/api/v1/auth/login `
 
 ---
 
+## Actualizar el despliegue (cuando cambies código)
+
+| Qué cambiaste | Cómo se publica |
+|---|---|
+| Backends (`BackendGovstacke`, `BackendInteroperabilidad`) o `render.yaml` | `git push` → **Render redespliega solo** (auto-deploy activo sobre `main`) |
+| Frontends (`PortalEntrada`, `FrontendGovstacke`, `FrontendInteroperabilidad`) | Hay que redesplegar (ver nota) |
+
+> ⚠️ **Estado actual de los 3 proyectos Vercel:** se publicaron con la CLI (`vercel deploy --prod`), así que **no están conectados a GitHub**; un `git push` **no** los actualiza.
+> **Para dejarlo automático (recomendado):** en Vercel → cada proyecto → **Settings → Git → Connect Git Repository** → repo `PAE-2026-1` → **Root Directory** = `PAE 2026/<carpeta del frontend>` → Production Branch `main`. Repetir en los 3 proyectos.
+> **Alternativa manual:** `vercel deploy --prod` desde la carpeta de cada frontend (recordando que `VITE_API_BASE_URL` / `VITE_*_URL` deben estar definidas en Production).
+>
+> También conviene replicar las variables `VITE_*` en el entorno **Preview** si se conecta Git, para que las ramas de vista previa funcionen.
+
+---
+
 ## Desarrollo local: sin cambios
 
 Todo lo anterior **no rompe el flujo local** (`start-all.ps1`): los frontends usan el
