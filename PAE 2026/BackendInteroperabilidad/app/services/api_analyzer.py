@@ -455,7 +455,8 @@ class APIAnalyzer:
     async def analyze_multiple_entities(
         self,
         entities: List[Dict],
-        max_concurrency: int = 8
+        max_concurrency: int = 8,
+        per_entity_timeout: float = 30.0
     ) -> List[APIAnalysis]:
         """
         Analizar múltiples entidades en paralelo (con límite de concurrencia).
@@ -463,9 +464,10 @@ class APIAnalyzer:
         Args:
             entities: Lista de entidades con url_api
             max_concurrency: Máximo de análisis simultáneos
+            per_entity_timeout: Tope de segundos por entidad (una web colgada no bloquea el reporte)
 
         Returns:
-            Lista de análisis (las entidades que fallen se omiten)
+            Lista de análisis (las entidades que fallen o tarden demasiado se omiten)
         """
         pendientes = [e for e in entities if e.get("url_api")]
         if not pendientes:
@@ -476,13 +478,16 @@ class APIAnalyzer:
         async def analizar(entity: Dict) -> Optional[APIAnalysis]:
             async with semaforo:
                 try:
-                    return await self.analyze_api(
-                        base_url=entity["url_api"],
-                        entity_name=entity.get("name", ""),
-                        entity_code=entity.get("code", "")
+                    return await asyncio.wait_for(
+                        self.analyze_api(
+                            base_url=entity["url_api"],
+                            entity_name=entity.get("name", ""),
+                            entity_code=entity.get("code", "")
+                        ),
+                        timeout=per_entity_timeout
                     )
                 except Exception:
-                    # Una entidad inaccesible no debe tumbar el reporte completo
+                    # Una entidad inaccesible o demasiado lenta no debe tumbar el reporte completo
                     return None
 
         resultados = await asyncio.gather(*(analizar(e) for e in pendientes))
