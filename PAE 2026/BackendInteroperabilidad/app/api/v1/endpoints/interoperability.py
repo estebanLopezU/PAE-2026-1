@@ -19,9 +19,13 @@ from ....models.entity import Entity
 from ....models.service import Service
 from pydantic import BaseModel
 import asyncio
+import time
 
 
 router = APIRouter()
+
+# Caché en memoria del reporte de calidad de APIs (TTL 10 min)
+_QUALITY_REPORT_CACHE: Dict[str, any] = {}
 
 
 class APIAnalysisRequest(BaseModel):
@@ -603,12 +607,26 @@ async def get_api_quality_report(
     current_user: Dict = Depends(get_current_user)
 ):
     """
-    Generar reporte general de calidad de APIs
+    Generar reporte general de calidad de APIs.
+
+    El análisis consulta los sitios web de las entidades en vivo, por lo que el
+    resultado se guarda en caché 10 minutos para que las llamadas siguientes sean
+    instantáneas (y no se repita el barrido completo contra Internet).
     """
+    global _QUALITY_REPORT_CACHE
+
+    ahora = time.monotonic()
+    if _QUALITY_REPORT_CACHE and (ahora - _QUALITY_REPORT_CACHE["ts"]) < 600:
+        return {
+            "success": True,
+            "cached": True,
+            "data": _QUALITY_REPORT_CACHE["data"]
+        }
+
     try:
         # Obtener entidades activas
         entities = db.query(Entity).filter(Entity.is_active == True).limit(50).all()
-        
+
         entities_data = []
         for entity in entities:
             if entity.website:
@@ -617,19 +635,21 @@ async def get_api_quality_report(
                     "code": entity.acronym or entity.nit,
                     "url_api": entity.website
                 })
-        
+
         if not entities_data:
             return {
                 "success": False,
                 "message": "No hay entidades con sitio web para analizar"
             }
-        
+
         analyses = await api_analyzer.analyze_multiple_entities(entities_data)
         report = await api_analyzer.generate_quality_report(analyses)
-        await api_analyzer.close()
-        
+
+        _QUALITY_REPORT_CACHE = {"ts": ahora, "data": report}
+
         return {
             "success": True,
+            "cached": False,
             "data": report
         }
     except Exception as e:

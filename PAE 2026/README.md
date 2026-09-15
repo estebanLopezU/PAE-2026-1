@@ -9,6 +9,26 @@
 
 ---
 
+## 🌐 Versión en Internet (desplegada 24/7)
+
+La suite está publicada y **no depende de ningún PC local**:
+
+| Plataforma | URL pública |
+|------------|-------------|
+| 🏛️ **Portal de Entrada** | **https://pae-portal.vercel.app** |
+| 🎯 **GOVStake 360** | **https://pae-govstake.vercel.app** |
+| 🔗 **Interoperabilidad X-Road** | **https://pae-interop.vercel.app** |
+
+**APIs (Render):** https://govstake-api.onrender.com · https://xroad-api.onrender.com
+(health check: `/api/health` · Swagger: `/api/docs`)
+
+**Infraestructura:** frontends en **Vercel** · backends Docker en **Render** · PostgreSQL en **Neon.tech**
+(datos: 75 entidades, 98 servicios, 15 evaluaciones de madurez y 27 relaciones).
+
+> 📘 Guía completa de despliegue y credenciales de producción: **[DEPLOY.md](../DEPLOY.md)**
+
+---
+
 ## ⚡ Guía Rápida de Ejecución
 
 ### 1. Requisitos Previos

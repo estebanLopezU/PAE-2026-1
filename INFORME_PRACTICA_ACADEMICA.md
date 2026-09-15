@@ -160,6 +160,24 @@ El sistema ha sido fortalecido mediante una auditoría de seguridad rigurosa, im
 
 ---
 
+### Acceso Público a la Plataforma (Despliegue en Producción)
+
+Con el fin de garantizar la verificabilidad y replicabilidad exigidas, la plataforma se encuentra **desplegada y disponible en Internet de forma permanente (24/7)**, sin depender de infraestructura local:
+
+| Componente | URL pública |
+|---|---|
+| **Portal de entrada (suite)** | https://pae-portal.vercel.app |
+| **Visor de Interoperabilidad X-Road** | https://pae-interop.vercel.app |
+| **GOVStake 360** | https://pae-govstake.vercel.app |
+| **API Visor de Interoperabilidad** | https://xroad-api.onrender.com/api/docs |
+| **API GOVStake 360** | https://govstake-api.onrender.com/api/docs |
+
+**Arquitectura de despliegue:** los frontends (React/Vite) se alojan en **Vercel**; los microservicios (FastAPI, contenerizados con **Docker**) en **Render**; y la base de datos **PostgreSQL** en **Neon.tech** (servidor gestionado con cifrado en tránsito `sslmode=require`). El control de acceso por roles (JWT + bcrypt) y el bloqueo por fuerza bruta operan de forma idéntica en producción.
+
+> Los backends usan el plan gratuito de Render, que **suspende el servicio tras 15 minutos sin tráfico**; el primer acceso posterior puede tardar hasta 50 segundos en responder. Este comportamiento no afecta la integridad de los datos ni las conclusiones del estudio.
+
+---
+
 ## ESTRUCTURA DEL PROYECTO Y ORGANIZACIÓN TÉCNICA
 
 El desarrollo del Visor de Interoperabilidad se organizó con una arquitectura **full-stack desacoplada**, separando responsabilidades entre frontend, backend y orquestación de infraestructura con Docker.
@@ -296,3 +314,11 @@ Como segunda fase de la práctica, la plataforma evolucionó de un visor único 
 - **Seguridad reforzada**: autenticación JWT con usuarios en base de datos (bcrypt), control de roles admin/usuario, bloqueo por fuerza bruta y auditoría de accesos en ambos microservicios.
 
 Toda la suite opera con arquitectura de microservicios (FastAPI + React + PostgreSQL) orquestada con Docker.
+
+### URLs de producción de la suite (Septiembre 2026)
+
+- **Portal de entrada:** https://pae-portal.vercel.app
+- **GOVStake 360:** https://pae-govstake.vercel.app (API: https://govstake-api.onrender.com)
+- **Visor de Interoperabilidad X-Road:** https://pae-interop.vercel.app (API: https://xroad-api.onrender.com)
+
+El despliegue en la nube (Vercel + Render + Neon.tech PostgreSQL) permite el acceso permanente sin depender de infraestructura local; la guía técnica de despliegue y las credenciales de producción se documentan en `DEPLOY.md`.

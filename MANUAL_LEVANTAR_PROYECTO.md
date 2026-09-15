@@ -79,6 +79,22 @@ powershell -ExecutionPolicy Bypass -File "PAE 2026\start-all.ps1"
 
 ## 3. URLs del stack
 
+### 🌐 Producción (Internet, 24/7 — sin depender del PC)
+
+| Servicio | URL |
+|----------|-----|
+| 🏛 Portal de Entrada | **https://pae-portal.vercel.app** |
+| 🎯 GOVStake 360 | **https://pae-govstake.vercel.app** |
+| 🔗 Interoperabilidad X-Road | **https://pae-interop.vercel.app** |
+| 🛠 API GOVStake | **https://govstake-api.onrender.com** (`/api/health`, `/api/docs`) |
+| 🛠 API Interop | **https://xroad-api.onrender.com** (`/api/health`, `/api/docs`) |
+
+- Frontends en **Vercel** · Backends Docker en **Render** · PostgreSQL en **Neon.tech**.
+- Credenciales de producción y detalles: **[DEPLOY.md](DEPLOY.md)**.
+- ⏳ Los backends de Render free se suspenden tras 15 min sin tráfico: el primer acceso puede tardar ~50 s.
+
+### 💻 Local (desarrollo)
+
 | Servicio | URL | Notas |
 |----------|-----|-------|
 | 🏠 Portal de Entrada (landing) | http://localhost:3000 | Vite local |

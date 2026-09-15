@@ -78,15 +78,28 @@ class APIAnalyzer:
     OPENAPI_INDICATORS = ["/openapi.json", "/swagger.json", "/openapi.yaml", "/swagger.yaml"]
     
     def __init__(self):
+        self._closed = False
         self.client = httpx.AsyncClient(
-            timeout=30.0,
+            timeout=12.0,
             follow_redirects=True,
             verify=False
         )
-    
+
+    def _ensure_client(self):
+        """Recrea el cliente HTTP si fue cerrado (el analizador es un singleton compartido)."""
+        if self._closed or self.client is None or self.client.is_closed:
+            self.client = httpx.AsyncClient(
+                timeout=12.0,
+                follow_redirects=True,
+                verify=False
+            )
+            self._closed = False
+
     async def close(self):
-        """Cerrar cliente HTTP"""
-        await self.client.aclose()
+        """Cerrar cliente HTTP (seguro: se recrea solo en el siguiente uso)."""
+        if self.client is not None and not self.client.is_closed:
+            await self.client.aclose()
+        self._closed = True
     
     async def analyze_api(self, base_url: str, entity_name: str = "", entity_code: str = "") -> APIAnalysis:
         """
@@ -102,7 +115,10 @@ class APIAnalyzer:
         """
         issues = []
         recommendations = []
-        
+
+        # El cliente puede haber sido cerrado por otro request (singleton compartido)
+        self._ensure_client()
+
         # Normalizar URL
         base_url = self._normalize_url(base_url)
         
@@ -436,28 +452,41 @@ class APIAnalyzer:
         
         return score, quality_level
     
-    async def analyze_multiple_entities(self, entities: List[Dict]) -> List[APIAnalysis]:
+    async def analyze_multiple_entities(
+        self,
+        entities: List[Dict],
+        max_concurrency: int = 8
+    ) -> List[APIAnalysis]:
         """
-        Analizar múltiples entidades
-        
+        Analizar múltiples entidades en paralelo (con límite de concurrencia).
+
         Args:
             entities: Lista de entidades con url_api
-        
+            max_concurrency: Máximo de análisis simultáneos
+
         Returns:
-            Lista de análisis
+            Lista de análisis (las entidades que fallen se omiten)
         """
-        analyses = []
-        
-        for entity in entities:
-            if entity.get("url_api"):
-                analysis = await self.analyze_api(
-                    base_url=entity["url_api"],
-                    entity_name=entity.get("name", ""),
-                    entity_code=entity.get("code", "")
-                )
-                analyses.append(analysis)
-        
-        return analyses
+        pendientes = [e for e in entities if e.get("url_api")]
+        if not pendientes:
+            return []
+
+        semaforo = asyncio.Semaphore(max(1, max_concurrency))
+
+        async def analizar(entity: Dict) -> Optional[APIAnalysis]:
+            async with semaforo:
+                try:
+                    return await self.analyze_api(
+                        base_url=entity["url_api"],
+                        entity_name=entity.get("name", ""),
+                        entity_code=entity.get("code", "")
+                    )
+                except Exception:
+                    # Una entidad inaccesible no debe tumbar el reporte completo
+                    return None
+
+        resultados = await asyncio.gather(*(analizar(e) for e in pendientes))
+        return [a for a in resultados if a is not None]
     
     async def generate_quality_report(self, analyses: List[APIAnalysis]) -> Dict:
         """

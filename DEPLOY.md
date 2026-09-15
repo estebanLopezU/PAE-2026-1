@@ -2,75 +2,117 @@
 
 **Objetivo:** que el proyecto no dependa de tu PC y se abra desde una URL pública 24/7.
 
-**Arquitectura en la nube:**
+---
 
-```
-Vercel (frontends, gratis)                Render (backends + BD, gratis)
-┌──────────────────────────┐              ┌─────────────────────────────┐
-│ pae-portal.vercel.app    │──links────►  │ govstake-api  (Docker :PORT)│──► govstake-db  (PostgreSQL)
-│ pae-govstake.vercel.app  │──/api─────►  │ xroad-api     (Docker :PORT)│──► xroad-db     (PostgreSQL)
-│ pae-interop.vercel.app   │──/api─────►  └─────────────────────────────┘
-└──────────────────────────┘
-```
+## URLs en producción (estado actual)
+
+| Componente | URL pública | Plataforma |
+|---|---|---|
+| 🏛️ **Portal de Entrada** (landing) | **https://pae-portal.vercel.app** | Vercel |
+| 🎯 **GOVStake 360** (app) | **https://pae-govstake.vercel.app** | Vercel |
+| 🔗 **Interoperabilidad X-Road** (app) | **https://pae-interop.vercel.app** | Vercel |
+| ⚙️ **API GOVStake** | https://govstake-api.onrender.com | Render (Docker) |
+| ⚙️ **API Interoperabilidad** | https://xroad-api.onrender.com | Render (Docker) |
+| 🗄️ **Base de datos (PostgreSQL)** | `govstake360` + `xroad_colombia` (proyecto Neon) | Neon.tech |
+
+Enlaces de diagnóstico de las APIs:
+
+- Salud GOVStake: https://govstake-api.onrender.com/api/health
+- Salud Interoperabilidad: https://xroad-api.onrender.com/api/health
+- Swagger GOVStake: https://govstake-api.onrender.com/api/docs
+- Swagger Interoperabilidad: https://xroad-api.onrender.com/api/docs
+
+> **Empieza aquí:** https://pae-portal.vercel.app
+
+### Credenciales de demo
+
+| Plataforma | Rol | Usuario | Contraseña |
+|---|---|---|---|
+| GOVStake 360 / Interoperabilidad | 👑 Administrador | `elopezu@unal.edu.co` | `BZTfne48` |
+| GOVStake 360 | 👤 Usuario (solo lectura) | `gestor@govstake.gov.co` | `Govstake360*` |
+| Interoperabilidad X-Road | 🔍 Analista | `analista@xroad.gov.co` | `Analista123*` |
 
 ---
 
-## Paso 1 — Desplegar backends en Render (Blueprint, 1 clic)
+## Arquitectura desplegada
 
-1. Entra a **https://dashboard.render.com** (cuenta gratis; puedes loguearte con GitHub).
-2. **New → Blueprint** → selecciona el repo `estebanLopezU/PAE-2026-1`.
-   Render detecta `render.yaml` (raíz del repo) y creará automáticamente:
-   - 2 bases de datos PostgreSQL: `govstake-db` y `xroad-db`
-   - 2 servicios web Docker: `govstake-api` y `xroad-api`
-3. Render te pedirá los valores de las variables `sync: false`. Escríbelas (son las de tu `.env` local):
-   - `ADMIN_PASSWORD`, `ANALYST_PASSWORD`, `OPENROUTER_API_KEY` (ambos servicios)
-4. Acepta y espera el build (~5 min por servicio).
+```
+Vercel (frontends, gratis)                Render (backends Docker, gratis)
++---------------------------+             +-------------------------------+
+| pae-portal.vercel.app     |--links---->| govstake-api.onrender.com     |--+
+| pae-govstake.vercel.app   |--/api/v1-->| xroad-api.onrender.com        |  |
+| pae-interop.vercel.app    |--/api/v1-->+-------------------------------+  |
++---------------------------+                                              |
+                        Neon.tech (PostgreSQL, gratis)  <------------------+
+                        govstake360  ·  xroad_colombia
+```
 
-Resultado: URLs tipo `https://govstake-api.onrender.com` y `https://xroad-api.onrender.com`.
-**Verifica** abriendo `https://<url>/api/health` → `{"status": "healthy"}`.
+- **Frontends (3 proyectos Vercel)** → variables `VITE_API_BASE_URL`, `VITE_GOVSTAKE_URL`, `VITE_INTEROP_URL`.
+- **Backends (2 servicios Render Docker)** definidos en `render.yaml` (Blueprint `intergovstake`, branch `main`).
+- **Base de datos** en Neon (plan free, **sin expiración**), referenciada por `DATABASE_URL` en `render.yaml`.
 
-> Las tablas y los datos semilla (10 actores GOVStake, usuarios admin) se crean solos al primer arranque.
+---
 
-## Paso 2 — Desplegar frontends en Vercel (gratis)
+## Reproducir el despliegue desde cero
 
-Importa el mismo repo **3 veces** en https://vercel.com/new (cuenta gratis con GitHub):
+### Paso 1 — Backends en Render (Blueprint)
 
-| # | Root Directory | Variables de entorno (Production) |
-|---|----------------|-----------------------------------|
+1. https://dashboard.render.com → **New → Blueprint** → repo `estebanLopezU/PAE-2026-1`.
+2. Blueprint Name: `intergovstake` · Branch: `main` · **Blueprint Path: vacío** (el `render.yaml` está en la raíz).
+3. Render pedirá las variables marcadas `sync: false` (dos veces, una por servicio):
+   - `ADMIN_PASSWORD` = contraseña del administrador
+   - `ANALYST_PASSWORD` = contraseña del analista de cada plataforma
+   - `OPENROUTER_API_KEY` = clave de OpenRouter (AgentGD)
+4. **Apply** → ~5 min de build por servicio.
+
+> ⚠️ El `render.yaml` **no** declara bases de datos: usa directamente las cadenas de conexión de **Neon** en `DATABASE_URL`. Las tablas y los datos semilla se crean solos en el primer arranque.
+
+### Paso 2 — Frontends en Vercel
+
+Importar el repo **3 veces** en https://vercel.com/new:
+
+| # | Root Directory | Variable de entorno (Production) |
+|---|---|---|
 | 1 | `PAE 2026/FrontendGovstacke` | `VITE_API_BASE_URL` = `https://govstake-api.onrender.com/api/v1` |
 | 2 | `PAE 2026/FrontendInteroperabilidad` | `VITE_API_BASE_URL` = `https://xroad-api.onrender.com/api/v1` |
-| 3 | `PAE 2026/PortalEntrada` | `VITE_INTEROP_URL` = URL Vercel del #2 · `VITE_GOVSTAKE_URL` = URL Vercel del #1 |
+| 3 | `PAE 2026/PortalEntrada` | `VITE_INTEROP_URL` = URL del #2 · `VITE_GOVSTAKE_URL` = URL del #1 |
 
-- Framework preset: **Vite** (detectado solo). No cambies nada más.
-- Usa nombres de proyecto `pae-govstake`, `pae-interop`, `pae-portal` (o los que salgan).
+- Framework preset: **Vite**. Nombres de proyecto: `pae-govstake`, `pae-interop`, `pae-portal`.
 
-> ⚠️ Importante: `VITE_API_BASE_URL` **debe terminar en `/api/v1`**.
+> ⚠️ `VITE_API_BASE_URL` **debe terminar en `/api/v1`**.
 
-## Paso 3 — Actualizar CORS en Render (una vez conocidas las URLs de Vercel)
+### Paso 3 — CORS
 
-1. En Render → servicio `govstake-api` → **Environment** → edita `CORS_ORIGINS` y reemplaza
-   los `https://pae-*.vercel.app` por tus URLs reales (formato JSON, sin espacios raros):
-   ```json
-   ["https://pae-govstake.vercel.app","https://pae-interop.vercel.app","https://pae-portal.vercel.app","http://localhost:3002","http://localhost:3000","http://localhost:5173"]
-   ```
-2. Lo mismo en `xroad-api`.
-3. Guarda → Render redespliega automáticamente.
-
-## Paso 4 — Prueba final
-
-1. Abre el Portal (`https://pae-portal.vercel.app`) → entra a GOVSTAKE e INTEROP.
-2. Login con las credenciales admin que pusiste en el Paso 1.
-3. Revisa que el Dashboard cargue datos y que el chat AgentGD responda (usa tu `OPENROUTER_API_KEY`).
+`CORS_ORIGINS` en `render.yaml` ya incluye las URLs de Vercel y los `localhost`. Si cambian los dominios, actualízalo y vuelve a aplicar el Blueprint (o edítalo en **Environment** del servicio).
 
 ---
 
-## Limitaciones del plan gratuito (conocerlas)
+## Verificación del despliegue
+
+```powershell
+# Salud de las APIs
+curl https://govstake-api.onrender.com/api/health
+curl https://xroad-api.onrender.com/api/health
+
+# Login de prueba
+curl -X POST https://xroad-api.onrender.com/api/v1/auth/login `
+  -H "Content-Type: application/json" `
+  -d '{"email":"elopezu@unal.edu.co","password":"BZTfne48"}'
+```
+
+---
+
+## Limitaciones del plan gratuito
 
 | Limitación | Impacto | Mitigación |
 |---|---|---|
-| Render free "duerme" el servicio tras 15 min sin tráfico | El primer click tarda ~50 s en responder | Abrir la app 1 vez antes de una demo, o upgrade $7/mes |
-| PostgreSQL free **expira a los 30 días** | Se pide recrear la BD (se re-siembran los datos demo) | Recrear el Blueprint o plan Starter |
-| Build/datos: sin persistencia entre rebuilds de free web | Solo afecta archivos locales, no la BD | — |
+| Render free "duerme" el servicio tras 15 min sin tráfico | El primer click tarda ~50 s | Abrir la app una vez antes de una demo |
+| Build sin persistencia local entre despliegues | Solo afecta archivos temporales, no la BD | — |
+| 2 servicios Render + 1 proyecto Neon free | Suficiente para la demo académica | — |
+
+> ✅ La base de datos en **Neon no expira** (a diferencia del PostgreSQL free de Render, que dura 30 días).
+
+---
 
 ## Desarrollo local: sin cambios
 

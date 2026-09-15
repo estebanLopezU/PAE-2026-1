@@ -36,6 +36,14 @@
 
 ### Arquitectura General
 
+> 🌐 **Versión desplegada en Internet (24/7, sin instalar nada):**
+> **https://pae-portal.vercel.app** — portal de entrada a la suite.
+> Módulos directos: **GOVStake 360** → https://pae-govstake.vercel.app · **Interoperabilidad X-Road** → https://pae-interop.vercel.app
+> APIs: https://govstake-api.onrender.com/api/docs y https://xroad-api.onrender.com/api/docs · Detalles en `../DEPLOY.md`.
+> (En el plan gratuito de Render, el primer acceso tras 15 min de inactividad puede tardar ~50 s.)
+
+La arquitectura local de desarrollo es la siguiente:
+
 ```
                  ┌──────────────────────┐
                  │  PORTAL DE ENTRADA   │
