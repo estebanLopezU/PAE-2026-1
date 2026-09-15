@@ -2,17 +2,7 @@
 # Despliegue: https://dashboard.render.com/select-repo?type=blueprint
 # Notas del plan gratuito:
 #   - Los servicios web se "duermen" tras 15 min sin tráfico (primer request tarda ~50 s).
-#   - Las bases PostgreSQL gratuitas expiran a los 30 días (se pueden recrear o actualizar de plan).
-
-databases:
-  - name: govstake-db
-    databaseName: govstake360
-    user: postgres
-    plan: free
-  - name: xroad-db
-    databaseName: xroad_colombia
-    user: postgres
-    plan: free
+# Base de datos: Neon.tech (plan free, sin expiración). Proyecto: twilight-night-20595812
 
 services:
   # ------------------------------------------------------------------ GOVStake
@@ -25,9 +15,7 @@ services:
     healthCheckPath: /api/health
     envVars:
       - key: DATABASE_URL
-        fromDatabase:
-          name: govstake-db
-          property: connectionString
+        value: postgresql://neondb_owner:npg_8Pt3fnWIlQwS@ep-orange-snow-ae0t6sj0.c-2.us-east-2.aws.neon.tech/govstake360?sslmode=require
       - key: CORS_ORIGINS
         value: '["http://localhost:3002","http://localhost:3000","http://localhost:5173","https://pae-govstake.vercel.app","https://pae-interop.vercel.app","https://pae-portal.vercel.app"]'
       - key: JWT_SECRET_KEY
@@ -55,9 +43,7 @@ services:
     healthCheckPath: /api/health
     envVars:
       - key: DATABASE_URL
-        fromDatabase:
-          name: xroad-db
-          property: connectionString
+        value: postgresql://neondb_owner:npg_8Pt3fnWIlQwS@ep-orange-snow-ae0t6sj0.c-2.us-east-2.aws.neon.tech/xroad_colombia?sslmode=require
       - key: CORS_ORIGINS
         value: '["http://localhost:3002","http://localhost:3000","http://localhost:5173","https://pae-govstake.vercel.app","https://pae-interop.vercel.app","https://pae-portal.vercel.app"]'
       - key: JWT_SECRET_KEY
@@ -74,3 +60,4 @@ services:
         sync: false
       - key: PYTHONUTF8
         value: "1"
+
