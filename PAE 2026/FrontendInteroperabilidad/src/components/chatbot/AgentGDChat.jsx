@@ -6,7 +6,8 @@ import { MessageCircle, X, Send } from 'lucide-react'
 // platform = 'govstake' | 'interop'
 export default function AgentGDChat({ platform = 'govstake' }) {
   const isGov = platform === 'interop' ? false : true
-  const API_URL = '/api/v1/agentgd/chat'
+  // En producción (Vercel) se usa la URL del backend en Render; en local, el proxy de Vite/nginx.
+  const API_URL = (import.meta.env.VITE_API_BASE_URL || '/api/v1') + '/agentgd/chat'
 
   // Token JWT: admite las claves de ambos frontends
   const getToken = () =>
