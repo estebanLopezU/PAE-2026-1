@@ -42,7 +42,7 @@ export default function Reportes() {
   const fetchRecommendations = async () => {
     try {
       const token = localStorage.getItem('xroad_access_token')
-      const res = await fetch('/api/v1/ai/analyze/sector', {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL || '/api/v1'}/ai/analyze/sector`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

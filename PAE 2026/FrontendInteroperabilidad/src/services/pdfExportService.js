@@ -1,7 +1,7 @@
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 
-const API_BASE = '/api/v1'
+const API_BASE = (import.meta.env.VITE_API_BASE_URL || '/api/v1')
 
 // ─── Color Palette ───────────────────────────────────────────
 const COLORS = {
@@ -35,7 +35,7 @@ async function fetchAPI(url, signal) {
     const refreshToken = localStorage.getItem('xroad_refresh_token')
 
     if (refreshToken) {
-      const refreshResponse = await fetch('/api/v1/auth/refresh', {
+      const refreshResponse = await fetch(`${API_BASE}/auth/refresh`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ refresh_token: refreshToken }),
