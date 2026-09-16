@@ -157,7 +157,7 @@ export default function Layout({ children, enableVideoBackground = false }) {
           <div className="flex items-center gap-3">
             {/* Botón volver al portal de entrada */}
             <a
-              href="http://localhost:3000"
+              href={import.meta.env.VITE_PORTAL_URL || 'http://localhost:3000'}
               title="Volver al portal de entrada"
               className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-300 hover:bg-purple-500/20 hover:text-purple-200 transition-all duration-300 text-xs font-medium"
             >
@@ -273,7 +273,7 @@ function SidebarUser({ user, isAdmin, handleLogout }) {
         <ThemeToggle />
         <LanguageSelector />
         <a
-          href="http://localhost:3000"
+          href={import.meta.env.VITE_PORTAL_URL || 'http://localhost:3000'}
           className="flex-1 flex items-center justify-center gap-2 p-2 text-slate-400 hover:text-purple-400 hover:bg-purple-500/10 rounded-lg transition-all border border-transparent hover:border-purple-500/20"
           title="Volver al portal de entrada"
         >

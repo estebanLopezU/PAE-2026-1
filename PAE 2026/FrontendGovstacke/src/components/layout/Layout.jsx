@@ -86,7 +86,7 @@ export default function Layout() {
           </div>
         </div>
         <a
-          href="http://localhost:3000"
+          href={import.meta.env.VITE_PORTAL_URL || 'http://localhost:3000'}
           className="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm text-[#a08080] transition-all hover:bg-white/5 hover:text-white"
         >
           <ExternalLink className="h-4 w-4" />

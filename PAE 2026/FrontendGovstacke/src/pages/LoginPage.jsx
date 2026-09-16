@@ -109,7 +109,7 @@ export default function LoginPage() {
     <>
       <LoginBackground />
       <div className="stage">
-      <a className="back-portal-btn" href="http://localhost:3000" style={{ zIndex: 40, position: 'fixed', top: 18, left: 18, display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.55rem 1rem', borderRadius: 8, background: 'rgba(26,10,10,0.8)', border: '1px solid #3a1616', color: '#c9a0a0', fontSize: '0.82rem', textDecoration: 'none', backdropFilter: 'blur(6px)' }}>
+      <a className="back-portal-btn" href={import.meta.env.VITE_PORTAL_URL || 'http://localhost:3000'} style={{ zIndex: 40, position: 'fixed', top: 18, left: 18, display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.55rem 1rem', borderRadius: 8, background: 'rgba(26,10,10,0.8)', border: '1px solid #3a1616', color: '#c9a0a0', fontSize: '0.82rem', textDecoration: 'none', backdropFilter: 'blur(6px)' }}>
         <ArrowLeft className="h-4 w-4" /> Volver al portal
       </a>
 

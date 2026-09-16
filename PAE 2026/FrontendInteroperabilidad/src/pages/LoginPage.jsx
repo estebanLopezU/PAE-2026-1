@@ -413,7 +413,7 @@ export default function LoginPage() {
     <div className="login-page">
       {/* Botón volver al portal de entrada */}
       <a
-        href="http://localhost:3000"
+        href={import.meta.env.VITE_PORTAL_URL || 'http://localhost:3000'}
         className="back-portal-btn"
         title="Volver al portal de entrada"
       >
