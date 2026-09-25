@@ -50,7 +50,7 @@ export default function WipeTransition({ tag, words, height = '40vh' }) {
             0.72,
           )
       })
-    }, rootRef)
+    }, zoneRef)
 
     return () => {
       if (mm) mm.revert()

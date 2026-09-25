@@ -936,6 +936,7 @@ html.lenis, html.lenis body { height: auto; }
     radial-gradient(120% 150% at 18% 0%, rgba(167, 139, 250, 0.16) 0%, transparent 55%),
     radial-gradient(130% 150% at 92% 100%, rgba(244, 114, 182, 0.13) 0%, transparent 55%),
     #0d0a1c;
+  clip-path: polygon(0% 0%, 0% 0%, 0% 100%, 0% 100%);
   will-change: clip-path;
 }
 .wt-tag {
