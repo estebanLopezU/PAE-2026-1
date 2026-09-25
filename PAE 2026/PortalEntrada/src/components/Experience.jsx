@@ -128,6 +128,10 @@ export default function Experience() {
       <div className="bg-fx" ref={bgRef} aria-hidden="true" />
       <div className="vignette" aria-hidden="true" />
       <div className="grain" aria-hidden="true" />
+      <div className="aurora" aria-hidden="true">
+        <div className="aurora-blob aurora-a" />
+        <div className="aurora-blob aurora-b" />
+      </div>
       <div className="m-spot" ref={spotRef} aria-hidden="true" />
 
       <div className="progress" aria-hidden="true">

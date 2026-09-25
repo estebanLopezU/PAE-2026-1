@@ -26,6 +26,9 @@ export default function ShowcaseScene() {
           })
           gsap.set('[data-sh="stat"]', { opacity: 0, y: 26 })
 
+          const counter = { v: 0 }
+          const numValEl = gsap.utils.toArray('[data-sh="numVal"]')[0]
+
           const tl = gsap.timeline({
             scrollTrigger: {
               trigger: rootRef.current,
@@ -50,6 +53,17 @@ export default function ShowcaseScene() {
               0.56,
             )
             .to('[data-sh="numInner"]', { scale: 1, yPercent: 0, duration: 0.24 }, 0.56)
+            .to(
+              counter,
+              {
+                v: 2.3,
+                duration: 0.26,
+                onUpdate: () => {
+                  numValEl.textContent = counter.v.toFixed(1)
+                },
+              },
+              0.58,
+            )
             .to('[data-sh="line"]', { opacity: 1, duration: 0.12 }, 0.76)
             .fromTo(
               '[data-sh="stat"]',
@@ -72,6 +86,9 @@ export default function ShowcaseScene() {
             filter: 'blur(8px)',
           })
           gsap.set('[data-sh="stat"]', { opacity: 0, y: 18 })
+
+          const counterMobile = { v: 0 }
+          const numValElMobile = gsap.utils.toArray('[data-sh="numVal"]')[0]
 
           const tl = gsap.timeline({
             scrollTrigger: {
@@ -97,6 +114,17 @@ export default function ShowcaseScene() {
               0.56,
             )
             .to('[data-sh="numInner"]', { scale: 1, yPercent: 0, duration: 0.24 }, 0.56)
+            .to(
+              counterMobile,
+              {
+                v: 2.3,
+                duration: 0.26,
+                onUpdate: () => {
+                  numValElMobile.textContent = counterMobile.v.toFixed(1)
+                },
+              },
+              0.58,
+            )
             .to('[data-sh="line"]', { opacity: 1, duration: 0.12 }, 0.76)
             .fromTo(
               '[data-sh="stat"]',
@@ -120,6 +148,7 @@ export default function ShowcaseScene() {
         <div className="showcase-orb-wrap" data-parallax="18">
           <NetworkOrb className="orb-showcase" data-sh="orb" />
         </div>
+        <div className="showcase-beam" aria-hidden="true" />
 
         <div className="showcase-copy">
           <p className="kicker" data-sh="kicker">
@@ -127,7 +156,10 @@ export default function ShowcaseScene() {
           </p>
           <p className="showcase-num" data-sh="num">
             <span className="showcase-num-inner" data-sh="numInner">
-              2.3<span className="num-unit">/5</span>
+              <span className="num-val" data-sh="numVal">
+                2.3
+              </span>
+              <span className="num-unit">/5</span>
             </span>
           </p>
           <p className="showcase-line" data-sh="line">

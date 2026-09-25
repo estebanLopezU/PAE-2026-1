@@ -118,6 +118,7 @@ export default function HeroScene() {
         <div className="orb-hero-wrap" data-parallax="14">
           <NetworkOrb className="orb-hero" data-hero="orb" />
         </div>
+        <div className="hero-glow" aria-hidden="true" />
 
         <div className="hero-copy">
           <p className="kicker" data-hero="kicker">
