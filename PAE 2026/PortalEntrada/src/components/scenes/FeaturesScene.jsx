@@ -12,6 +12,8 @@ const ROW_TIMES = [
   { enter: 2.92, exit: 3.72 },
 ]
 
+const MARQUEE_TXT = 'INTEROPERABILIDAD · GOVERNABILIDAD · DATOS · ACTORES · X-ROAD · '
+
 export default function FeaturesScene() {
   const rootRef = useRef(null)
   const railRef = useRef(null)
@@ -26,7 +28,7 @@ export default function FeaturesScene() {
         () => {
           const cards = gsap.utils.toArray('[data-feat="card"]')
           const dots = gsap.utils.toArray('[data-feat="dot"]')
-          gsap.set(cards, { opacity: 0, xPercent: 14, scale: 0.96, y: 24 })
+          gsap.set(cards, { opacity: 0, xPercent: 26, scale: 0.94, y: 28 })
 
           const tl = gsap.timeline({
             scrollTrigger: {
@@ -50,12 +52,12 @@ export default function FeaturesScene() {
           ROW_TIMES.forEach((t, i) => {
             tl.fromTo(
               cards[i],
-              { opacity: 0, xPercent: 14, scale: 0.96, y: 24 },
+              { opacity: 0, xPercent: 26, scale: 0.94, y: 28 },
               { opacity: 1, xPercent: 0, scale: 1, y: 0, duration: 0.4 },
               t.enter,
             ).to(
               cards[i],
-              { opacity: 0, xPercent: -12, scale: 0.97, duration: 0.4 },
+              { opacity: 0, xPercent: -24, scale: 0.95, duration: 0.4 },
               t.exit,
             )
           })
@@ -67,7 +69,7 @@ export default function FeaturesScene() {
         () => {
           const cards = gsap.utils.toArray('[data-feat="card"]')
           const dots = gsap.utils.toArray('[data-feat="dot"]')
-          gsap.set(cards, { opacity: 0, xPercent: 8, scale: 0.97 })
+          gsap.set(cards, { opacity: 0, xPercent: 16, scale: 0.95 })
 
           const tl = gsap.timeline({
             scrollTrigger: {
@@ -91,10 +93,10 @@ export default function FeaturesScene() {
           ROW_TIMES.forEach((t, i) => {
             tl.fromTo(
               cards[i],
-              { opacity: 0, xPercent: 8, scale: 0.97 },
+              { opacity: 0, xPercent: 16, scale: 0.95 },
               { opacity: 1, xPercent: 0, scale: 1, duration: 0.4 },
               t.enter,
-            ).to(cards[i], { opacity: 0, xPercent: -8, duration: 0.4 }, t.exit)
+            ).to(cards[i], { opacity: 0, xPercent: -16, duration: 0.4 }, t.exit)
           })
         },
       )
@@ -118,6 +120,13 @@ export default function FeaturesScene() {
           </h2>
         </div>
 
+        <div className="marquee features-marquee" aria-hidden="true">
+          <div className="marquee-track">
+            <span>{MARQUEE_TXT}</span>
+            <span className="mq-alt" aria-hidden="true">{MARQUEE_TXT}</span>
+          </div>
+        </div>
+
         <div className="features-stage" data-feat="stage">
           {FEATURES.map((f) => {
             const Icon = f.icon
@@ -137,6 +146,14 @@ export default function FeaturesScene() {
               </article>
             )
           })}
+        </div>
+
+        <div className="ui-chip feat-chip hide-sm" data-parallax="16" aria-hidden="true">
+          <div className="ui-chip-float">
+            <span className="chip">
+              <span className="chip-status" /> OPERATIVO · <b>60%</b>
+            </span>
+          </div>
         </div>
 
         <div className="features-rail" aria-hidden="true">

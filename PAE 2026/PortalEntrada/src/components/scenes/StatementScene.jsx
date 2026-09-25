@@ -16,11 +16,14 @@ export default function StatementScene() {
       mm.add(
         '(prefers-reduced-motion: no-preference) and (min-width: 768px)',
         () => {
-          gsap.set('[data-st="line"]', { yPercent: 115 })
+          const words = gsap.utils.toArray('[data-st="word"]')
+          gsap.set(words, { yPercent: 130 })
           gsap.set(
             '[data-st="kicker"], [data-st="body"], [data-st="tile-a"], [data-st="tile-b"]',
-            { opacity: 0, y: 48 },
+            { opacity: 0 },
           )
+          gsap.set('[data-st="tile-a"]', { xPercent: -6, y: 40 })
+          gsap.set('[data-st="tile-b"]', { xPercent: 6, y: 40 })
 
           const tl = gsap.timeline({
             scrollTrigger: {
@@ -32,13 +35,11 @@ export default function StatementScene() {
             defaults: { ease: 'none' },
           })
 
-          const lines = gsap.utils.toArray('[data-st="line"]')
-
-          tl.to('[data-st="kicker"]', { opacity: 1, y: 0, duration: 0.04 }, 0.02)
-            .to(lines, { yPercent: 0, duration: 0.18, stagger: 0.1 }, 0.07)
+          tl.to('[data-st="kicker"]', { opacity: 1, duration: 0.04 }, 0.02)
+            .to(words, { yPercent: 0, duration: 0.24, stagger: 0.05 }, 0.07)
             .to('[data-st="body"]', { opacity: 1, y: 0, duration: 0.12 }, 0.48)
-            .to('[data-st="tile-a"]', { opacity: 1, y: 0, duration: 0.12 }, 0.52)
-            .to('[data-st="tile-b"]', { opacity: 1, y: 0, duration: 0.12 }, 0.6)
+            .to('[data-st="tile-a"]', { opacity: 1, xPercent: 0, y: 0, duration: 0.14 }, 0.52)
+            .to('[data-st="tile-b"]', { opacity: 1, xPercent: 0, y: 0, duration: 0.14 }, 0.6)
             .fromTo(
               '[data-st="orb"]',
               { xPercent: 14, yPercent: -10, scale: 1 },
@@ -51,11 +52,14 @@ export default function StatementScene() {
       mm.add(
         '(prefers-reduced-motion: no-preference) and (max-width: 767px)',
         () => {
-          gsap.set('[data-st="line"]', { yPercent: 115 })
+          const words = gsap.utils.toArray('[data-st="word"]')
+          gsap.set(words, { yPercent: 130 })
           gsap.set(
             '[data-st="kicker"], [data-st="body"], [data-st="tile-a"], [data-st="tile-b"]',
-            { opacity: 0, y: 36 },
+            { opacity: 0 },
           )
+          gsap.set('[data-st="tile-a"]', { xPercent: -4, y: 30 })
+          gsap.set('[data-st="tile-b"]', { xPercent: 4, y: 30 })
 
           const tl = gsap.timeline({
             scrollTrigger: {
@@ -67,13 +71,11 @@ export default function StatementScene() {
             defaults: { ease: 'none' },
           })
 
-          const lines = gsap.utils.toArray('[data-st="line"]')
-
           tl.to('[data-st="kicker"]', { opacity: 1, duration: 0.06 }, 0.04)
-            .to(lines, { yPercent: 0, duration: 0.2, stagger: 0.12 }, 0.08)
+            .to(words, { yPercent: 0, duration: 0.24, stagger: 0.05 }, 0.08)
             .to('[data-st="body"]', { opacity: 1, y: 0, duration: 0.12 }, 0.48)
-            .to('[data-st="tile-a"]', { opacity: 1, y: 0, duration: 0.12 }, 0.52)
-            .to('[data-st="tile-b"]', { opacity: 1, y: 0, duration: 0.12 }, 0.6)
+            .to('[data-st="tile-a"]', { opacity: 1, xPercent: 0, y: 0, duration: 0.14 }, 0.52)
+            .to('[data-st="tile-b"]', { opacity: 1, xPercent: 0, y: 0, duration: 0.14 }, 0.6)
             .fromTo(
               '[data-st="orb"]',
               { scale: 1, opacity: 0.5 },
@@ -93,26 +95,47 @@ export default function StatementScene() {
   return (
     <section className="scene scene-statement" ref={rootRef} data-bg="1">
       <div className="scene-sticky">
-        <NetworkOrb className="orb-statement" data-st="orb" />
+        <div className="orb-statement-wrap" data-parallax="12">
+          <NetworkOrb className="orb-statement" data-st="orb" />
+        </div>
 
         <div className="statement-copy">
           <p className="kicker" data-st="kicker">
             EL PROYECTO
           </p>
           <h2 className="title-statement">
-            <span className="mask">
-              <span className="mask-in" data-st="line">
-                Diagnosticar la
+            <span className="stmt-line">
+              <span className="mask">
+                <span className="mask-in" data-st="word">
+                  Diagnosticar
+                </span>
+              </span>
+              <span className="mask">
+                <span className="mask-in" data-st="word">
+                  la
+                </span>
+              </span>
+              <span className="mask">
+                <span className="mask-in" data-st="word">
+                  interoperabilidad
+                </span>
               </span>
             </span>
-            <span className="mask">
-              <span className="mask-in" data-st="line">
-                interoperabilidad del
+            <span className="stmt-line">
+              <span className="mask">
+                <span className="mask-in" data-st="word">
+                  del
+                </span>
               </span>
-            </span>
-            <span className="mask">
-              <span className="mask-in is-accent" data-st="line">
-                Estado colombiano.
+              <span className="mask">
+                <span className="mask-in is-accent" data-st="word">
+                  Estado
+                </span>
+              </span>
+              <span className="mask">
+                <span className="mask-in is-accent" data-st="word">
+                  colombiano.
+                </span>
               </span>
             </span>
           </h2>
@@ -146,6 +169,21 @@ export default function StatementScene() {
                 interés que hacen posible el cambio institucional.
               </p>
             </article>
+          </div>
+        </div>
+
+        <div className="ui-chip stmt-chip-a" data-parallax="14" aria-hidden="true">
+          <div className="ui-chip-float">
+            <span className="chip">
+              <span className="chip-status" /> <b>127</b> ENTIDADES
+            </span>
+          </div>
+        </div>
+        <div className="ui-chip stmt-chip-b hide-sm" data-parallax="20" aria-hidden="true">
+          <div className="ui-chip-float" style={{ animationDelay: '-2.2s' }}>
+            <span className="chip">
+              <span className="chip-status gs" /> ACTORES · <b className="gs">10</b> TIPOS
+            </span>
           </div>
         </div>
       </div>

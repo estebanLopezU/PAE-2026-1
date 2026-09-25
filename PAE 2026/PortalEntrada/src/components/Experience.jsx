@@ -8,6 +8,7 @@ import StatementScene from './scenes/StatementScene'
 import FeaturesScene from './scenes/FeaturesScene'
 import ShowcaseScene from './scenes/ShowcaseScene'
 import CtaScene from './scenes/CtaScene'
+import WipeTransition from './WipeTransition'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -20,9 +21,17 @@ const BG_STOPS = [
   { at: 1.0, color: '#120a28' },
 ]
 
+const WIPES = [
+  { tag: '01 · EL PROYECTO', words: ['Descubrir', 'el', 'Estado'] },
+  { tag: '02 · CAPACIDADES', words: ['Construir', 'capacidades'] },
+  { tag: '03 · EL DIAGNÓSTICO', words: ['Medir', 'el', 'pulso'] },
+  { tag: '04 · EL ACCESO', words: ['Entrar', 'al', 'ecosistema'] },
+]
+
 export default function Experience() {
   const rootRef = useRef(null)
   const bgRef = useRef(null)
+  const spotRef = useRef(null)
 
   useLayoutEffect(() => {
     let mm
@@ -70,6 +79,42 @@ export default function Experience() {
           lenis.destroy()
         }
       })
+
+      mm.add(
+        '(prefers-reduced-motion: no-preference) and (pointer: fine)',
+        () => {
+          const spot = spotRef.current
+
+          const spotX = gsap.quickTo(spot, 'x', {
+            duration: 0.9,
+            ease: 'power3.out',
+          })
+          const spotY = gsap.quickTo(spot, 'y', {
+            duration: 0.9,
+            ease: 'power3.out',
+          })
+
+          const parallax = gsap.utils.toArray('[data-parallax]').map((el) => ({
+            x: gsap.quickTo(el, 'x', { duration: 1.1, ease: 'power3.out' }),
+            y: gsap.quickTo(el, 'y', { duration: 1.1, ease: 'power3.out' }),
+            strength: parseFloat(el.dataset.parallax) || 12,
+          }))
+
+          const onMove = (e) => {
+            const nx = e.clientX / window.innerWidth - 0.5
+            const ny = e.clientY / window.innerHeight - 0.5
+            spotX(nx * 120)
+            spotY(ny * 120)
+            for (const p of parallax) {
+              p.x(nx * p.strength)
+              p.y(ny * p.strength)
+            }
+          }
+
+          window.addEventListener('mousemove', onMove, { passive: true })
+          return () => window.removeEventListener('mousemove', onMove)
+        },
+      )
     }, rootRef)
 
     return () => {
@@ -83,6 +128,7 @@ export default function Experience() {
       <div className="bg-fx" ref={bgRef} aria-hidden="true" />
       <div className="vignette" aria-hidden="true" />
       <div className="grain" aria-hidden="true" />
+      <div className="m-spot" ref={spotRef} aria-hidden="true" />
 
       <div className="progress" aria-hidden="true">
         <div className="progress-bar" />
@@ -100,9 +146,13 @@ export default function Experience() {
 
       <main>
         <HeroScene />
+        <WipeTransition tag={WIPES[0].tag} words={WIPES[0].words} />
         <StatementScene />
+        <WipeTransition tag={WIPES[1].tag} words={WIPES[1].words} />
         <FeaturesScene />
+        <WipeTransition tag={WIPES[2].tag} words={WIPES[2].words} />
         <ShowcaseScene />
+        <WipeTransition tag={WIPES[3].tag} words={WIPES[3].words} />
         <CtaScene />
       </main>
     </div>

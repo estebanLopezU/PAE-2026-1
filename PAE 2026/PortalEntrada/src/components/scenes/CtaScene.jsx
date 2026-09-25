@@ -68,6 +68,50 @@ export default function CtaScene() {
           timeline()
         },
       )
+
+      mm.add(
+        '(prefers-reduced-motion: no-preference) and (pointer: fine)',
+        () => {
+          const links = gsap.utils.toArray('[data-cta="link"]')
+          gsap.set(links, { transformPerspective: 900 })
+
+          const handlers = links.map((el) => {
+            const onEnter = () =>
+              gsap.to(el, { y: -5, duration: 0.3, ease: 'power3.out' })
+            const onMove = (e) => {
+              const r = el.getBoundingClientRect()
+              const rx = ((e.clientY - r.top) / r.height - 0.5) * -9
+              const ry = ((e.clientX - r.left) / r.width - 0.5) * 9
+              gsap.to(el, {
+                rotateX: rx,
+                rotateY: ry,
+                duration: 0.4,
+                ease: 'power2.out',
+              })
+            }
+            const onLeave = () =>
+              gsap.to(el, {
+                rotateX: 0,
+                rotateY: 0,
+                y: 0,
+                duration: 0.6,
+                ease: 'power3.out',
+              })
+            el.addEventListener('mouseenter', onEnter)
+            el.addEventListener('mousemove', onMove)
+            el.addEventListener('mouseleave', onLeave)
+            return { el, onEnter, onMove, onLeave }
+          })
+
+          return () => {
+            handlers.forEach(({ el, onEnter, onMove, onLeave }) => {
+              el.removeEventListener('mouseenter', onEnter)
+              el.removeEventListener('mousemove', onMove)
+              el.removeEventListener('mouseleave', onLeave)
+            })
+          }
+        },
+      )
     }, rootRef)
 
     return () => {
@@ -86,7 +130,7 @@ export default function CtaScene() {
       data-bg="4"
     >
       <div className="scene-sticky">
-        <div className="cta-orb-wrap" aria-hidden="true">
+        <div className="cta-orb-wrap" aria-hidden="true" data-parallax="10">
           <div className="cta-orb" data-cta="orb" />
         </div>
 
@@ -126,7 +170,15 @@ export default function CtaScene() {
             ))}
           </nav>
 
-          <footer className="cta-footer" data-cta="foot">
+          <div className="ui-chip cta-chip hide-sm" data-parallax="16" aria-hidden="true">
+          <div className="ui-chip-float" style={{ animationDelay: '-1.5s' }}>
+            <span className="chip">
+              <span className="chip-status" /> MÓDULOS · <b>2</b> EN LÍNEA
+            </span>
+          </div>
+        </div>
+
+        <footer className="cta-footer" data-cta="foot">
             <p>
               Ministerio de Tecnologías de la Información y las Comunicaciones · Colombia
             </p>

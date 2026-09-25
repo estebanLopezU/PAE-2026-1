@@ -18,7 +18,12 @@ export default function ShowcaseScene() {
         () => {
           gsap.set('[data-sh="numInner"]', { scale: 1.06, yPercent: 12 })
           gsap.set('[data-sh="kicker"], [data-sh="line"]', { opacity: 0 })
-          gsap.set('[data-sh="num"]', { opacity: 0, yPercent: 40 })
+          gsap.set('[data-sh="num"]', {
+            opacity: 0,
+            yPercent: 40,
+            scale: 1.6,
+            filter: 'blur(10px)',
+          })
           gsap.set('[data-sh="stat"]', { opacity: 0, y: 26 })
 
           const tl = gsap.timeline({
@@ -40,8 +45,8 @@ export default function ShowcaseScene() {
             .to('[data-sh="kicker"]', { opacity: 1, duration: 0.1 }, 0.5)
             .fromTo(
               '[data-sh="num"]',
-              { opacity: 0, yPercent: 40 },
-              { opacity: 1, yPercent: 0, duration: 0.2 },
+              { opacity: 0, yPercent: 40, scale: 1.6, filter: 'blur(10px)' },
+              { opacity: 1, yPercent: 0, scale: 1, filter: 'blur(0px)', duration: 0.26 },
               0.56,
             )
             .to('[data-sh="numInner"]', { scale: 1, yPercent: 0, duration: 0.24 }, 0.56)
@@ -60,7 +65,12 @@ export default function ShowcaseScene() {
         () => {
           gsap.set('[data-sh="numInner"]', { scale: 1.05, yPercent: 8 })
           gsap.set('[data-sh="kicker"], [data-sh="line"]', { opacity: 0 })
-          gsap.set('[data-sh="num"]', { opacity: 0, yPercent: 26 })
+          gsap.set('[data-sh="num"]', {
+            opacity: 0,
+            yPercent: 26,
+            scale: 1.4,
+            filter: 'blur(8px)',
+          })
           gsap.set('[data-sh="stat"]', { opacity: 0, y: 18 })
 
           const tl = gsap.timeline({
@@ -82,8 +92,8 @@ export default function ShowcaseScene() {
             .to('[data-sh="kicker"]', { opacity: 1, duration: 0.1 }, 0.5)
             .fromTo(
               '[data-sh="num"]',
-              { opacity: 0, yPercent: 26 },
-              { opacity: 1, yPercent: 0, duration: 0.2 },
+              { opacity: 0, yPercent: 26, scale: 1.4, filter: 'blur(8px)' },
+              { opacity: 1, yPercent: 0, scale: 1, filter: 'blur(0px)', duration: 0.24 },
               0.56,
             )
             .to('[data-sh="numInner"]', { scale: 1, yPercent: 0, duration: 0.24 }, 0.56)
@@ -107,7 +117,7 @@ export default function ShowcaseScene() {
   return (
     <section className="scene scene-showcase" id="showcase" ref={rootRef} data-bg="3">
       <div className="scene-sticky">
-        <div className="showcase-orb-wrap">
+        <div className="showcase-orb-wrap" data-parallax="18">
           <NetworkOrb className="orb-showcase" data-sh="orb" />
         </div>
 
@@ -139,6 +149,13 @@ export default function ShowcaseScene() {
               <span>madurez semántica · el eslabón débil</span>
             </li>
           </ul>
+        </div>
+      <div className="ui-chip sh-chip" data-parallax="14" aria-hidden="true">
+          <div className="ui-chip-float" style={{ animationDelay: '-4s' }}>
+            <span className="chip">
+              <span className="chip-status gs" /> SEMÁNTICA · <b className="gs">1.9</b>
+            </span>
+          </div>
         </div>
       </div>
     </section>

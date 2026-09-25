@@ -18,6 +18,18 @@ export default function HeroScene() {
         () => {
           gsap.set('[data-hero="orb"]', { scale: 0.86, rotate: -10, yPercent: 2 })
 
+          const intro = gsap.timeline({ delay: 0.2 })
+          intro
+            .from('[data-hero="word"]', {
+              yPercent: 120,
+              duration: 0.9,
+              stagger: 0.07,
+              ease: 'power4.out',
+            })
+            .from('[data-hero="kicker"]', { autoAlpha: 0, y: 18, duration: 0.5 }, 0.25)
+            .from('[data-hero="sub"]', { autoAlpha: 0, y: 14, duration: 0.5 }, 0.6)
+            .from('[data-hero="pills"]', { autoAlpha: 0, y: 12, duration: 0.5 }, 0.75)
+
           const tl = gsap.timeline({
             scrollTrigger: {
               trigger: rootRef.current,
@@ -45,7 +57,7 @@ export default function HeroScene() {
             .fromTo(
               '[data-hero="orb"]',
               { scale: 0.86, rotate: -10, yPercent: 2 },
-              { scale: 1.16, rotate: 7, yPercent: -2, duration: 1, ease: 'none' },
+              { scale: 1.3, rotate: 8, yPercent: -2, duration: 1, ease: 'none' },
               0.12,
             )
         },
@@ -55,6 +67,18 @@ export default function HeroScene() {
         '(prefers-reduced-motion: no-preference) and (max-width: 767px)',
         () => {
           gsap.set('[data-hero="orb"]', { scale: 0.8, rotate: -6, yPercent: 4 })
+
+          const intro = gsap.timeline({ delay: 0.15 })
+          intro
+            .from('[data-hero="word"]', {
+              yPercent: 120,
+              duration: 0.8,
+              stagger: 0.06,
+              ease: 'power4.out',
+            })
+            .from('[data-hero="kicker"]', { autoAlpha: 0, y: 14, duration: 0.4 }, 0.2)
+            .from('[data-hero="sub"]', { autoAlpha: 0, y: 10, duration: 0.4 }, 0.5)
+            .from('[data-hero="pills"]', { autoAlpha: 0, y: 8, duration: 0.4 }, 0.62)
 
           const tl = gsap.timeline({
             scrollTrigger: {
@@ -75,7 +99,7 @@ export default function HeroScene() {
             .fromTo(
               '[data-hero="orb"]',
               { scale: 0.8, rotate: -6, yPercent: 4 },
-              { scale: 1.25, rotate: 5, yPercent: -4, duration: 1, ease: 'none' },
+              { scale: 1.35, rotate: 5, yPercent: -4, duration: 1, ease: 'none' },
               0.1,
             )
         },
@@ -91,7 +115,9 @@ export default function HeroScene() {
   return (
     <section className="scene scene-hero" id="hero" ref={rootRef} data-bg="0">
       <div className="scene-sticky">
-        <NetworkOrb className="orb-hero" data-hero="orb" />
+        <div className="orb-hero-wrap" data-parallax="14">
+          <NetworkOrb className="orb-hero" data-hero="orb" />
+        </div>
 
         <div className="hero-copy">
           <p className="kicker" data-hero="kicker">
@@ -99,10 +125,28 @@ export default function HeroScene() {
           </p>
           <h1 className="title-hero">
             <span className="title-line" data-hero="line-a">
-              Plataforma de
+              <span className="wmask">
+                <span className="wmask-in" data-hero="word">
+                  Plataforma
+                </span>
+              </span>
+              <span className="wmask">
+                <span className="wmask-in" data-hero="word">
+                  de
+                </span>
+              </span>
             </span>
             <span className="title-line is-accent" data-hero="line-b">
-              gestión pública
+              <span className="wmask">
+                <span className="wmask-in w-hero-accent" data-hero="word">
+                  gestión
+                </span>
+              </span>
+              <span className="wmask">
+                <span className="wmask-in w-hero-accent" data-hero="word">
+                  pública
+                </span>
+              </span>
             </span>
           </h1>
           <p className="hero-sub" data-hero="sub">
@@ -112,6 +156,21 @@ export default function HeroScene() {
           <div className="hero-pills" data-hero="pills">
             <span className="pill pill-interop">INTEROP · X-ROAD</span>
             <span className="pill pill-govstake">GOVSTAKE 360</span>
+          </div>
+        </div>
+
+        <div className="ui-chip hero-chip-a" data-parallax="18" aria-hidden="true">
+          <div className="ui-chip-float">
+            <span className="chip">
+              <span className="chip-status" /> X-ROAD · <b>CONECTADO</b>
+            </span>
+          </div>
+        </div>
+        <div className="ui-chip hero-chip-b hide-sm" data-parallax="26" aria-hidden="true">
+          <div className="ui-chip-float" style={{ animationDelay: '-3s' }}>
+            <span className="chip">
+              <span className="chip-status gs" /> MADUREZ · <b className="gs">2.3/5</b>
+            </span>
           </div>
         </div>
 
