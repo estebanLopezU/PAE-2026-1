@@ -22,13 +22,22 @@ export default function HeroScene() {
           intro
             .from('[data-hero="word"]', {
               yPercent: 120,
+              rotationX: 72,
+              transformPerspective: 600,
+              transformOrigin: '50% 100%',
               duration: 0.9,
               stagger: 0.07,
               ease: 'power4.out',
             })
             .from('[data-hero="kicker"]', { autoAlpha: 0, y: 18, duration: 0.5 }, 0.25)
             .from('[data-hero="sub"]', { autoAlpha: 0, y: 14, duration: 0.5 }, 0.6)
-            .from('[data-hero="pills"]', { autoAlpha: 0, y: 12, duration: 0.5 }, 0.75)
+            .from('[data-hero="pills"]', {
+              autoAlpha: 0,
+              y: 12,
+              z: -180,
+              transformPerspective: 800,
+              duration: 0.5,
+            }, 0.75)
 
           const tl = gsap.timeline({
             scrollTrigger: {
@@ -43,21 +52,21 @@ export default function HeroScene() {
           tl.to('[data-hero="kicker"]', { opacity: 0, y: -60 }, 0)
             .to(
               '[data-hero="line-a"]',
-              { xPercent: -62, opacity: 0, scale: 0.92, duration: 0.55 },
+              { xPercent: -62, opacity: 0, scale: 0.92, z: -340, rotationX: 14, transformPerspective: 700, duration: 0.55 },
               0.02,
             )
             .to(
               '[data-hero="line-b"]',
-              { xPercent: 48, opacity: 0, scale: 0.95, duration: 0.55 },
+              { xPercent: 48, opacity: 0, scale: 0.95, z: -300, rotationX: 12, transformPerspective: 700, duration: 0.55 },
               0.1,
             )
             .to('[data-hero="sub"]', { opacity: 0, y: 30 }, 0.12)
-            .to('[data-hero="pills"]', { opacity: 0, y: 24 }, 0.18)
+            .to('[data-hero="pills"]', { opacity: 0, y: 24, z: -240, transformPerspective: 800 }, 0.18)
             .to('[data-hero="scroll-hint"]', { opacity: 0, y: 20 }, 0.06)
             .fromTo(
               '[data-hero="orb"]',
-              { scale: 0.86, rotate: -10, yPercent: 2 },
-              { scale: 1.3, rotate: 8, yPercent: -2, duration: 1, ease: 'none' },
+              { scale: 0.86, rotate: -10, yPercent: 2, rotationY: 0 },
+              { scale: 1.3, rotate: 8, yPercent: -2, rotationY: -14, duration: 1, ease: 'none' },
               0.12,
             )
         },
@@ -72,13 +81,22 @@ export default function HeroScene() {
           intro
             .from('[data-hero="word"]', {
               yPercent: 120,
+              rotationX: 64,
+              transformPerspective: 500,
+              transformOrigin: '50% 100%',
               duration: 0.8,
               stagger: 0.06,
               ease: 'power4.out',
             })
             .from('[data-hero="kicker"]', { autoAlpha: 0, y: 14, duration: 0.4 }, 0.2)
             .from('[data-hero="sub"]', { autoAlpha: 0, y: 10, duration: 0.4 }, 0.5)
-            .from('[data-hero="pills"]', { autoAlpha: 0, y: 8, duration: 0.4 }, 0.62)
+            .from('[data-hero="pills"]', {
+              autoAlpha: 0,
+              y: 8,
+              z: -120,
+              transformPerspective: 700,
+              duration: 0.4,
+            }, 0.62)
 
           const tl = gsap.timeline({
             scrollTrigger: {
@@ -91,15 +109,15 @@ export default function HeroScene() {
           })
 
           tl.to('[data-hero="kicker"]', { opacity: 0, y: -40 }, 0)
-            .to('[data-hero="line-a"]', { xPercent: -40, opacity: 0, duration: 0.5 }, 0.04)
-            .to('[data-hero="line-b"]', { xPercent: 34, opacity: 0, duration: 0.5 }, 0.1)
+            .to('[data-hero="line-a"]', { xPercent: -40, opacity: 0, z: -240, rotationX: 10, transformPerspective: 600, duration: 0.5 }, 0.04)
+            .to('[data-hero="line-b"]', { xPercent: 34, opacity: 0, z: -220, rotationX: 10, transformPerspective: 600, duration: 0.5 }, 0.1)
             .to('[data-hero="sub"]', { opacity: 0 }, 0.14)
-            .to('[data-hero="pills"]', { opacity: 0 }, 0.2)
+            .to('[data-hero="pills"]', { opacity: 0, z: -160, transformPerspective: 700 }, 0.2)
             .to('[data-hero="scroll-hint"]', { opacity: 0 }, 0.08)
             .fromTo(
               '[data-hero="orb"]',
-              { scale: 0.8, rotate: -6, yPercent: 4 },
-              { scale: 1.35, rotate: 5, yPercent: -4, duration: 1, ease: 'none' },
+              { scale: 0.8, rotate: -6, yPercent: 4, rotationY: 0 },
+              { scale: 1.35, rotate: 5, yPercent: -4, rotationY: -10, duration: 1, ease: 'none' },
               0.1,
             )
         },

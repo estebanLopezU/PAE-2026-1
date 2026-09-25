@@ -412,25 +412,29 @@ html.lenis, html.lenis body { height: auto; }
   50% { opacity: 1; }
 }
 .scroll-hint-line {
-  position: relative;
+  display: block;
   width: 1px;
-  height: 54px;
-  background: linear-gradient(to bottom, var(--line), var(--interop));
+  height: 56px;
+  margin: 0 auto;
+  background: rgba(243, 238, 255, 0.14);
   overflow: hidden;
+  position: relative;
 }
 .scroll-hint-line::after {
   content: '';
   position: absolute;
-  top: -30%;
   left: 0;
-  width: 100%;
-  height: 30%;
-  background: var(--govstake);
+  top: 0;
+  width: 1px;
+  height: 16px;
+  background: linear-gradient(180deg, transparent, var(--interop));
+  box-shadow: 0 0 8px rgba(167, 139, 250, 0.8);
   animation: hintDrop 2s cubic-bezier(0.65, 0, 0.35, 1) infinite;
 }
 @keyframes hintDrop {
-  0% { top: -30%; }
-  60%, 100% { top: 110%; }
+  0% { transform: translateY(-18px); opacity: 0; }
+  35% { opacity: 1; }
+  100% { transform: translateY(58px); opacity: 0; }
 }
 
 /* ================= STATEMENT ================= */
@@ -745,6 +749,57 @@ html.lenis, html.lenis body { height: auto; }
   0%, 100% { transform: scale(0.94); opacity: 0.65; }
   50% { transform: scale(1.06); opacity: 1; }
 }
+
+/* Pila explotada de dominios MinTIC (estilo producto 3D) */
+.dom-stack {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  perspective: 1100px;
+  opacity: 0;
+  pointer-events: none;
+}
+.dom-layer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2.4rem;
+  width: min(520px, 84vw);
+  padding: 0.85rem 1.4rem;
+  border-radius: 12px;
+  border: 1px solid rgba(243, 238, 255, 0.16);
+  background: linear-gradient(
+    120deg,
+    rgba(167, 139, 250, 0.14) 0%,
+    rgba(244, 114, 182, 0.09) 100%
+  );
+  backdrop-filter: blur(8px);
+  box-shadow:
+    0 18px 44px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  will-change: transform, opacity;
+}
+.dom-label {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(0.95rem, 2vw, 1.3rem);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+.dom-desc {
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  text-align: right;
+}
+.dom-layer:nth-child(even) .dom-label { color: var(--interop); }
+.dom-layer:nth-child(odd) .dom-label { color: var(--govstake); }
 
 .showcase-copy {
   position: relative;
@@ -1278,6 +1333,7 @@ html.lenis, html.lenis body { height: auto; }
   .marquee { position: static !important; transform: none !important; opacity: 0.06; }
 
   .aurora { display: none; }
+  .dom-stack { display: none; }
   .hero-glow::before,
   .showcase-beam::before,
   .chip-status,

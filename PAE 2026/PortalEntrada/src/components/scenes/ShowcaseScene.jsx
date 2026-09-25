@@ -5,6 +5,13 @@ import NetworkOrb from '../NetworkOrb'
 
 gsap.registerPlugin(ScrollTrigger)
 
+const DOMINIOS = [
+  { label: 'Legal', desc: 'marco normativo' },
+  { label: 'Organizacional', desc: 'estructura y procesos' },
+  { label: 'Semántico', desc: 'vocabularios compartidos' },
+  { label: 'Técnico', desc: 'servicios e infraestructura' },
+]
+
 export default function ShowcaseScene() {
   const rootRef = useRef(null)
 
@@ -25,6 +32,12 @@ export default function ShowcaseScene() {
             filter: 'blur(10px)',
           })
           gsap.set('[data-sh="stat"]', { opacity: 0, y: 26 })
+          gsap.set('[data-sh="layer"]', {
+            y: (i) => (i - 1.5) * 10,
+            scale: 0.94,
+            rotationX: 0,
+            z: 0,
+          })
 
           const counter = { v: 0 }
           const numValEl = gsap.utils.toArray('[data-sh="numVal"]')[0]
@@ -45,11 +58,33 @@ export default function ShowcaseScene() {
             { scale: 1.45, opacity: 1, filter: 'blur(0px)', duration: 0.6 },
             0,
           )
+            .fromTo('[data-sh="stack"]', { opacity: 0 }, { opacity: 1, duration: 0.06 }, 0.14)
+            .to(
+              '[data-sh="layer"]',
+              {
+                y: (i) => (i - 1.5) * 94,
+                z: (i) => (1.5 - i) * 34,
+                scale: 1,
+                rotationX: 7,
+                duration: 0.26,
+                stagger: 0.02,
+              },
+              0.18,
+            )
+            .to('[data-sh="layer"]', {
+              y: (i) => (i - 1.5) * 220,
+              rotationX: -6,
+              scale: 1.07,
+              filter: 'blur(6px)',
+              duration: 0.16,
+              stagger: 0.015,
+            }, 0.5)
+            .to('[data-sh="stack"]', { opacity: 0, duration: 0.1 }, 0.53)
             .to('[data-sh="kicker"]', { opacity: 1, duration: 0.1 }, 0.5)
             .fromTo(
               '[data-sh="num"]',
-              { opacity: 0, yPercent: 40, scale: 1.6, filter: 'blur(10px)' },
-              { opacity: 1, yPercent: 0, scale: 1, filter: 'blur(0px)', duration: 0.26 },
+              { opacity: 0, yPercent: 40, scale: 1.6, rotationX: 34, filter: 'blur(10px)', transformPerspective: 1000 },
+              { opacity: 1, yPercent: 0, scale: 1, rotationX: 0, filter: 'blur(0px)', duration: 0.26 },
               0.56,
             )
             .to('[data-sh="numInner"]', { scale: 1, yPercent: 0, duration: 0.24 }, 0.56)
@@ -67,8 +102,8 @@ export default function ShowcaseScene() {
             .to('[data-sh="line"]', { opacity: 1, duration: 0.12 }, 0.76)
             .fromTo(
               '[data-sh="stat"]',
-              { opacity: 0, y: 26 },
-              { opacity: 1, y: 0, duration: 0.1, stagger: 0.06 },
+              { opacity: 0, y: 26, rotationX: 28, z: -160, transformPerspective: 800 },
+              { opacity: 1, y: 0, rotationX: 0, z: 0, duration: 0.1, stagger: 0.06 },
               0.84,
             )
         },
@@ -86,6 +121,12 @@ export default function ShowcaseScene() {
             filter: 'blur(8px)',
           })
           gsap.set('[data-sh="stat"]', { opacity: 0, y: 18 })
+          gsap.set('[data-sh="layer"]', {
+            y: (i) => (i - 1.5) * 8,
+            scale: 0.95,
+            rotationX: 0,
+            z: 0,
+          })
 
           const counterMobile = { v: 0 }
           const numValElMobile = gsap.utils.toArray('[data-sh="numVal"]')[0]
@@ -106,11 +147,32 @@ export default function ShowcaseScene() {
             { scale: 1.3, opacity: 0.9, filter: 'blur(0px)', duration: 0.6 },
             0,
           )
+            .fromTo('[data-sh="stack"]', { opacity: 0 }, { opacity: 1, duration: 0.06 }, 0.14)
+            .to(
+              '[data-sh="layer"]',
+              {
+                y: (i) => (i - 1.5) * 74,
+                scale: 1,
+                rotationX: 6,
+                duration: 0.24,
+                stagger: 0.02,
+              },
+              0.18,
+            )
+            .to('[data-sh="layer"]', {
+              y: (i) => (i - 1.5) * 170,
+              rotationX: -5,
+              scale: 1.06,
+              filter: 'blur(5px)',
+              duration: 0.14,
+              stagger: 0.012,
+            }, 0.48)
+            .to('[data-sh="stack"]', { opacity: 0, duration: 0.09 }, 0.51)
             .to('[data-sh="kicker"]', { opacity: 1, duration: 0.1 }, 0.5)
             .fromTo(
               '[data-sh="num"]',
-              { opacity: 0, yPercent: 26, scale: 1.4, filter: 'blur(8px)' },
-              { opacity: 1, yPercent: 0, scale: 1, filter: 'blur(0px)', duration: 0.24 },
+              { opacity: 0, yPercent: 26, scale: 1.4, rotationX: 30, filter: 'blur(8px)', transformPerspective: 900 },
+              { opacity: 1, yPercent: 0, scale: 1, rotationX: 0, filter: 'blur(0px)', duration: 0.24 },
               0.56,
             )
             .to('[data-sh="numInner"]', { scale: 1, yPercent: 0, duration: 0.24 }, 0.56)
@@ -128,8 +190,8 @@ export default function ShowcaseScene() {
             .to('[data-sh="line"]', { opacity: 1, duration: 0.12 }, 0.76)
             .fromTo(
               '[data-sh="stat"]',
-              { opacity: 0, y: 18 },
-              { opacity: 1, y: 0, duration: 0.1, stagger: 0.06 },
+              { opacity: 0, y: 18, rotationX: 24, z: -120, transformPerspective: 800 },
+              { opacity: 1, y: 0, rotationX: 0, z: 0, duration: 0.1, stagger: 0.06 },
               0.84,
             )
         },
@@ -149,6 +211,15 @@ export default function ShowcaseScene() {
           <NetworkOrb className="orb-showcase" data-sh="orb" />
         </div>
         <div className="showcase-beam" aria-hidden="true" />
+
+        <div className="dom-stack" data-sh="stack" aria-hidden="true">
+          {DOMINIOS.map((d) => (
+            <div className="dom-layer" data-sh="layer" key={d.label}>
+              <span className="dom-label">{d.label}</span>
+              <span className="dom-desc">{d.desc}</span>
+            </div>
+          ))}
+        </div>
 
         <div className="showcase-copy">
           <p className="kicker" data-sh="kicker">

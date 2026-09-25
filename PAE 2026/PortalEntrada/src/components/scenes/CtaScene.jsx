@@ -26,12 +26,17 @@ export default function CtaScene() {
         })
 
         tl.to('[data-cta="kicker"]', { autoAlpha: 1, duration: 0.08 }, 0.05)
-          .to('[data-cta="title"]', { autoAlpha: 1, duration: 0.14 }, 0.12)
+          .fromTo(
+            '[data-cta="title"]',
+            { autoAlpha: 0, y: 54, rotationX: 28, transformPerspective: 800 },
+            { autoAlpha: 1, y: 0, rotationX: 0, duration: 0.14 },
+            0.12,
+          )
           .to('[data-cta="sub"]', { autoAlpha: 1, duration: 0.1 }, 0.26)
           .fromTo(
             '[data-cta="link"]',
-            { autoAlpha: 0, y: 64, scale: 0.97 },
-            { autoAlpha: 1, y: 0, scale: 1, duration: 0.16, stagger: 0.07, ease: 'power2.out' },
+            { autoAlpha: 0, y: 64, scale: 0.97, rotationX: 34, z: -160, transformPerspective: 900 },
+            { autoAlpha: 1, y: 0, scale: 1, rotationX: 0, z: 0, duration: 0.16, stagger: 0.07, ease: 'power2.out' },
             0.34,
           )
           .to('[data-cta="foot"]', { autoAlpha: 1, duration: 0.08 }, 0.62)
@@ -51,7 +56,14 @@ export default function CtaScene() {
             '[data-cta="kicker"], [data-cta="title"], [data-cta="sub"], [data-cta="foot"]',
             { autoAlpha: 0 },
           )
-          gsap.set('[data-cta="link"]', { autoAlpha: 0, y: 64, scale: 0.97 })
+          gsap.set('[data-cta="link"]', {
+            autoAlpha: 0,
+            y: 64,
+            scale: 0.97,
+            rotationX: 34,
+            z: -160,
+            transformPerspective: 900,
+          })
           gsap.set('[data-cta="orb"]', { opacity: 0.08, rotate: -4, scale: 1.15 })
           timeline()
         },
@@ -63,7 +75,14 @@ export default function CtaScene() {
             '[data-cta="kicker"], [data-cta="title"], [data-cta="sub"], [data-cta="foot"]',
             { autoAlpha: 0 },
           )
-          gsap.set('[data-cta="link"]', { autoAlpha: 0, y: 64, scale: 0.97 })
+          gsap.set('[data-cta="link"]', {
+            autoAlpha: 0,
+            y: 64,
+            scale: 0.97,
+            rotationX: 34,
+            z: -160,
+            transformPerspective: 900,
+          })
           gsap.set('[data-cta="orb"]', { opacity: 0.08, rotate: -4, scale: 1.15 })
           timeline()
         },

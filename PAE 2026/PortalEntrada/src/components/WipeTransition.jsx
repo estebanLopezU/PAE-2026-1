@@ -25,7 +25,12 @@ export default function WipeTransition({ tag, words, height = '40vh' }) {
         gsap.set(panel, {
           clipPath: 'polygon(0% 0%, 0% 0%, 0% 100%, 0% 100%)',
         })
-        gsap.set(wordEls, { yPercent: 130 })
+        gsap.set(wordEls, {
+          yPercent: 130,
+          rotationX: 84,
+          transformPerspective: 500,
+          transformOrigin: '50% 120%',
+        })
         gsap.set(tagEl, { opacity: 0 })
 
         const tl = gsap.timeline({
@@ -43,10 +48,10 @@ export default function WipeTransition({ tag, words, height = '40vh' }) {
           { clipPath: 'polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)', duration: 0.45 },
           0.05,
         )
-          .to(wordEls, { yPercent: 0, duration: 0.14, stagger: 0.05 }, 0.3)
+          .to(wordEls, { yPercent: 0, rotationX: 0, duration: 0.14, stagger: 0.05 }, 0.3)
           .to(tagEl, { opacity: 1, duration: 0.1 }, 0.32)
           .to(fillEl, { scaleX: 1, duration: 0.26 }, 0.32)
-          .to(wordEls, { yPercent: -130, duration: 0.13, stagger: 0.045 }, 0.62)
+          .to(wordEls, { yPercent: -130, rotationX: -60, duration: 0.13, stagger: 0.045 }, 0.62)
           .to(fillEl, { scaleX: 0, duration: 0.24 }, 0.67)
           .to(
             panel,

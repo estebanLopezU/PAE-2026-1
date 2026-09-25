@@ -17,13 +17,32 @@ export default function StatementScene() {
         '(prefers-reduced-motion: no-preference) and (min-width: 768px)',
         () => {
           const words = gsap.utils.toArray('[data-st="word"]')
-          gsap.set(words, { yPercent: 130 })
+          gsap.set(words, {
+            yPercent: 130,
+            rotationX: 78,
+            transformPerspective: 500,
+            transformOrigin: '50% 110%',
+          })
           gsap.set(
             '[data-st="kicker"], [data-st="body"], [data-st="tile-a"], [data-st="tile-b"]',
             { opacity: 0 },
           )
-          gsap.set('[data-st="tile-a"]', { xPercent: -6, y: 40 })
-          gsap.set('[data-st="tile-b"]', { xPercent: 6, y: 40 })
+          gsap.set('[data-st="tile-a"]', {
+            xPercent: -6,
+            y: 40,
+            rotationX: 42,
+            z: -200,
+            transformPerspective: 900,
+            transformOrigin: '50% 100%',
+          })
+          gsap.set('[data-st="tile-b"]', {
+            xPercent: 6,
+            y: 40,
+            rotationX: 42,
+            z: -200,
+            transformPerspective: 900,
+            transformOrigin: '50% 100%',
+          })
 
           const tl = gsap.timeline({
             scrollTrigger: {
@@ -36,15 +55,21 @@ export default function StatementScene() {
           })
 
           tl.to('[data-st="kicker"]', { opacity: 1, duration: 0.04 }, 0.02)
-            .to(words, { yPercent: 0, duration: 0.24, stagger: 0.05 }, 0.07)
+            .to(words, { yPercent: 0, rotationX: 0, duration: 0.24, stagger: 0.05 }, 0.07)
             .to('[data-st="body"]', { opacity: 1, y: 0, duration: 0.12 }, 0.48)
-            .to('[data-st="tile-a"]', { opacity: 1, xPercent: 0, y: 0, duration: 0.14 }, 0.52)
-            .to('[data-st="tile-b"]', { opacity: 1, xPercent: 0, y: 0, duration: 0.14 }, 0.6)
+            .to('[data-st="tile-a"]', { opacity: 1, xPercent: 0, y: 0, rotationX: 0, z: 0, duration: 0.14 }, 0.52)
+            .to('[data-st="tile-b"]', { opacity: 1, xPercent: 0, y: 0, rotationX: 0, z: 0, duration: 0.14 }, 0.6)
             .fromTo(
               '[data-st="orb"]',
               { xPercent: 14, yPercent: -10, scale: 1 },
               { xPercent: 40, yPercent: -46, scale: 0.7, opacity: 0.22, duration: 1 },
               0,
+            )
+            .to(words, { yPercent: -140, rotationX: -55, duration: 0.16, stagger: 0.03 }, 0.82)
+            .to(
+              '[data-st="body"], [data-st="tile-a"], [data-st="tile-b"], [data-st="kicker"]',
+              { opacity: 0, y: -46, rotationX: -18, duration: 0.14, stagger: 0.02 },
+              0.84,
             )
         },
       )
@@ -53,13 +78,32 @@ export default function StatementScene() {
         '(prefers-reduced-motion: no-preference) and (max-width: 767px)',
         () => {
           const words = gsap.utils.toArray('[data-st="word"]')
-          gsap.set(words, { yPercent: 130 })
+          gsap.set(words, {
+            yPercent: 130,
+            rotationX: 70,
+            transformPerspective: 450,
+            transformOrigin: '50% 110%',
+          })
           gsap.set(
             '[data-st="kicker"], [data-st="body"], [data-st="tile-a"], [data-st="tile-b"]',
             { opacity: 0 },
           )
-          gsap.set('[data-st="tile-a"]', { xPercent: -4, y: 30 })
-          gsap.set('[data-st="tile-b"]', { xPercent: 4, y: 30 })
+          gsap.set('[data-st="tile-a"]', {
+            xPercent: -4,
+            y: 30,
+            rotationX: 34,
+            z: -140,
+            transformPerspective: 800,
+            transformOrigin: '50% 100%',
+          })
+          gsap.set('[data-st="tile-b"]', {
+            xPercent: 4,
+            y: 30,
+            rotationX: 34,
+            z: -140,
+            transformPerspective: 800,
+            transformOrigin: '50% 100%',
+          })
 
           const tl = gsap.timeline({
             scrollTrigger: {
@@ -72,15 +116,21 @@ export default function StatementScene() {
           })
 
           tl.to('[data-st="kicker"]', { opacity: 1, duration: 0.06 }, 0.04)
-            .to(words, { yPercent: 0, duration: 0.24, stagger: 0.05 }, 0.08)
+            .to(words, { yPercent: 0, rotationX: 0, duration: 0.24, stagger: 0.05 }, 0.08)
             .to('[data-st="body"]', { opacity: 1, y: 0, duration: 0.12 }, 0.48)
-            .to('[data-st="tile-a"]', { opacity: 1, xPercent: 0, y: 0, duration: 0.14 }, 0.52)
-            .to('[data-st="tile-b"]', { opacity: 1, xPercent: 0, y: 0, duration: 0.14 }, 0.6)
+            .to('[data-st="tile-a"]', { opacity: 1, xPercent: 0, y: 0, rotationX: 0, z: 0, duration: 0.14 }, 0.52)
+            .to('[data-st="tile-b"]', { opacity: 1, xPercent: 0, y: 0, rotationX: 0, z: 0, duration: 0.14 }, 0.6)
             .fromTo(
               '[data-st="orb"]',
               { scale: 1, opacity: 0.5 },
               { scale: 0.55, opacity: 0.12, duration: 1 },
               0,
+            )
+            .to(words, { yPercent: -140, rotationX: -50, duration: 0.14, stagger: 0.025 }, 0.84)
+            .to(
+              '[data-st="body"], [data-st="tile-a"], [data-st="tile-b"], [data-st="kicker"]',
+              { opacity: 0, y: -36, rotationX: -14, duration: 0.12, stagger: 0.02 },
+              0.86,
             )
         },
       )

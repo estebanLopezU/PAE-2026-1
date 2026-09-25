@@ -28,7 +28,16 @@ export default function FeaturesScene() {
         () => {
           const cards = gsap.utils.toArray('[data-feat="card"]')
           const dots = gsap.utils.toArray('[data-feat="dot"]')
-          gsap.set(cards, { opacity: 0, xPercent: 26, scale: 0.94, y: 28 })
+          gsap.set(cards, {
+            opacity: 0,
+            xPercent: 30,
+            scale: 0.94,
+            y: 28,
+            rotationY: -34,
+            z: -260,
+            transformPerspective: 1000,
+            transformOrigin: '50% 50%',
+          })
 
           const tl = gsap.timeline({
             scrollTrigger: {
@@ -52,12 +61,35 @@ export default function FeaturesScene() {
           ROW_TIMES.forEach((t, i) => {
             tl.fromTo(
               cards[i],
-              { opacity: 0, xPercent: 26, scale: 0.94, y: 28 },
-              { opacity: 1, xPercent: 0, scale: 1, y: 0, duration: 0.4 },
+              {
+                opacity: 0,
+                xPercent: 30,
+                scale: 0.94,
+                y: 28,
+                rotationY: -34,
+                z: -260,
+                transformPerspective: 1000,
+              },
+              {
+                opacity: 1,
+                xPercent: 0,
+                scale: 1,
+                y: 0,
+                rotationY: 0,
+                z: 0,
+                duration: 0.4,
+              },
               t.enter,
             ).to(
               cards[i],
-              { opacity: 0, xPercent: -24, scale: 0.95, duration: 0.4 },
+              {
+                opacity: 0,
+                xPercent: -28,
+                scale: 0.95,
+                rotationY: 30,
+                z: -240,
+                duration: 0.4,
+              },
               t.exit,
             )
           })
@@ -69,7 +101,14 @@ export default function FeaturesScene() {
         () => {
           const cards = gsap.utils.toArray('[data-feat="card"]')
           const dots = gsap.utils.toArray('[data-feat="dot"]')
-          gsap.set(cards, { opacity: 0, xPercent: 16, scale: 0.95 })
+          gsap.set(cards, {
+            opacity: 0,
+            xPercent: 16,
+            scale: 0.95,
+            rotationY: -16,
+            z: -90,
+            transformPerspective: 900,
+          })
 
           const tl = gsap.timeline({
             scrollTrigger: {
@@ -93,10 +132,14 @@ export default function FeaturesScene() {
           ROW_TIMES.forEach((t, i) => {
             tl.fromTo(
               cards[i],
-              { opacity: 0, xPercent: 16, scale: 0.95 },
-              { opacity: 1, xPercent: 0, scale: 1, duration: 0.4 },
+              { opacity: 0, xPercent: 16, scale: 0.95, rotationY: -16, z: -90, transformPerspective: 900 },
+              { opacity: 1, xPercent: 0, scale: 1, rotationY: 0, z: 0, duration: 0.4 },
               t.enter,
-            ).to(cards[i], { opacity: 0, xPercent: -16, duration: 0.4 }, t.exit)
+            ).to(
+              cards[i],
+              { opacity: 0, xPercent: -16, rotationY: 14, z: -80, duration: 0.4 },
+              t.exit,
+            )
           })
         },
       )
