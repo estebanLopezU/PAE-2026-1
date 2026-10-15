@@ -43,6 +43,9 @@ def call_agent(platform: str, system_prompt: str, history: Optional[List[Dict]] 
                     "messages": messages,
                     "temperature": 0.3,
                     "max_tokens": 900,
+                    # Nemotron (free) es razonador: sin esto, gasta los tokens
+                    # en razonamiento y devuelve contenido vacío.
+                    "reasoning": {"enabled": False},
                 }
                 try:
                     resp = client.post(url, headers=headers, json=payload)
