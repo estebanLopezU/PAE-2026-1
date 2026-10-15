@@ -27,7 +27,7 @@ class Settings(BaseSettings):
 
     # OpenRouter (AgentGD IA)
     OPENROUTER_API_KEY: str = ""
-    OPENROUTER_MODEL: str = "google/gemma-4-31b-it:free"
+    OPENROUTER_MODEL: str = "nvidia/nemotron-3.5-lightning:free"
     OPENROUTER_BASE_URL: str = "https://openrouter.ai/api/v1"
     OSR_REFERER: str = "http://localhost:3002"
 
