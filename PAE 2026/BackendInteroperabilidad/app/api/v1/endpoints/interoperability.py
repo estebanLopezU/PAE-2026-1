@@ -898,7 +898,10 @@ async def validate_api_semantic(
 
 
 @router.post("/validation/errors")
-async def get_api_validation_errors(request: ValidationRequest):
+async def get_api_validation_errors(
+    request: ValidationRequest,
+    current_user: Dict = Depends(get_current_user),
+):
     """
     Obtener solo errores de validación semántica
     """
@@ -933,7 +936,8 @@ class ReportRequest(BaseModel):
 @router.post("/reports/generate")
 async def generate_report(
     request: ReportRequest,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: Dict = Depends(get_current_user),
 ):
     """
     Generar reporte de interoperabilidad

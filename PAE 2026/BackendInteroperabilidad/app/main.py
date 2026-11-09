@@ -107,6 +107,21 @@ async def root():
     }
 
 
+@app.get("/api/v1")
+async def api_index():
+    """Información de conexión para evitar 404 al abrir la URL base."""
+    return {
+        "application": settings.APP_NAME,
+        "version": settings.APP_VERSION,
+        "status": "running",
+        "api_prefix": "/api/v1",
+        "documentation": "/api/docs",
+        "health": "/api/health",
+        "authentication": "/api/v1/auth/login",
+        "message": "Usa POST /api/v1/auth/login para iniciar sesión.",
+    }
+
+
 @app.get("/api/health")
 async def health_check():
     """API health check"""
