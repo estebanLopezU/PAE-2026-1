@@ -69,6 +69,13 @@ export const matrizApi = {
   priorizacion: () => api.get('/matriz/priorizacion'),
   mapa: () => api.get('/matriz/mapa'),
   resumen: () => api.get('/matriz/resumen'),
+  mitchell: () => api.get('/matriz/mitchell'),
+  mitchellResumen: () => api.get('/matriz/mitchell/resumen'),
+}
+
+// Sincronización de entidades públicas
+export const sincronizacionesApi = {
+  entidadesPublicas: () => api.post('/sincronizaciones/entidades-publicas'),
 }
 
 // Compromisos API

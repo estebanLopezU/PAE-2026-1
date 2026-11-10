@@ -10,6 +10,7 @@ from .endpoints import (
     protocolo,
     reportes,
     agentgd,
+    sincronizaciones,
 )
 
 api_router = APIRouter()
@@ -23,4 +24,5 @@ api_router.include_router(relacionamientos.router, prefix="/relacionamientos", t
 api_router.include_router(dashboard.router, prefix="/dashboard", tags=["Dashboard"])
 api_router.include_router(protocolo.router, prefix="/protocolo", tags=["Protocolo de participación"])
 api_router.include_router(reportes.router, prefix="/reportes", tags=["Reportes"])
+api_router.include_router(sincronizaciones.router, prefix="/sincronizaciones", tags=["Sincronización"])
 api_router.include_router(agentgd.router, prefix="/agentgd", tags=["AgentGD"])

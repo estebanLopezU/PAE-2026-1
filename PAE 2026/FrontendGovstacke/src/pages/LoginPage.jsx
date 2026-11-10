@@ -109,7 +109,7 @@ export default function LoginPage() {
     <>
       <LoginBackground />
       <div className="stage">
-      <a className="back-portal-btn" href={import.meta.env.VITE_PORTAL_URL || 'http://localhost:3000'} style={{ zIndex: 40, position: 'fixed', top: 18, left: 18, display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.55rem 1rem', borderRadius: 8, background: 'rgba(26,10,10,0.8)', border: '1px solid #3a1616', color: '#c9a0a0', fontSize: '0.82rem', textDecoration: 'none', backdropFilter: 'blur(6px)' }}>
+      <a className="back-portal-btn" href={import.meta.env.VITE_PORTAL_URL || 'http://localhost:3000'} style={{ zIndex: 40, position: 'fixed', top: 18, left: 18, display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.55rem 1rem', borderRadius: 8, background: 'rgba(26,10,10,0.8)', border: '1px solid #3f3f46', color: '#c9a0a0', fontSize: '0.82rem', textDecoration: 'none', backdropFilter: 'blur(6px)' }}>
         <ArrowLeft className="h-4 w-4" /> Volver al portal
       </a>
 
@@ -137,23 +137,23 @@ export default function LoginPage() {
             <button
               type="button"
               onClick={() => setAccessType('admin')}
-              className="group flex items-center gap-4 rounded-xl border border-[#3a1616] bg-black/40 p-4 text-left transition-all hover:border-[#ff3b3b]/70 hover:bg-[#ff3b3b]/5"
+              className="group flex items-center gap-4 rounded-xl border border-[#3f3f46] bg-black/40 p-4 text-left transition-all hover:border-[#ef4444]/70 hover:bg-[#ef4444]/5"
             >
-              <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-[#ff3b3b]/10 text-xl">🛡️</span>
+              <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-[#ef4444]/10 text-xl">🛡️</span>
               <span>
                 <span className="block text-sm font-bold text-white">Administrador</span>
-                <span className="block text-xs text-[#8a6363]">Acceso completo</span>
+                <span className="block text-xs text-[#a1a1aa]">Acceso completo</span>
               </span>
             </button>
             <button
               type="button"
               onClick={() => setAccessType('usuario')}
-              className="group flex items-center gap-4 rounded-xl border border-[#3a1616] bg-black/40 p-4 text-left transition-all hover:border-[#ff8a3d]/70 hover:bg-[#ff8a3d]/5"
+              className="group flex items-center gap-4 rounded-xl border border-[#3f3f46] bg-black/40 p-4 text-left transition-all hover:border-[#f97316]/70 hover:bg-[#f97316]/5"
             >
-              <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-[#ff8a3d]/10 text-xl">👤</span>
+              <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-[#f97316]/10 text-xl">👤</span>
               <span>
                 <span className="block text-sm font-bold text-white">Usuario</span>
-                <span className="block text-xs text-[#8a6363]">Acceso de solo lectura</span>
+                <span className="block text-xs text-[#a1a1aa]">Acceso de solo lectura</span>
               </span>
             </button>
           </div>
@@ -162,7 +162,7 @@ export default function LoginPage() {
         <button
           type="button"
           onClick={() => { setAccessType(null); setError('') }}
-          className="mb-4 text-xs text-[#8a6363] transition-colors hover:text-white"
+          className="mb-4 text-xs text-[#a1a1aa] transition-colors hover:text-white"
           style={{ display: 'inline-block' }}
         >
           ← Cambiar tipo de acceso
@@ -206,7 +206,7 @@ export default function LoginPage() {
           </div>
 
           {error && (
-            <p className="mb-4 rounded-lg border border-[#ff3b3b]/40 bg-[#ff3b3b]/10 px-3 py-2 text-center text-xs text-[#ff6b6b]">
+            <p className="mb-4 rounded-lg border border-[#ef4444]/40 bg-[#ef4444]/10 px-3 py-2 text-center text-xs text-[#fca5a5]">
               {error}
             </p>
           )}

@@ -17,8 +17,8 @@ export default function AgentGDChat({ platform = 'govstake' }) {
 
   const palette = isGov
     ? {
-        bubble: 'linear-gradient(135deg,#ff3b3b,#ff8a3d)',
-        header: 'linear-gradient(90deg,#ff3b3b,#ff8a3d)',
+        bubble: 'linear-gradient(135deg,#ef4444,#f97316)',
+        header: 'linear-gradient(90deg,#ef4444,#f97316)',
         card: 'rgba(26,10,10,0.97)',
         cardBorder: 'rgba(255,59,59,0.45)',
         user: 'rgba(255,59,59,0.22)',

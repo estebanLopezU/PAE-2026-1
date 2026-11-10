@@ -21,6 +21,7 @@ COPY . .
 EXPOSE 8002
 
 ENV PYTHONUTF8=1
+ENV PYTHONUNBUFFERED=1
 
 # Run application (usa $PORT si el proveedor la define, p. ej. Render)
 CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8002}"]

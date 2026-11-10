@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr
-from typing import Optional, List
+from typing import Optional, List, Dict
 from datetime import datetime
 
 
@@ -14,6 +14,8 @@ class ActorVariablesBase(BaseModel):
     historial_participacion: float = 0
     riesgo_conflicto: float = 0
     canales_relacionamiento: float = 0
+    urgencia: float = 0
+    frecuencia_intentos: float = 0
 
 
 class ActorVariablesCreate(ActorVariablesBase):
@@ -31,11 +33,15 @@ class ActorVariablesUpdate(BaseModel):
     historial_participacion: Optional[float] = None
     riesgo_conflicto: Optional[float] = None
     canales_relacionamiento: Optional[float] = None
+    urgencia: Optional[float] = None
+    frecuencia_intentos: Optional[float] = None
 
 
 class ActorVariables(ActorVariablesBase):
     id: int
     actor_id: int
+    evaluado_por: Optional[str] = None
+    evaluado_en: Optional[datetime] = None
 
     class Config:
         from_attributes = True
@@ -55,6 +61,10 @@ class ActorBase(BaseModel):
     notas: Optional[str] = None
     es_interno: bool = False
     is_active: bool = True
+    fuente: str = "manual"
+    entidad_origen_id: Optional[int] = None
+    nit: Optional[str] = None
+    acronimo: Optional[str] = None
 
 
 class ActorCreate(ActorBase):
@@ -75,11 +85,16 @@ class ActorUpdate(BaseModel):
     notas: Optional[str] = None
     es_interno: Optional[bool] = None
     is_active: Optional[bool] = None
+    fuente: Optional[str] = None
+    entidad_origen_id: Optional[int] = None
+    nit: Optional[str] = None
+    acronimo: Optional[str] = None
 
 
 class Actor(ActorBase):
     id: int
     variables: Optional[ActorVariables] = None
+    mitchell: Optional[Dict] = None
 
     # Campos calculados
     indice_priorizacion: Optional[float] = 0
@@ -90,6 +105,7 @@ class Actor(ActorBase):
 
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
+    ultima_sync: Optional[datetime] = None
 
     class Config:
         from_attributes = True

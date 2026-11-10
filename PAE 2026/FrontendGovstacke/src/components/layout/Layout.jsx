@@ -21,6 +21,7 @@ const NAV_ITEMS = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/actores', label: 'Actores', icon: Users },
   { to: '/matriz', label: 'Matriz y Mapa', icon: Grid3X3 },
+  { to: '/mitchell', label: 'Mitchell', icon: Grid3X3 },
   { to: '/compromisos', label: 'Compromisos', icon: Handshake },
   { to: '/relacionamientos', label: 'Relacionamiento', icon: MessageSquareHeart },
   { to: '/alertas', label: 'Alertas', icon: Bell },
@@ -41,15 +42,15 @@ export default function Layout() {
   const sidebar = (
     <div className="flex h-full flex-col">
       {/* Logo / marca */}
-      <div className="flex items-center gap-3 border-b border-[#3a1616] px-6 py-6">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#ff3b3b] to-[#ff8a3d] font-mono text-lg font-black text-[#1a0505] shadow-lg shadow-red-900/40">
+      <div className="flex items-center gap-3 border-b border-[#3f3f46] px-6 py-6">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#ef4444] to-[#f97316] font-mono text-lg font-black text-[#1a0505] shadow-lg shadow-red-900/40">
           G
         </div>
         <div>
           <p className="font-mono text-sm font-bold tracking-widest text-white">
-            GOV<span className="text-[#ff3b3b]">STAKE</span>
+            GOV<span className="text-[#ef4444]">STAKE</span>
           </p>
-          <p className="font-mono text-[10px] tracking-[0.2em] text-[#a08080]">360 · GESTIÓN</p>
+          <p className="font-mono text-[10px] tracking-[0.2em] text-[#a1a1aa]">360 · GESTIÓN</p>
         </div>
       </div>
 
@@ -63,8 +64,8 @@ export default function Layout() {
             className={({ isActive }) =>
               `group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all ${
                 isActive
-                  ? 'bg-gradient-to-r from-[#ff3b3b]/20 to-transparent text-white border border-[#ff3b3b]/40 shadow-[0_0_18px_rgba(255,59,59,0.15)]'
-                  : 'text-[#a08080] hover:bg-white/5 hover:text-white border border-transparent'
+                  ? 'bg-gradient-to-r from-[#ef4444]/20 to-transparent text-white border border-[#ef4444]/40 shadow-[0_0_18px_rgba(255,59,59,0.15)]'
+                  : 'text-[#a1a1aa] hover:bg-white/5 hover:text-white border border-transparent'
               }`
             }
           >
@@ -75,26 +76,26 @@ export default function Layout() {
       </nav>
 
       {/* Pie: usuario + salir + volver al portal */}
-      <div className="space-y-2 border-t border-[#3a1616] px-3 py-4">
+      <div className="space-y-2 border-t border-[#3f3f46] px-3 py-4">
         <div className="flex items-center gap-3 px-3 py-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#3a1616] font-mono text-sm font-bold text-[#ff8a3d]">
+          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#3f3f46] font-mono text-sm font-bold text-[#f97316]">
             {(user?.name || user?.email || '?').charAt(0).toUpperCase()}
           </div>
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold text-white">{user?.name || 'Usuario'}</p>
-            <p className="truncate text-[11px] uppercase tracking-wider text-[#a08080]">{user?.role || 'viewer'}</p>
+            <p className="truncate text-[11px] uppercase tracking-wider text-[#a1a1aa]">{user?.role || 'viewer'}</p>
           </div>
         </div>
         <a
           href={import.meta.env.VITE_PORTAL_URL || 'http://localhost:3000'}
-          className="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm text-[#a08080] transition-all hover:bg-white/5 hover:text-white"
+          className="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm text-[#a1a1aa] transition-all hover:bg-white/5 hover:text-white"
         >
           <ExternalLink className="h-4 w-4" />
           Volver al portal
         </a>
         <button
           onClick={handleLogout}
-          className="flex w-full items-center gap-3 rounded-xl px-4 py-2.5 text-sm text-[#a08080] transition-all hover:bg-[#ff3b3b]/10 hover:text-[#ff3b3b]"
+          className="flex w-full items-center gap-3 rounded-xl px-4 py-2.5 text-sm text-[#a1a1aa] transition-all hover:bg-[#ef4444]/10 hover:text-[#ef4444]"
         >
           <LogOut className="h-4 w-4" />
           Salir
@@ -104,9 +105,9 @@ export default function Layout() {
   )
 
   return (
-    <div className="flex min-h-screen bg-[#150505]">
+    <div className="flex min-h-screen bg-[#09090b]">
       {/* Sidebar desktop */}
-      <aside className="hidden w-64 shrink-0 border-r border-[#3a1616] bg-[#1a0a0a]/80 backdrop-blur-xl lg:block">
+      <aside className="hidden w-64 shrink-0 border-r border-[#3f3f46] bg-[#18181b]/80 backdrop-blur-xl lg:block">
         {sidebar}
       </aside>
 
@@ -114,10 +115,10 @@ export default function Layout() {
       {mobileOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
           <div className="absolute inset-0 bg-black/70" onClick={() => setMobileOpen(false)} />
-          <aside className="absolute left-0 top-0 h-full w-64 border-r border-[#3a1616] bg-[#1a0a0a]">
+          <aside className="absolute left-0 top-0 h-full w-64 border-r border-[#3f3f46] bg-[#18181b]">
             <button
               onClick={() => setMobileOpen(false)}
-              className="absolute right-3 top-4 text-[#a08080] hover:text-white"
+              className="absolute right-3 top-4 text-[#a1a1aa] hover:text-white"
             >
               <X className="h-5 w-5" />
             </button>
@@ -128,12 +129,12 @@ export default function Layout() {
 
       {/* Contenido */}
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex items-center gap-4 border-b border-[#3a1616] bg-[#1a0a0a]/60 px-5 py-4 backdrop-blur-xl lg:hidden">
-          <button onClick={() => setMobileOpen(true)} className="text-[#a08080] hover:text-white">
+        <header className="flex items-center gap-4 border-b border-[#3f3f46] bg-[#18181b]/60 px-5 py-4 backdrop-blur-xl lg:hidden">
+          <button onClick={() => setMobileOpen(true)} className="text-[#a1a1aa] hover:text-white">
             <Menu className="h-6 w-6" />
           </button>
           <p className="font-mono text-sm font-bold tracking-widest text-white">
-            GOV<span className="text-[#ff3b3b]">STAKE</span> 360
+            GOV<span className="text-[#ef4444]">STAKE</span> 360
           </p>
         </header>
         <main className="flex-1 overflow-x-hidden p-5 lg:p-8">

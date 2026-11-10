@@ -1,4 +1,5 @@
 from typing import List, Optional
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
@@ -97,9 +98,9 @@ def update_actor_variables(
     actor_id: int,
     payload: dict,
     db: Session = Depends(get_db),
-    _=Depends(get_current_user),
+    current_user=Depends(require_admin),
 ):
-    """Actualiza las variables de análisis (poder, legitimidad, influencia, etc.) del actor."""
+    """Actualiza las variables de análisis del actor y registra quién evaluó."""
     actor = db.query(Actor).filter(Actor.id == actor_id).first()
     if not actor:
         raise HTTPException(status_code=404, detail="Actor no encontrado")
@@ -112,11 +113,15 @@ def update_actor_variables(
     campos_validos = [
         "poder", "legitimidad", "influencia", "interes", "dependencia",
         "capacidad_movilizacion", "posicion", "historial_participacion",
-        "riesgo_conflicto", "canales_relacionamiento",
+        "riesgo_conflicto", "canales_relacionamiento", "urgencia",
+        "frecuencia_intentos",
     ]
     for key in campos_validos:
         if key in payload:
             setattr(variables, key, float(payload[key]))
+
+    variables.evaluado_por = current_user.get("email", "desconocido")
+    variables.evaluado_en = datetime.now(timezone.utc)
 
     db.commit()
     db.refresh(actor)
@@ -137,7 +142,7 @@ def delete_actor(actor_id: int, db: Session = Depends(get_db), _=Depends(require
 def evaluar_alertas_actor(
     actor_id: int,
     db: Session = Depends(get_db),
-    _=Depends(get_current_user),
+    _=Depends(require_admin),
 ):
     """Evalúa automáticamente las reglas de alertas para un actor y las persiste."""
     actor = db.query(Actor).filter(Actor.id == actor_id).first()

@@ -17,7 +17,8 @@ ACTORES_DE_EJEMPLO = [
         "es_interno": True,
         "variables": {"poder": 85, "legitimidad": 75, "influencia": 80, "interes": 90,
                       "dependencia": 60, "capacidad_movilizacion": 70, "posicion": 85,
-                      "historial_participacion": 80, "riesgo_conflicto": 20, "canales_relacionamiento": 85},
+                      "historial_participacion": 80, "riesgo_conflicto": 20, "canales_relacionamiento": 85,
+                      "urgencia": 70, "frecuencia_intentos": 40},
     },
     {
         "nombre": "Concejo Municipal",
@@ -27,7 +28,8 @@ ACTORES_DE_EJEMPLO = [
         "es_interno": False,
         "variables": {"poder": 80, "legitimidad": 85, "influencia": 75, "interes": 80,
                       "dependencia": 40, "capacidad_movilizacion": 75, "posicion": 70,
-                      "historial_participacion": 75, "riesgo_conflicto": 45, "canales_relacionamiento": 80},
+                      "historial_participacion": 75, "riesgo_conflicto": 45, "canales_relacionamiento": 80,
+                      "urgencia": 55, "frecuencia_intentos": 35},
     },
     {
         "nombre": "Veeduría Ciudadana",
@@ -37,7 +39,8 @@ ACTORES_DE_EJEMPLO = [
         "es_interno": False,
         "variables": {"poder": 55, "legitimidad": 70, "influencia": 60, "interes": 90,
                       "dependencia": 30, "capacidad_movilizacion": 80, "posicion": 40,
-                      "historial_participacion": 85, "riesgo_conflicto": 75, "canales_relacionamiento": 65},
+                      "historial_participacion": 85, "riesgo_conflicto": 75, "canales_relacionamiento": 65,
+                      "urgencia": 65, "frecuencia_intentos": 70},
     },
     {
         "nombre": "Comunidad Local / Ciudadanía",
@@ -57,7 +60,8 @@ ACTORES_DE_EJEMPLO = [
         "es_interno": False,
         "variables": {"poder": 70, "legitimidad": 55, "influencia": 75, "interes": 65,
                       "dependencia": 50, "capacidad_movilizacion": 50, "posicion": 75,
-                      "historial_participacion": 45, "riesgo_conflicto": 35, "canales_relacionamiento": 70},
+                      "historial_participacion": 45, "riesgo_conflicto": 35, "canales_relacionamiento": 70,
+                      "urgencia": 60, "frecuencia_intentos": 55},
     },
     {
         "nombre": "Universidad Pública Local",
@@ -87,7 +91,8 @@ ACTORES_DE_EJEMPLO = [
         "es_interno": False,
         "variables": {"poder": 90, "legitimidad": 90, "influencia": 85, "interes": 80,
                       "dependencia": 20, "capacidad_movilizacion": 55, "posicion": 70,
-                      "historial_participacion": 65, "riesgo_conflicto": 30, "canales_relacionamiento": 70},
+                      "historial_participacion": 65, "riesgo_conflicto": 30, "canales_relacionamiento": 70,
+                      "urgencia": 80, "frecuencia_intentos": 45},
     },
     {
         "nombre": "Asociación de Usuarios / JAC",

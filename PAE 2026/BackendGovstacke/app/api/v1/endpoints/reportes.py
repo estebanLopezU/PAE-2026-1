@@ -61,6 +61,30 @@ def _generar_recomendaciones(filas):
             "actores": [f["nombre"] for f in alta_influencia_baja_part[:5]],
             "severidad": "baja",
         })
+    definitivos = [f for f in filas if f.get("mitchell", {}).get("tipo_mitchell") == "definitivo"]
+    if definitivos:
+        rec.append({
+            "titulo": f"Atender {len(definitivos)} stakeholder(s) definitivo(s)",
+            "detalle": "Tienen poder, legitimidad y urgencia. Programar decisión conjunta y compromisos formales.",
+            "actores": [f["nombre"] for f in definitivos[:5]],
+            "severidad": "alta",
+        })
+    peligrosos = [f for f in filas if f.get("mitchell", {}).get("tipo_mitchell") == "expectante_peligroso"]
+    if peligrosos:
+        rec.append({
+            "titulo": f"Contener {len(peligrosos)} actor(es) peligroso(s)",
+            "detalle": "Combinan poder y urgencia. Activar comunicación directa y control de conflictos.",
+            "actores": [f["nombre"] for f in peligrosos[:5]],
+            "severidad": "alta",
+        })
+    dependientes = [f for f in filas if f.get("mitchell", {}).get("tipo_mitchell") == "expectante_dependiente"]
+    if dependientes:
+        rec.append({
+            "titulo": f"Articular {len(dependientes)} actor(es) dependiente(s)",
+            "detalle": "Tienen legitimidad y urgencia, pero necesitan aliados o canales formales.",
+            "actores": [f["nombre"] for f in dependientes[:5]],
+            "severidad": "media",
+        })
     if not rec:
         rec.append({
             "titulo": "Ecosistema saludable",
@@ -69,6 +93,8 @@ def _generar_recomendaciones(filas):
             "severidad": "baja",
         })
     return rec
+
+
 @router.get("/ejecutivo")
 def reporte_ejecutivo(db: Session = Depends(get_db), _=Depends(get_current_user)):
     """Reporte ejecutivo consolidado para la toma de decisiones."""
@@ -78,14 +104,29 @@ def reporte_ejecutivo(db: Session = Depends(get_db), _=Depends(get_current_user)
 
     por_tipo = Counter(f["tipo"] for f in filas)
     por_prioridad = Counter(f["nivel_prioridad"] for f in filas)
+    por_mitchell = Counter(f.get("mitchell", {}).get("tipo_mitchell", "no_relevante") for f in filas)
     indices_rel = [f["indice_relacionamiento"] for f in filas] or [0]
     indices_pri = [f["indice_priorizacion"] for f in filas] or [0]
+
+    definitivos = [f for f in filas if f.get("mitchell", {}).get("tipo_mitchell") == "definitivo"]
+    peligrosos = [f for f in filas if f.get("mitchell", {}).get("tipo_mitchell") == "expectante_peligroso"]
+    dependientes = [f for f in filas if f.get("mitchell", {}).get("tipo_mitchell") == "expectante_dependiente"]
+    pendientes = [
+        f for f in filas
+        if (f.get("variables") or {}).get("poder", 0) <= 0
+        and (f.get("variables") or {}).get("legitimidad", 0) <= 0
+        and (f.get("variables") or {}).get("urgencia", 0) <= 0
+    ]
 
     return {
         "resumen": {
             "total_actores": len(filas),
             "por_tipo": dict(por_tipo),
             "por_prioridad": dict(por_prioridad),
+            "por_mitchell": dict(por_mitchell),
+            "actores_definitivos": len(definitivos),
+            "actores_peligrosos": len(peligrosos),
+            "pendientes_evaluacion": len(pendientes),
             "indice_relacionamiento_promedio": round(sum(indices_rel) / len(indices_rel), 1),
             "indice_priorizacion_promedio": round(sum(indices_pri) / len(indices_pri), 1),
             "actores_riesgo_alto": sum(1 for f in filas if (f["variables"] or {}).get("riesgo_conflicto", 0) >= 70),
@@ -93,6 +134,11 @@ def reporte_ejecutivo(db: Session = Depends(get_db), _=Depends(get_current_user)
             "alertas_activas": sum(f["alertas_count"] for f in filas),
         },
         "top_prioridad": filas[:10],
+        "mitchell": {
+            "definitivos": definitivos,
+            "peligrosos": peligrosos,
+            "dependientes": dependientes,
+        },
         "recomendaciones": _generar_recomendaciones(filas),
     }
 
@@ -105,6 +151,7 @@ def reporte_por_actor(db: Session = Depends(get_db), _=Depends(get_current_user)
     for a in actores:
         d = actor_to_dict(a)
         v = d["variables"] or {}
+        m = d["mitchell"]
         items.append({
             "id": d["id"],
             "nombre": d["nombre"],
@@ -114,6 +161,11 @@ def reporte_por_actor(db: Session = Depends(get_db), _=Depends(get_current_user)
             "indice_relacionamiento": d["indice_relacionamiento"],
             "riesgo_conflicto": v.get("riesgo_conflicto", 0),
             "posicion": v.get("posicion", 0),
+            "urgencia": v.get("urgencia", 0),
+            "frecuencia_intentos": v.get("frecuencia_intentos", 0),
+            "tipo_mitchell": m["tipo_mitchell"],
+            "grupo_mitchell": m["grupo"],
+            "relevancia_mitchell": m["relevancia_mitchell"],
             "compromisos": d["compromisos_count"],
             "alertas": d["alertas_count"],
         })

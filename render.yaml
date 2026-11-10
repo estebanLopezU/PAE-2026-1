@@ -32,6 +32,12 @@ services:
         sync: false
       - key: OPENROUTER_MODEL
         value: nvidia/nemotron-3.5-lightning:free
+      - key: INTEROP_API_URL
+        value: https://xroad-api.onrender.com/api/v1
+      - key: INTEROP_SYNC_EMAIL
+        sync: false
+      - key: INTEROP_SYNC_PASSWORD
+        sync: false
       - key: PYTHONUTF8
         value: "1"
 

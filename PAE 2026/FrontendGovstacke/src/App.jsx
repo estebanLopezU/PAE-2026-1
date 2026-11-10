@@ -5,6 +5,7 @@ import LoginPage from './pages/LoginPage'
 import Dashboard from './pages/Dashboard'
 import Actores from './pages/Actores'
 import Matriz from './pages/Matriz'
+import Mitchell from './pages/Mitchell'
 import Compromisos from './pages/Compromisos'
 import Relacionamientos from './pages/Relacionamientos'
 import Alertas from './pages/Alertas'
@@ -15,8 +16,8 @@ function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#150505]">
-        <p className="font-mono text-sm tracking-[0.2em] text-[#a08080]">CARGANDO…</p>
+      <div className="flex min-h-screen items-center justify-center bg-[#09090b]">
+        <p className="font-mono text-sm tracking-[0.2em] text-[#a1a1aa]">CARGANDO…</p>
       </div>
     )
   }
@@ -40,6 +41,7 @@ export default function App() {
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="actores" element={<Actores />} />
         <Route path="matriz" element={<Matriz />} />
+        <Route path="mitchell" element={<Mitchell />} />
         <Route path="compromisos" element={<Compromisos />} />
         <Route path="relacionamientos" element={<Relacionamientos />} />
         <Route path="alertas" element={<Alertas />} />

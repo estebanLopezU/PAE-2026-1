@@ -23,6 +23,13 @@ class Actor(Base):
     es_interno = Column(Boolean, default=False)  # si pertenece a la entidad
     is_active = Column(Boolean, default=True)
 
+    # Origen del actor: manual o sincronizado desde el catálogo de entidades públicas.
+    fuente = Column(String(50), default="manual", server_default="manual", nullable=False, index=True)
+    entidad_origen_id = Column(Integer, nullable=True, index=True)
+    nit = Column(String(20), nullable=True, index=True)
+    acronimo = Column(String(50), nullable=True)
+    ultima_sync = Column(DateTime(timezone=True), nullable=True)
+
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 

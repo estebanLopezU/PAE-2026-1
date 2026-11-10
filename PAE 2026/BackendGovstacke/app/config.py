@@ -31,6 +31,12 @@ class Settings(BaseSettings):
     OPENROUTER_BASE_URL: str = "https://openrouter.ai/api/v1"
     OSR_REFERER: str = "http://localhost:3002"
 
+    # Sincronización de entidades públicas desde el backend de interoperabilidad
+    INTEROP_API_URL: str = "http://localhost:8000/api/v1"
+    INTEROP_SYNC_EMAIL: str = ""
+    INTEROP_SYNC_PASSWORD: str = ""
+    INTEROP_TIMEOUT_SECONDS: int = 30
+
     # CORS
     CORS_ORIGINS: list = ["http://localhost:3002", "http://localhost:3000", "http://localhost:5173"]
 

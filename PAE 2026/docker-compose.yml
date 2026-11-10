@@ -81,6 +81,9 @@ services:
     environment:
       DATABASE_URL: postgresql://postgres:postgres@govstake-db:5432/govstake360
       DEBUG: "false"
+      INTEROP_API_URL: http://backend:8000/api/v1
+      INTEROP_SYNC_EMAIL: ${INTEROP_SYNC_EMAIL:-}
+      INTEROP_SYNC_PASSWORD: ${INTEROP_SYNC_PASSWORD:-}
     ports:
       - "8002:8002"
     depends_on:
@@ -90,6 +93,20 @@ services:
       - ./BackendGovstacke:/app
     networks:
       - xroad-network
+
+  # GOVStake 360 Frontend
+  govstake-frontend:
+    build:
+      context: ./FrontendGovstacke
+      dockerfile: Dockerfile
+    container_name: govstake-frontend
+    ports:
+      - "3002:80"
+    depends_on:
+      - govstake-backend
+    networks:
+      - xroad-network
+    restart: unless-stopped
 
 networks:
   xroad-network:

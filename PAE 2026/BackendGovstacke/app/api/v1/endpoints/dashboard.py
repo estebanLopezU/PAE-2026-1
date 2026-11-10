@@ -28,6 +28,16 @@ def dashboard(db: Session = Depends(get_db), _=Depends(get_current_user)):
 
     relacionamientos = db.query(Relacionamiento).all()
 
+    # Clasificación Mitchell y pendientes de evaluación
+    mitchell_resumen = {"definitivo": 0, "expectante": 0, "latente": 0, "no_relevante": 0}
+    pendientes_evaluacion = 0
+    for a in actor_dicts:
+        grupo = a.get("mitchell", {}).get("grupo", "no_relevante")
+        mitchell_resumen[grupo] = mitchell_resumen.get(grupo, 0) + 1
+        v = a.get("variables") or {}
+        if (v.get("poder") or 0) <= 0 and (v.get("legitimidad") or 0) <= 0 and (v.get("urgencia") or 0) <= 0:
+            pendientes_evaluacion += 1
+
     # Top 5 actores priorizados
     top_prioridad = sorted(actor_dicts, key=lambda x: x["indice_priorizacion"], reverse=True)[:5]
     # Actores de mayor riesgo de conflicto
@@ -53,4 +63,6 @@ def dashboard(db: Session = Depends(get_db), _=Depends(get_current_user)):
         "indice_calidad_relacionamiento": indice_general,
         "top_prioridad": top_prioridad,
         "mayor_riesgo_conflicto": sorted(con_riesgo, key=lambda x: x["variables"]["riesgo_conflicto"], reverse=True)[:5],
+        "mitchell_resumen": mitchell_resumen,
+        "pendientes_evaluacion": pendientes_evaluacion,
     }

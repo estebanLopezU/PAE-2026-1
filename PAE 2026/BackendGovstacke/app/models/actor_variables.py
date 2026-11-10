@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, Float, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, Float, String, ForeignKey, DateTime
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from ..database import Base
@@ -21,6 +21,12 @@ class ActorVariables(Base):
     historial_participacion = Column(Float, default=0)  # historial de participación
     riesgo_conflicto = Column(Float, default=0)   # riesgo de conflicto
     canales_relacionamiento = Column(Float, default=0)  # canales adecuados de relacionamiento
+    urgencia = Column(Float, default=0, server_default="0", nullable=False)  # sensibilidad al tiempo y criticidad
+    frecuencia_intentos = Column(Float, default=0, server_default="0", nullable=False)  # presión repetida del actor
+
+    # Trazabilidad de la evaluación: quién valoró al stakeholder y cuándo.
+    evaluado_por = Column(String(100), nullable=True)
+    evaluado_en = Column(DateTime(timezone=True), nullable=True)
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())

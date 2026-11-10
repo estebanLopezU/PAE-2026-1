@@ -2,6 +2,7 @@ from ....models import (
     calcular_indice_priorizacion,
     calcular_indice_relacionamiento,
     nivel_prioridad,
+    clasificar_mitchell,
 )
 
 
@@ -24,6 +25,11 @@ def actor_to_dict(actor):
         "notas": actor.notas,
         "es_interno": actor.es_interno,
         "is_active": actor.is_active,
+        "fuente": actor.fuente,
+        "entidad_origen_id": actor.entidad_origen_id,
+        "nit": actor.nit,
+        "acronimo": actor.acronimo,
+        "ultima_sync": actor.ultima_sync,
         "created_at": actor.created_at,
         "updated_at": actor.updated_at,
         "variables": {
@@ -39,7 +45,12 @@ def actor_to_dict(actor):
             "historial_participacion": v.historial_participacion,
             "riesgo_conflicto": v.riesgo_conflicto,
             "canales_relacionamiento": v.canales_relacionamiento,
+            "urgencia": v.urgencia,
+            "frecuencia_intentos": v.frecuencia_intentos,
+            "evaluado_por": v.evaluado_por,
+            "evaluado_en": v.evaluado_en,
         } if v else None,
+        "mitchell": clasificar_mitchell(v),
         "indice_priorizacion": indice,
         "indice_relacionamiento": calcular_indice_relacionamiento(v),
         "nivel_prioridad": nivel_prioridad(indice),

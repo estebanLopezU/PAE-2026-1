@@ -5,7 +5,7 @@ import { relacionamientosApi, actorsApi } from '../services/api'
 import { useAuth } from '../contexts/AuthContext'
 
 const CANALES = ['reunion', 'correo', 'telefono', 'evento', 'oficio', 'redes']
-const CALIDAD_COLOR = { alta: '#10b981', media: '#ff8a3d', baja: '#ff3b3b' }
+const CALIDAD_COLOR = { alta: '#10b981', media: '#f97316', baja: '#ef4444' }
 
 export default function Relacionamientos() {
   const { isAdmin } = useAuth()
@@ -60,15 +60,15 @@ export default function Relacionamientos() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="font-mono text-[10px] tracking-[0.3em] text-[#ff3b3b]">TABLERO DE RELACIONAMIENTO</p>
+          <p className="font-mono text-[10px] tracking-[0.3em] text-[#ef4444]">TABLERO DE RELACIONAMIENTO</p>
           <h1 className="mt-1 text-2xl font-bold text-white">Relacionamientos</h1>
         </div>
         <div className="flex gap-2">
-          <button onClick={load} className="flex items-center gap-2 rounded-lg border border-[#3a1616] px-4 py-2 text-xs font-bold text-[#a08080] hover:border-[#ff3b3b]/50 hover:text-white">
+          <button onClick={load} className="flex items-center gap-2 rounded-lg border border-[#3f3f46] px-4 py-2 text-xs font-bold text-[#a1a1aa] hover:border-[#ef4444]/50 hover:text-white">
             <RefreshCw className="h-4 w-4" /> ACTUALIZAR
           </button>
           {isAdmin() && (
-            <button onClick={() => setShowModal(true)} className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-[#ff3b3b] to-[#ff8a3d] px-4 py-2 text-xs font-black tracking-wider text-[#1a0505]">
+            <button onClick={() => setShowModal(true)} className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-[#ef4444] to-[#f97316] px-4 py-2 text-xs font-black tracking-wider text-[#1a0505]">
               <Plus className="h-4 w-4" /> NUEVO REGISTRO
             </button>
           )}
@@ -77,15 +77,15 @@ export default function Relacionamientos() {
 
       {error && (
         <GlassCard className="p-4">
-          <p className="flex items-center gap-2 text-sm text-[#ff6b6b]"><AlertTriangle className="h-4 w-4" /> {error}</p>
+          <p className="flex items-center gap-2 text-sm text-[#fca5a5]"><AlertTriangle className="h-4 w-4" /> {error}</p>
         </GlassCard>
       )}
       {loading ? (
         <GlassCard className="flex h-40 items-center justify-center">
-          <RefreshCw className="h-6 w-6 animate-spin text-[#ff3b3b]" />
+          <RefreshCw className="h-6 w-6 animate-spin text-[#ef4444]" />
         </GlassCard>
       ) : items.length === 0 ? (
-        <GlassCard className="p-14 text-center text-sm text-[#8a6363]">No hay registros de relacionamiento.</GlassCard>
+        <GlassCard className="p-14 text-center text-sm text-[#a1a1aa]">No hay registros de relacionamiento.</GlassCard>
       ) : (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {items.map((r) => {
@@ -95,15 +95,15 @@ export default function Relacionamientos() {
                 <div className="flex items-start justify-between gap-2">
                   <span
                     className="rounded-full px-3 py-1 text-[10px] font-black uppercase"
-                    style={{ color: CALIDAD_COLOR[calidad] || '#8a6363', background: `${CALIDAD_COLOR[calidad] || '#8a6363'}1a` }}
+                    style={{ color: CALIDAD_COLOR[calidad] || '#a1a1aa', background: `${CALIDAD_COLOR[calidad] || '#a1a1aa'}1a` }}
                   >
                     {calidad} · {r.calificacion}/100
                   </span>
-                  <span className="font-mono text-[10px] uppercase tracking-wider text-[#8a6363]">{r.canal}</span>
+                  <span className="font-mono text-[10px] uppercase tracking-wider text-[#a1a1aa]">{r.canal}</span>
                 </div>
                 <p className="mt-3 font-bold text-white">{nombreActor(r.actor_id)}</p>
-                {r.resumen && <p className="mt-1 text-xs text-[#a08080]">{r.resumen}</p>}
-                {r.fecha && <p className="mt-3 border-t border-[#3a1616]/60 pt-3 font-mono text-[11px] text-[#8a6363]">FECHA: {r.fecha}</p>}
+                {r.resumen && <p className="mt-1 text-xs text-[#a1a1aa]">{r.resumen}</p>}
+                {r.fecha && <p className="mt-3 border-t border-[#3f3f46]/60 pt-3 font-mono text-[11px] text-[#a1a1aa]">FECHA: {r.fecha}</p>}
               </GlassCard>
             )
           })}
@@ -116,30 +116,30 @@ export default function Relacionamientos() {
           <GlassCard className="relative z-10 w-full max-w-lg p-6">
             <div className="mb-5 flex items-center justify-between">
               <h2 className="text-lg font-bold text-white">Nuevo relacionamiento</h2>
-              <button onClick={() => setShowModal(false)} className="text-[#8a6363] hover:text-white"><X className="h-5 w-5" /></button>
+              <button onClick={() => setShowModal(false)} className="text-[#a1a1aa] hover:text-white"><X className="h-5 w-5" /></button>
             </div>
             <form onSubmit={handleCreate} className="space-y-4">
-              <select required value={form.actor_id} onChange={(e) => setForm({ ...form, actor_id: e.target.value })} className="w-full rounded-lg border border-[#3a1616] bg-black/40 px-3 py-2.5 text-sm text-white outline-none focus:border-[#ff3b3b]">
+              <select required value={form.actor_id} onChange={(e) => setForm({ ...form, actor_id: e.target.value })} className="w-full rounded-lg border border-[#3f3f46] bg-black/40 px-3 py-2.5 text-sm text-white outline-none focus:border-[#ef4444]">
                 <option value="">Selecciona actor *</option>
                 {actores.map((a) => <option key={a.id} value={a.id}>{a.nombre}</option>)}
               </select>
               <div className="grid grid-cols-2 gap-3">
-                <select value={form.canal} onChange={(e) => setForm({ ...form, canal: e.target.value })} className="rounded-lg border border-[#3a1616] bg-black/40 px-3 py-2.5 text-sm text-white outline-none focus:border-[#ff3b3b]">
+                <select value={form.canal} onChange={(e) => setForm({ ...form, canal: e.target.value })} className="rounded-lg border border-[#3f3f46] bg-black/40 px-3 py-2.5 text-sm text-white outline-none focus:border-[#ef4444]">
                   {CANALES.map((c) => <option key={c} value={c}>{c}</option>)}
                 </select>
-                <select value={form.calidad} onChange={(e) => setForm({ ...form, calidad: e.target.value })} className="rounded-lg border border-[#3a1616] bg-black/40 px-3 py-2.5 text-sm text-white outline-none focus:border-[#ff3b3b]">
+                <select value={form.calidad} onChange={(e) => setForm({ ...form, calidad: e.target.value })} className="rounded-lg border border-[#3f3f46] bg-black/40 px-3 py-2.5 text-sm text-white outline-none focus:border-[#ef4444]">
                   <option value="alta">alta</option>
                   <option value="media">media</option>
                   <option value="baja">baja</option>
                 </select>
               </div>
-              <label className="block text-xs text-[#d4b0b0]">
-                Calificación: <span className="font-mono text-[#ff8a3d]">{form.calificacion}</span>
-                <input type="range" min="0" max="100" value={form.calificacion} onChange={(e) => setForm({ ...form, calificacion: e.target.value })} className="mt-1 w-full accent-[#ff3b3b]" />
+              <label className="block text-xs text-[#d4d4d8]">
+                Calificación: <span className="font-mono text-[#f97316]">{form.calificacion}</span>
+                <input type="range" min="0" max="100" value={form.calificacion} onChange={(e) => setForm({ ...form, calificacion: e.target.value })} className="mt-1 w-full accent-[#ef4444]" />
               </label>
-              <textarea value={form.resumen} onChange={(e) => setForm({ ...form, resumen: e.target.value })} placeholder="Resumen de la interacción" rows={3} className="w-full rounded-lg border border-[#3a1616] bg-black/40 px-3 py-2.5 text-sm text-white outline-none focus:border-[#ff3b3b]" />
-              <input type="date" value={form.fecha} onChange={(e) => setForm({ ...form, fecha: e.target.value })} className="w-full rounded-lg border border-[#3a1616] bg-black/40 px-3 py-2.5 text-sm text-white outline-none focus:border-[#ff3b3b]" />
-              <button type="submit" disabled={saving} className="flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-[#ff3b3b] to-[#ff8a3d] py-3 font-mono text-sm font-black tracking-widest text-[#1a0505] disabled:opacity-50">
+              <textarea value={form.resumen} onChange={(e) => setForm({ ...form, resumen: e.target.value })} placeholder="Resumen de la interacción" rows={3} className="w-full rounded-lg border border-[#3f3f46] bg-black/40 px-3 py-2.5 text-sm text-white outline-none focus:border-[#ef4444]" />
+              <input type="date" value={form.fecha} onChange={(e) => setForm({ ...form, fecha: e.target.value })} className="w-full rounded-lg border border-[#3f3f46] bg-black/40 px-3 py-2.5 text-sm text-white outline-none focus:border-[#ef4444]" />
+              <button type="submit" disabled={saving} className="flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-[#ef4444] to-[#f97316] py-3 font-mono text-sm font-black tracking-widest text-[#1a0505] disabled:opacity-50">
                 <Save className="h-4 w-4" /> {saving ? 'GUARDANDO…' : 'REGISTRAR'}
               </button>
             </form>
