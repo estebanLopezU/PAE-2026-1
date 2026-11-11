@@ -46,9 +46,33 @@ Leyenda de estado: ✅ Implementado · ⚠️ Parcial · ❌ Pendiente.
 | G17 | Autenticación JWT (login, refresh, roles admin/viewer) | `security.py` (bcrypt, bloqueo por fuerza bruta, auditoría) | cliente axios con token | ✅ Implementado |
 | G18 | Asistente IA de relacionamiento (líder–stakeholder, línea LABGT/LAGI@T) | `agentgd` (chatbot que analiza la base de datos) | integración en la app | ✅ Implementado |
 | G19 | Datos simulados para validación | `seeds/seed_data.py` (10 actores + 2 usuarios) | — | ✅ Implementado |
-| G20 | Protección de datos y ética (finalidad, minimización, anonimización) | principios aplicados en modelos y endpoints | consentimiento en formularios | ✅ Implementado |
+| G20 | Protección de datos y ética (finalidad, minimización, anonimización) | principios aplicados en el modelo y en los endpoints; `modelo/contenido.py` documenta los límites | aviso de finalidad en Fundamentos; no hay gestión de consentimiento por titular | ⚠️ Parcial (principios aplicados y documentados; faltan consentimiento explícito por actor y anonimización automatizada) |
 | G21 | Despliegue Docker (backend + PostgreSQL) | `Dockerfile` · `docker-compose.yml` (`govstake-backend`, `govstake-db`) | — | ✅ Implementado |
 | G22 | Documentación y productos transferibles | `MANUAL-USUARIO.md` · `INFORME_PRACTICA_ACADEMICA.md` · `GUIA_EJECUCION.md` (en la raíz del repo) | — | ✅ Implementado |
+
+---
+
+## 4. Modelo teórico del doctorado
+
+Fuente única de verdad: `BackendGovstacke/app/modelo/`, que transcribe las
+Tablas 4.1, 4.3, 4.4 y 4.5 de *Liderazgo y grupos de interés* (Pantoja Ospina,
+Universidad Nacional, 2015).
+
+| ID | Requisito del doctorado | Artefactos | Estado |
+|----|--------------------------|------------|--------|
+| G23 | Las cuatro variables del modelo en escala ordinal 0–3 (poder, legitimidad, urgencia, frecuencia de intentos) | `modelo/escala.py` · `modelo/plu.py` · selector en `Actores.jsx` | ✅ Implementado |
+| G24 | Los 64 casos PLU, identificación, estado, relevancia y rangos de la Tabla 4.3–4.5 | `modelo/datos_tesis.py` · `modelo/plu.py` · `GET /modelo/plu` · tabla en `Fundamentos.jsx` · 64/64 casos verificados en `tests/test_modelo.py` | ✅ Implementado |
+| G25 | Ponderación por apareamiento (3 parejas × 10 puntos) y pesos de la Tabla 4.4 | `modelo/ponderacion.py` · `POST /modelo/ponderacion` · columna `actor_variables.ponderacion` · simulador en `Fundamentos.jsx` | ✅ Implementado |
+| G26 | Expresiones del liderazgo del continuo de la Figura 1.1, calibradas con la Hipótesis F | `modelo/expresiones.py` · `GET /modelo/expresiones` · `recomendar_expresion()` · columna de expresión en `Mitchell.jsx` | ✅ Implementado (recomendación fundamentada con confianza, sobrescribible) |
+| G27 | Modelo SLX de Katz y Kahn (expectativas, recursos, intercambio, conducta) | `modelo/slx.py` · `GET /modelo/slx` · ficha por actor en `GET /modelo/actor/{id}` | ✅ Implementado |
+| G28 | Metodología procesal de cinco etapas, auditable una por una | `modelo/procedimiento.py` · `GET /modelo/procedimiento` · sección en `Fundamentos.jsx` | ✅ Implementado |
+| G29 | La parte teórica visible para usuarios y administradores | `modelo/contenido.py` · `GET /modelo/teoria` · `Fundamentos.jsx` en `/modelo` y `/que-es-govstake` | ✅ Implementado |
+| G30 | Trazabilidad de la valoración (quién, cuándo, con qué ponderación) | `actor_variables.evaluado_por/evaluado_en/ponderacion` · `GET /modelo/actor/{id}` | ✅ Implementado |
+| G31 | Los actores sincronizados no se auto-valoran | `clasificar_mitchell().sin_percepcion` · etiqueta en `Mitchell.jsx` y `Actores.jsx` | ✅ Implementado |
+
+> La nota al pie 39 del doctorado (43,3 / 30,0 / 26,7 %) no reproduce la tabla
+> impresa; GOVStake aplica 13/30, 10/30 y 7/30, que reproducen 64/64 casos. La
+> discrepancia queda documentada en `PLAN_TEORIA_GOVSTAKE_360.md`.
 
 ---
 
@@ -56,10 +80,13 @@ Leyenda de estado: ✅ Implementado · ⚠️ Parcial · ❌ Pendiente.
 
 | Estado | Cantidad | IDs |
 |--------|----------|-----|
-| ✅ Implementado | 21 | G1–G4, G6–G22 |
-| ⚠️ Parcial | 1 | G5 (validación con caso institucional real) |
+| ✅ Implementado | 28 | G1–G4, G6–G19, G21–G31 |
+| ⚠️ Parcial | 3 | G5 (validación con caso institucional real), G20 (consentimiento y anonimización automatizada), G26 (regla calibrada, no derivada deductivamente) |
 | ❌ Pendiente | 0 | — |
 
-**Cobertura estimada: ≈ 96–99 %** de los requisitos del PAE.
+**Cobertura estimada: ≈ 96–99 %** de los requisitos del PAE y del modelo del
+doctorado. Los gaps son de trámite externo (G5), de gobernanza de datos (G20) o
+de naturaleza metodológica (G26), no de funcionalidad faltante.
 
-Único gap: G5 depende de un convenio/caso institucional real con datos autorizados (trámite externo), por lo que hoy se valida con la semilla simulada.
+G5 depende de un convenio/caso institucional real con datos autorizados
+(trámite externo), por lo que hoy se valida con la semilla simulada.
