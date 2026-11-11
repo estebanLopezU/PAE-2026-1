@@ -48,6 +48,21 @@ class Settings(BaseSettings):
         env_file = ".env"
         env_file_encoding = "utf-8"
 
+    @property
+    def interop_sync_credentials(self) -> tuple[str, str]:
+        """Credenciales para leer el catalogo de interoperabilidad.
+
+        Permite configurar una cuenta de servicio dedicada con
+        INTEROP_SYNC_EMAIL / INTEROP_SYNC_PASSWORD. Si no se definen, se
+        recurren a las credenciales de administrador de esta plataforma, que
+        por defecto es la misma cuenta en ambos microservicios, para que la
+        sincronizacion de entidades publicas funcione sin configuracion
+        adicional en cada entorno.
+        """
+        email = (self.INTEROP_SYNC_EMAIL or self.ADMIN_EMAIL).strip().lower()
+        password = self.INTEROP_SYNC_PASSWORD or self.ADMIN_PASSWORD
+        return email, password
+
 
 @lru_cache()
 def get_settings():

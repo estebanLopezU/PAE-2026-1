@@ -72,13 +72,15 @@ def sincronizar_entidades_publicas(
 ):
     """Importa o actualiza entidades públicas como actores de GOVStake."""
     settings = get_settings()
+    email_sync, password_sync = settings.interop_sync_credentials
 
-    if not settings.INTEROP_SYNC_EMAIL or not settings.INTEROP_SYNC_PASSWORD:
+    if not email_sync or not password_sync:
         raise HTTPException(
             status_code=500,
             detail=(
-                "Configura INTEROP_SYNC_EMAIL e INTEROP_SYNC_PASSWORD en el "
-                "backend GOVStake para sincronizar entidades públicas."
+                "No hay credenciales configuradas para leer el catálogo de "
+                "interoperabilidad. Define INTEROP_SYNC_EMAIL e "
+                "INTEROP_SYNC_PASSWORD, o ADMIN_EMAIL y ADMIN_PASSWORD."
             ),
         )
 
@@ -86,8 +88,8 @@ def sincronizar_entidades_publicas(
     try:
         token = _obtener_token(
             base_url,
-            settings.INTEROP_SYNC_EMAIL,
-            settings.INTEROP_SYNC_PASSWORD,
+            email_sync,
+            password_sync,
             settings.INTEROP_TIMEOUT_SECONDS,
         )
         entidades = _obtener_entidades(

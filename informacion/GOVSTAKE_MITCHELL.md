@@ -100,6 +100,13 @@ INTEROP_SYNC_PASSWORD=contraseña_del_usuario
 INTEROP_TIMEOUT_SECONDS=30
 ```
 
+> `INTEROP_SYNC_EMAIL` y `INTEROP_SYNC_PASSWORD` son **opcionales**: permiten usar
+> una cuenta de servicio dedicada en el backend de interoperabilidad. Si no se
+> definen, la sincronización usa las credenciales de administrador del propio
+> backend GOVStake (`ADMIN_EMAIL` / `ADMIN_PASSWORD`), que por defecto es la
+> misma cuenta en ambos microservicios. Así la función opera sin configuración
+> adicional en Docker, en Render y en cualquier otro entorno.
+
 En Docker, `backend` es el nombre interno del servicio de interoperabilidad:
 
 ```env
