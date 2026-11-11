@@ -1,4 +1,4 @@
-﻿# setup-all.ps1 â€” Instala TODO lo necesario para correr el proyecto PAE-2026-1
+﻿# setup-all.ps1 — Instala TODO lo necesario para correr el proyecto PAE-2026-1
 # Uso:
 #   powershell -ExecutionPolicy Bypass -File setup-all.ps1            # instala lo que falte
 #   powershell -ExecutionPolicy Bypass -File setup-all.ps1 -Force     # reinstala dependencias npm

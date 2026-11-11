@@ -1,8 +1,8 @@
-﻿# ðŸš€ GuÃ­a de EjecuciÃ³n Detallada - Gobierno Digital Colombia (X-Road + GOVStake 360)
+﻿# 🚀 Guía de Ejecución Detallada - Gobierno Digital Colombia (X-Road + GOVStake 360)
 
-## ðŸ“‹ Arquitectura de Servicios
+## 📋 Arquitectura de Servicios
 
-| Servicio | Puerto | TecnologÃ­a | CÃ³mo corre |
+| Servicio | Puerto | Tecnología | Cómo corre |
 |----------|--------|-----------|------------|
 | Portal de Entrada | 3000 | React + Vite | Desarrollo local (`npx vite --port 3000`) |
 | Frontend GOVStake 360 | 3002 | React + Vite + Tailwind | Desarrollo local (`npx vite --port 3002`) |
@@ -11,18 +11,18 @@
 | Backend GOVStake | 8002 | FastAPI | Docker |
 | Bases de datos PostgreSQL | internas | postgres:15-alpine | Docker (healthy) |
 
-> ðŸ¤– Ambos dashboards incluyen **AgentGD**, chatbot de IA (OpenRouter) como nube flotante arrastrable con contexto real de la base de datos.
+> 🤖 Ambos dashboards incluyen **AgentGD**, chatbot de IA (OpenRouter) como nube flotante arrastrable con contexto real de la base de datos.
 
-## ðŸ“‹ Tabla de Contenido
+## 📋 Tabla de Contenido
 
 - [Requisitos Previos](#requisitos-previos)
-- [InstalaciÃ³n Paso a Paso](#instalaciÃ³n-paso-a-paso)
-- [ConfiguraciÃ³n del Entorno](#configuraciÃ³n-del-entorno)
-- [EjecuciÃ³n del Proyecto](#ejecuciÃ³n-del-proyecto)
-- [VerificaciÃ³n de Servicios](#verificaciÃ³n-de-servicios)
-- [Acceso a la AplicaciÃ³n](#acceso-a-la-aplicaciÃ³n)
-- [Comandos Ãštiles](#comandos-Ãºtiles)
-- [SoluciÃ³n de Problemas Comunes](#soluciÃ³n-de-problemas-comunes)
+- [Instalación Paso a Paso](#instalación-paso-a-paso)
+- [Configuración del Entorno](#configuración-del-entorno)
+- [Ejecución del Proyecto](#ejecución-del-proyecto)
+- [Verificación de Servicios](#verificación-de-servicios)
+- [Acceso a la Aplicación](#acceso-a-la-aplicación)
+- [Comandos Útiles](#comandos-útiles)
+- [Solución de Problemas Comunes](#solución-de-problemas-comunes)
 
 ---
 
@@ -64,17 +64,17 @@ Las secciones siguientes describen la ejecucion **manual** paso a paso (alternat
 ---
 
 
-## âœ… Requisitos Previos
+## ✅ Requisitos Previos
 
 ### Software Necesario:
 
-| Software | VersiÃ³n MÃ­nima | VerificaciÃ³n | Descarga |
+| Software | Versión Mínima | Verificación | Descarga |
 |----------|----------------|--------------|----------|
 | **Docker Desktop** | 20.x+ | `docker --version` | [Docker](https://www.docker.com/products/docker-desktop/) |
 | **Git** | 2.x+ | `git --version` | [Git](https://git-scm.com/) |
 | **Navegador Web** | Moderno | - | Chrome, Firefox, Edge |
 
-### Verificar InstalaciÃ³n:
+### Verificar Instalación:
 
 ```bash
 # Verificar Docker
@@ -92,7 +92,7 @@ git --version
 
 ---
 
-## ðŸ“¥ InstalaciÃ³n Paso a Paso
+## 📥 Instalación Paso a Paso
 
 ### Paso 1: Clonar el Repositorio
 
@@ -112,7 +112,7 @@ cd PAE-2026-1
 ```bash
 # Listar archivos del proyecto
 dir
-# DeberÃ­as ver:
+# Deberías ver:
 # - PAE 2026/
 # - .git/
 # - .gitignore
@@ -120,44 +120,44 @@ dir
 
 ### Paso 3: Iniciar Docker Desktop
 
-1. **Buscar Docker Desktop** en el menÃº de inicio
+1. **Buscar Docker Desktop** en el menú de inicio
 2. **Hacer clic** para abrir Docker Desktop
 3. **Esperar** a que aparezca "Docker Desktop is running" en la barra de tareas
 4. **Verificar** que no haya errores en la interfaz de Docker Desktop
 
 ---
 
-## âš™ï¸ ConfiguraciÃ³n del Entorno
+## ⚙️ Configuración del Entorno
 
 ### Variables de Entorno del Backend:
 
-El archivo `BackendInteroperabilidad/.env` ya estÃ¡ configurado con valores por defecto:
+El archivo `BackendInteroperabilidad/.env` ya está configurado con valores por defecto:
 
 ```env
 # Base de datos
 DATABASE_URL=postgresql://postgres:postgres@postgres:5432/xroad_colombia
 
-# ConfiguraciÃ³n de la aplicaciÃ³n
+# Configuración de la aplicación
 SECRET_KEY=xroad-colombia-secret-key-2026
 DEBUG=false
 
-# ConfiguraciÃ³n del servidor
+# Configuración del servidor
 HOST=0.0.0.0
 PORT=8000
 ```
 
 ### Variables de Entorno del Frontend:
 
-El frontend se configura automÃ¡ticamente a travÃ©s de Docker.
+El frontend se configura automáticamente a través de Docker.
 
 ---
 
-## â–¶ï¸ EjecuciÃ³n del Proyecto
+## ▶️ Ejecución del Proyecto
 
-### OpciÃ³n 0: Frontend local (`npm run dev`) + Backend/DB en Docker (Recomendada para desarrollo)
+### Opción 0: Frontend local (`npm run dev`) + Backend/DB en Docker (Recomendada para desarrollo)
 
-Esta opciÃ³n te permite tener:
-- **Hot reload rÃ¡pido en frontend** con Vite.
+Esta opción te permite tener:
+- **Hot reload rápido en frontend** con Vite.
 - **Mismos datos de Docker** (backend + postgres).
 
 #### Paso A: Levantar backend y base de datos en Docker
@@ -168,7 +168,8 @@ docker compose up -d postgres backend
 ```
 
 > Nota: En este proyecto existe `docker-compose.override.yml` para desarrollo, que habilita:
-> - `backend` con `--reload`
+> - `backend` (Interoperabilidad) y `govstake-backend` (GOVStake 360) con `--reload`
+> - `DEBUG=true` en ambos backends (muestra el traceback completo ante errores 500)
 > - `postgres` expuesto en `5432:5432`
 
 #### Paso B: Ejecutar frontend en local
@@ -201,7 +202,7 @@ npx vite --port 3002
 
 > El backend de GOVStake ya corre en Docker (puerto 8002) con el comando `docker compose up -d` del Paso A (incluye `govstake-backend` y `govstake-db`).
 
-#### Error comÃºn y soluciÃ³n
+#### Error común y solución
 
 Si ves:
 
@@ -209,22 +210,22 @@ Si ves:
 npm error Missing script: "dev"
 ```
 
-estÃ¡s en la carpeta incorrecta. Debes ejecutar en `PAE 2026/FrontendInteroperabilidad`.
+estás en la carpeta incorrecta. Debes ejecutar en `PAE 2026/FrontendInteroperabilidad`.
 
-TambiÃ©n puedes lanzarlo desde la raÃ­z con:
+También puedes lanzarlo desde la raíz con:
 
 ```bash
 npm --prefix "PAE 2026/FrontendInteroperabilidad" run dev
 ```
 
-#### Â¿QuÃ© se actualiza automÃ¡ticamente?
+#### ¿Qué se actualiza automáticamente?
 
-- Cambios en `frontend/src`: **sÃ­** (hot reload).
-- Cambios en `backend/app`: **sÃ­** (uvicorn `--reload` en Docker).
-- Cambios de datos en PostgreSQL: **sÃ­**, al refrescar/reconsultar API.
+- Cambios en `frontend/src`: **sí** (hot reload).
+- Cambios en `backend/app`: **sí** (uvicorn `--reload` en Docker).
+- Cambios de datos en PostgreSQL: **sí**, al refrescar/reconsultar API.
 - Cambios en `Dockerfile`, dependencias o `docker-compose*.yml`: requieren reinicio/rebuild.
 
-### OpciÃ³n 1: EjecuciÃ³n Simple (Recomendada)
+### Opción 1: Ejecución Simple (Recomendada)
 
 ```bash
 # Navegar al directorio del proyecto
@@ -237,20 +238,20 @@ docker-compose up -d
 **Salida Esperada:**
 ```
 [+] Running 4/4
- âœ” Network pae-2026_default       Created
- âœ” Container xroad-postgres       Started
- âœ” Container xroad-backend        Started
- âœ” Container xroad-frontend       Started
+ ✔ Network pae-2026_default       Created
+ ✔ Container xroad-postgres       Started
+ ✔ Container xroad-backend        Started
+ ✔ Container xroad-frontend       Started
 ```
 
-### OpciÃ³n 2: EjecuciÃ³n con ReconstrucciÃ³n
+### Opción 2: Ejecución con Reconstrucción
 
 ```bash
-# Si es la primera vez o hubo cambios en el cÃ³digo
+# Si es la primera vez o hubo cambios en el código
 docker-compose up -d --build
 ```
 
-### OpciÃ³n 3: EjecuciÃ³n con Logs Visibles
+### Opción 3: Ejecución con Logs Visibles
 
 ```bash
 # Para ver los logs en tiempo real
@@ -259,7 +260,7 @@ docker-compose up
 
 ---
 
-## ðŸ” VerificaciÃ³n de Servicios
+## 🔍 Verificación de Servicios
 
 ### Verificar Estado de Contenedores:
 
@@ -293,7 +294,7 @@ docker logs xroad-postgres --tail 50
 docker logs -f xroad-backend
 ```
 
-### Verificar ConexiÃ³n a la Base de Datos:
+### Verificar Conexión a la Base de Datos:
 
 ```bash
 # Acceder a PostgreSQL
@@ -307,15 +308,15 @@ SELECT COUNT(*) FROM entities;  # Contar entidades
 
 ---
 
-## ðŸŒ Acceso a la AplicaciÃ³n
+## 🌐 Acceso a la Aplicación
 
 ### URLs de Acceso:
 
-| Servicio | URL | DescripciÃ³n |
+| Servicio | URL | Descripción |
 |----------|-----|-------------|
 | **Frontend Principal** | http://localhost:5173 | Interfaz de usuario |
 | **Backend API** | http://localhost:8000 | API REST |
-| **DocumentaciÃ³n API** | http://localhost:8000/docs | Swagger UI |
+| **Documentación API** | http://localhost:8000/docs | Swagger UI |
 | **PostgreSQL** | localhost:5432 | Base de datos |
 
 ### Abrir en el Navegador:
@@ -324,7 +325,7 @@ SELECT COUNT(*) FROM entities;  # Contar entidades
 # Windows - Abrir frontend
 start http://localhost:5173
 
-# Windows - Abrir documentaciÃ³n API
+# Windows - Abrir documentación API
 start http://localhost:8000/docs
 
 # Mac/Linux - Abrir frontend
@@ -333,9 +334,9 @@ open http://localhost:5173
 
 ---
 
-## ðŸ› ï¸ Comandos Ãštiles
+## 🛠️ Comandos Útiles
 
-### GestiÃ³n de Contenedores:
+### Gestión de Contenedores:
 
 ```bash
 # Iniciar servicios
@@ -350,26 +351,26 @@ docker-compose restart
 # Detener y eliminar contenedores
 docker-compose down
 
-# Detener, eliminar contenedores y volÃºmenes
+# Detener, eliminar contenedores y volúmenes
 docker-compose down -v
 
-# Reconstruir imÃ¡genes
+# Reconstruir imágenes
 docker-compose build
 
 # Reconstruir y iniciar
 docker-compose up -d --build
 ```
 
-### GestiÃ³n de ImÃ¡genes:
+### Gestión de Imágenes:
 
 ```bash
-# Ver imÃ¡genes descargadas
+# Ver imágenes descargadas
 docker images
 
-# Eliminar imÃ¡genes no utilizadas
+# Eliminar imágenes no utilizadas
 docker image prune
 
-# Eliminar todas las imÃ¡genes no utilizadas
+# Eliminar todas las imágenes no utilizadas
 docker image prune -a
 ```
 
@@ -398,9 +399,9 @@ docker exec -it xroad-postgres psql -U postgres -d xroad_colombia -c "SELECT COU
 
 ---
 
-## ðŸ”§ SoluciÃ³n de Problemas Comunes
+## 🔧 Solución de Problemas Comunes
 
-### Problema 1: Docker Desktop No EstÃ¡ Corriendo
+### Problema 1: Docker Desktop No Está Corriendo
 
 **Error:**
 ```
@@ -408,10 +409,10 @@ error during connect: Get "http://%2F%2F.%2Fpipe%2FdockerDesktopLinuxEngine/v1.5
 open //./pipe/dockerDesktopLinuxEngine: The system cannot find the file specified.
 ```
 
-**SoluciÃ³n:**
-1. Abrir Docker Desktop desde el menÃº de inicio
+**Solución:**
+1. Abrir Docker Desktop desde el menú de inicio
 2. Esperar a que aparezca "Docker Desktop is running"
-3. Verificar en la barra de tareas que Docker estÃ© corriendo
+3. Verificar en la barra de tareas que Docker esté corriendo
 4. Ejecutar nuevamente: `docker-compose up -d`
 
 ---
@@ -423,15 +424,15 @@ open //./pipe/dockerDesktopLinuxEngine: The system cannot find the file specifie
 Bind for 0.0.0.0:8000 failed: port is already allocated
 ```
 
-**SoluciÃ³n:**
+**Solución:**
 ```bash
-# OpciÃ³n 1: Detener todos los contenedores
+# Opción 1: Detener todos los contenedores
 docker stop $(docker ps -aq)
 
-# OpciÃ³n 2: Ver quÃ© proceso usa el puerto
+# Opción 2: Ver qué proceso usa el puerto
 netstat -ano | findstr :8000
 
-# OpciÃ³n 3: Cambiar puerto en docker-compose.yml
+# Opción 3: Cambiar puerto en docker-compose.yml
 # Editar docker-compose.yml y cambiar los puertos
 ```
 
@@ -446,7 +447,7 @@ docker logs xroad-frontend
 docker logs xroad-postgres
 ```
 
-**SoluciÃ³n general:**
+**Solución general:**
 ```bash
 # Detener todo
 docker-compose down
@@ -478,9 +479,9 @@ docker exec xroad-backend python scripts/seed_data.py
 
 ---
 
-### Problema 5: Error de ConexiÃ³n a la API
+### Problema 5: Error de Conexión a la API
 
-**Verificar que el backend estÃ© corriendo:**
+**Verificar que el backend esté corriendo:**
 ```bash
 curl http://localhost:8000/health
 ```
@@ -499,10 +500,10 @@ docker-compose restart backend
 
 ### Problema 6: Pantalla Blanca o Error en el Frontend
 
-**Limpiar cachÃ© del navegador:**
-- Chrome: `Ctrl + Shift + Delete` â†’ Limpiar datos de navegaciÃ³n
-- Firefox: `Ctrl + Shift + Delete` â†’ Limpiar todo
-- Edge: `Ctrl + Shift + Delete` â†’ Limpiar datos de navegaciÃ³n
+**Limpiar caché del navegador:**
+- Chrome: `Ctrl + Shift + Delete` → Limpiar datos de navegación
+- Firefox: `Ctrl + Shift + Delete` → Limpiar todo
+- Edge: `Ctrl + Shift + Delete` → Limpiar datos de navegación
 
 **Reconstruir el frontend:**
 ```bash
@@ -511,7 +512,7 @@ docker-compose up -d --build frontend
 
 ---
 
-## ðŸ“Š Monitoreo de la AplicaciÃ³n
+## 📊 Monitoreo de la Aplicación
 
 ### Ver Uso de Recursos:
 
@@ -519,7 +520,7 @@ docker-compose up -d --build frontend
 # Ver uso de CPU y memoria
 docker stats
 
-# Ver uso especÃ­fico de contenedores
+# Ver uso específico de contenedores
 docker stats xroad-backend xroad-frontend xroad-postgres
 ```
 
@@ -541,32 +542,32 @@ docker logs -f xroad-postgres
 
 ---
 
-## ðŸ›‘ Detener el Proyecto
+## 🛑 Detener el Proyecto
 
-### OpciÃ³n 1: Detener Manteniendo Datos
+### Opción 1: Detener Manteniendo Datos
 
 ```bash
-# Los datos se mantienen en los volÃºmenes de Docker
+# Los datos se mantienen en los volúmenes de Docker
 docker-compose stop
 ```
 
-### OpciÃ³n 2: Detener y Eliminar Contenedores
+### Opción 2: Detener y Eliminar Contenedores
 
 ```bash
-# Los datos se mantienen en los volÃºmenes de Docker
+# Los datos se mantienen en los volúmenes de Docker
 docker-compose down
 ```
 
-### OpciÃ³n 3: Eliminar Todo Incluyendo Datos
+### Opción 3: Eliminar Todo Incluyendo Datos
 
 ```bash
-# âš ï¸ CUIDADO: Esto elimina todos los datos de la base de datos
+# ⚠️ CUIDADO: Esto elimina todos los datos de la base de datos
 docker-compose down -v
 ```
 
 ---
 
-## ðŸ“ž Soporte Adicional
+## 📞 Soporte Adicional
 
 ### Comandos de Emergencia:
 
@@ -579,10 +580,10 @@ docker-compose up -d --build
 
 ### Recursos:
 
-- **DocumentaciÃ³n del Proyecto:** README.md
+- **Documentación del Proyecto:** README.md
 - **Repositorio:** https://github.com/estebanLopezU/PAE-2026-1
 - **Docker Desktop:** https://www.docker.com/products/docker-desktop/
 
 ---
 
-**Â¡Listo! Ahora puedes ejecutar y usar el proyecto X-Road Colombia sin problemas. ðŸ‡¨ðŸ‡´**
+**¡Listo! Ahora puedes ejecutar y usar el proyecto X-Road Colombia sin problemas. 🇨🇴**
