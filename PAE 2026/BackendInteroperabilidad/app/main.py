@@ -15,6 +15,7 @@ app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION,
     description="Sistema de mapeo y diagnóstico de interoperabilidad X-Road para entidades públicas colombianas",
+    debug=settings.DEBUG,
     docs_url="/api/docs",
     redoc_url="/api/redoc"
 )

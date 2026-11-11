@@ -18,11 +18,23 @@ Levanta el ecosistema completo. Servicios:
 | `frontend` | `./FrontendInteroperabilidad` | 5173→80 | Front Interoperabilidad |
 | `govstake-db` | `postgres:15-alpine` | (interno) | BD GOVStake 360 |
 | `govstake-backend` | `./BackendGovstacke` | 8002 | API GOVStake 360 |
+| `govstake-frontend` | `./FrontendGovstacke` | 3002→80 | Front GOVStake 360 |
 
 - **Redes**: todo comparte `xroad-network` (bridge).
 - **Volúmenes**: `postgres_data` (xroad) y `govstake_data` (govstake).
 - **Healthchecks**: los backends esperan a que la BD esté lista
   (`condition: service_healthy` con `pg_isready`).
+
+## `docker-compose.override.yml` (solo desarrollo)
+
+Compose lo aplica automáticamente junto al `docker-compose.yml` base:
+
+- `backend` y `govstake-backend` arrancan con `uvicorn --reload` y `DEBUG=true`
+  (hot reload + traceback completo ante errores 500).
+- `postgres` se expone en `5432:5432` para poder usar `psql` desde el host.
+
+> `DEBUG` se inyecta en `FastAPI(debug=settings.DEBUG)` en ambos backends;
+> en el compose base vale `"false"`, así que en producción no se exponen tracebacks.
 
 ## Variables de entorno clave
 

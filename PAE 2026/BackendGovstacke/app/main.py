@@ -17,6 +17,7 @@ app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION,
     description="Sistema inteligente de caracterización y gestión de grupos de interés públicos (GOVStake 360)",
+    debug=settings.DEBUG,
     docs_url="/api/docs",
     redoc_url="/api/redoc"
 )
