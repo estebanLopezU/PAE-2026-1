@@ -5,6 +5,7 @@ Permite generar derechos de petición formales basados en análisis de interoper
 
 import asyncio
 from typing import List, Dict, Optional
+from collections import defaultdict
 from datetime import datetime
 from dataclasses import dataclass
 from enum import Enum
@@ -217,18 +218,21 @@ class PetitionGenerator:
             if field not in context_data:
                 raise ValueError(f"Campo requerido faltante: {field}")
         
-        # Preparar datos para la plantilla
-        template_data = {
+        # Preparar datos para la plantilla.
+        # defaultdict(str) hace que los campos opcionales ausentes se rendericen
+        # vacios en lugar de lanzar KeyError, y legal_basis se toma de la plantilla.
+        template_data = defaultdict(str, {
             "requesting_entity": requesting_entity,
             "target_entity": target_entity,
             "current_date": datetime.now().strftime("%d de %B de %Y"),
             "deadline_days": deadline_days,
+            "legal_basis": "\n".join(f"- {basis}" for basis in template.legal_basis),
             **context_data
-        }
+        })
         
         # Generar asunto y cuerpo
-        subject = template.subject_template.format(**template_data)
-        body = template.body_template.format(**template_data)
+        subject = template.subject_template.format_map(template_data)
+        body = template.body_template.format_map(template_data)
         
         # Crear petición
         petition = GeneratedPetition(
@@ -353,6 +357,8 @@ class PetitionGenerator:
             "recipient_name": "Director(a) de Tecnología",
             "requester_name": "Director de Transformación Digital",
             "requester_position": "Director de Transformación Digital",
+            "requesting_entity": requesting_entity,
+            "target_entity": target_entity,
             "petition_objective": f"Implementar servicios de interoperabilidad para mejorar la eficiencia en los procesos entre {requesting_entity} y {target_entity}",
             "requested_services": "\n".join(requested_services) if requested_services else "Servicios de interoperabilidad básicos",
             "technical_justification": technical_justification,
@@ -600,212 +606,23 @@ async def list_petitions(
 
 async def get_petition_statistics() -> Dict:
     """
-    Obtener estadísticas de peticiones
-    
+    Obtener estadisticas de las peticiones generadas.
+
     Returns:
-        Estadísticas en formato dict
+        Estadisticas en formato dict
     """
-    return await petition_generator.get_petition_statistics()   # Promedio de días de plazo
-        if petitions:
-            stats["average_deadline_days"] = sum(p.deadline_days for p in petitions) / len(petitions)
-        
-        return stats
-    
-    async def export_petition(self, petition_id: str, format: str = "json") -> Optional[Dict]:
-        """
-        Exportar una petición en el formato especificado
-        
-        Args:
-            petition_id: ID de la petición
-            format: Formato de exportación (json, text)
-        
-        Returns:
-            Datos exportados o None si no existe
-        """
-        petition = self.petitions_db.get(petition_id)
-        if not petition:
-            return None
-        
-        if format == "json":
-            return {
-                "id": petition.id,
-                "type": petition.petition_type.value,
-                "status": petition.status.value,
-                "subject": petition.subject,
-                "body": petition.body,
-                "requesting_entity": petition.requesting_entity,
-                "target_entity": petition.target_entity,
-                "legal_basis": petition.legal_basis,
-                "requested_actions": petition.requested_actions,
-                "deadline_days": petition.deadline_days,
-                "created_at": petition.created_at.isoformat(),
-                "submitted_at": petition.submitted_at.isoformat() if petition.submitted_at else None,
-                "response_deadline": petition.response_deadline.isoformat() if petition.response_deadline else None
-            }
-        elif format == "text":
-            return {
-                "text": f"""
-{petition.subject}
-
-{petition.body}
-
-FUNDAMENTO LEGAL:
-{chr(10).join(f'- {basis}' for basis in petition.legal_basis)}
-
-ACCIONES SOLICITADAS:
-{chr(10).join(f'- {action}' for action in petition.requested_actions)}
-
-Fecha de creación: {petition.created_at.strftime('%d/%m/%Y %H:%M')}
-Estado: {petition.status.value}
-Plazo: {petition.deadline_days} días hábiles
-                """
-            }
-        
-        return None
+    return await petition_generator.get_petition_statistics()
 
 
-# Instancia global del generador
-petition_generator = PetitionGenerator()
-
-
-async def generate_petition(
-    petition_type: str,
-    context_data: Dict,
-    requesting_entity: str,
-    target_entity: str,
-    deadline_days: int = 15
-) -> Dict:
+async def export_petition(petition_id: str, format: str = "json") -> Optional[Dict]:
     """
-    Función helper para generar un derecho de petición
-    
+    Exportar una peticion en el formato especificado.
+
     Args:
-        petition_type: Tipo de petición (string)
-        context_data: Datos de contexto
-        requesting_entity: Entidad solicitante
-        target_entity: Entidad objetivo
-        deadline_days: Días hábiles para respuesta
-    
+        petition_id: ID de la peticion
+        format: Formato de exportacion (json, text)
+
     Returns:
-        Petición generada en formato dict
+        Datos exportados o None si no existe
     """
-    # Convertir string a enum
-    ptype = PetitionType(petition_type)
-    
-    petition = await petition_generator.generate_petition(
-        petition_type=ptype,
-        context_data=context_data,
-        requesting_entity=requesting_entity,
-        target_entity=target_entity,
-        deadline_days=deadline_days
-    )
-    
-    return {
-        "id": petition.id,
-        "type": petition.petition_type.value,
-        "status": petition.status.value,
-        "subject": petition.subject,
-        "body": petition.body,
-        "requesting_entity": petition.requesting_entity,
-        "target_entity": petition.target_entity,
-        "legal_basis": petition.legal_basis,
-        "requested_actions": petition.requested_actions,
-        "deadline_days": petition.deadline_days,
-        "created_at": petition.created_at.isoformat()
-    }
-
-
-async def get_petition_templates() -> List[Dict]:
-    """
-    Obtener plantillas de peticiones disponibles
-    
-    Returns:
-        Lista de plantillas
-    """
-    templates = []
-    for ptype, template in PetitionGenerator.TEMPLATES.items():
-        templates.append({
-            "id": template.id,
-            "name": template.name,
-            "type": template.petition_type.value,
-            "required_fields": template.required_fields,
-            "optional_fields": template.optional_fields,
-            "legal_basis_count": len(template.legal_basis)
-        })
-    return templates
-
-
-async def generate_petition_from_gap_analysis(
-    gap_analysis: Dict,
-    requesting_entity: str,
-    target_entity: str
-) -> Dict:
-    """
-    Generar petición basada en análisis de brechas
-    
-    Args:
-        gap_analysis: Resultado del análisis de brechas
-        requesting_entity: Entidad solicitante
-        target_entity: Entidad objetivo
-    
-    Returns:
-        Petición generada en formato dict
-    """
-    petition = await petition_generator.generate_from_gap_analysis(
-        gap_analysis=gap_analysis,
-        requesting_entity=requesting_entity,
-        target_entity=target_entity
-    )
-    
-    return {
-        "id": petition.id,
-        "type": petition.petition_type.value,
-        "status": petition.status.value,
-        "subject": petition.subject,
-        "body": petition.body,
-        "requesting_entity": petition.requesting_entity,
-        "target_entity": petition.target_entity,
-        "legal_basis": petition.legal_basis,
-        "requested_actions": petition.requested_actions,
-        "deadline_days": petition.deadline_days,
-        "created_at": petition.created_at.isoformat()
-    }
-
-
-async def list_petitions(
-    requesting_entity: Optional[str] = None,
-    target_entity: Optional[str] = None,
-    status: Optional[str] = None
-) -> List[Dict]:
-    """
-    Listar peticiones con filtros
-    
-    Args:
-        requesting_entity: Filtrar por entidad solicitante
-        target_entity: Filtrar por entidad objetivo
-        status: Filtrar por estado
-    
-    Returns:
-        Lista de peticiones en formato dict
-    """
-    # Convertir status string a enum si se proporciona
-    status_enum = PetitionStatus(status) if status else None
-    
-    petitions = await petition_generator.list_petitions(
-        requesting_entity=requesting_entity,
-        target_entity=target_entity,
-        status=status_enum
-    )
-    
-    return [
-        {
-            "id": p.id,
-            "type": p.petition_type.value,
-            "status": p.status.value,
-            "subject": p.subject,
-            "requesting_entity": p.requesting_entity,
-            "target_entity": p.target_entity,
-            "deadline_days": p.deadline_days,
-            "created_at": p.created_at.isoformat(),
-            "submitted_at": p.submitted_at.isoformat() if p.submitted_at else None
-        }
-        for p in petitions
+    return await petition_generator.export_petition(petition_id, format)
