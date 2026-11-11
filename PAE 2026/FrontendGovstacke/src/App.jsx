@@ -11,6 +11,7 @@ import Relacionamientos from './pages/Relacionamientos'
 import Alertas from './pages/Alertas'
 import Protocolo from './pages/Protocolo'
 import Reportes from './pages/Reportes'
+import Fundamentos from './pages/Fundamentos'
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
@@ -29,6 +30,7 @@ export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/que-es-govstake" element={<Fundamentos publico />} />
       <Route
         path="/"
         element={
@@ -39,6 +41,7 @@ export default function App() {
       >
         <Route index element={<Navigate to="/dashboard" replace />} />
         <Route path="dashboard" element={<Dashboard />} />
+        <Route path="modelo" element={<Fundamentos />} />
         <Route path="actores" element={<Actores />} />
         <Route path="matriz" element={<Matriz />} />
         <Route path="mitchell" element={<Mitchell />} />

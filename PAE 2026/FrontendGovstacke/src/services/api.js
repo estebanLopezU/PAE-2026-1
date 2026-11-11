@@ -57,11 +57,28 @@ export const authApi = {
 export const actorsApi = {
   getAll: (params = {}) => api.get('/actors', { params }),
   getById: (id) => api.get(`/actors/${id}`),
+  tipos: () => api.get('/actors/tipos'),
   create: (data) => api.post('/actors', data),
   update: (id, data) => api.put(`/actors/${id}`, data),
   updateVariables: (id, variables) => api.put(`/actors/${id}/variables`, variables),
   delete: (id) => api.delete(`/actors/${id}`),
   evaluarAlertas: (id) => api.post(`/actors/${id}/evaluar-alertas`),
+}
+
+// Modelo teórico (doctorado): casos PLU, expresiones, procedimiento y SLX
+export const modeloApi = {
+  teoria: () => api.get('/modelo/teoria'),
+  queEs: () => api.get('/modelo/que-es'),
+  plu: (params = {}) => api.get('/modelo/plu', { params }),
+  caso: (codigo) => api.get(`/modelo/plu/${codigo}`),
+  expresiones: () => api.get('/modelo/expresiones'),
+  procedimiento: () => api.get('/modelo/procedimiento'),
+  slx: () => api.get('/modelo/slx'),
+  escala: () => api.get('/modelo/escala'),
+  calcular: (data) => api.post('/modelo/calcular', data),
+  ponderacion: (parejas) => api.post('/modelo/ponderacion', { parejas }),
+  panorama: () => api.get('/modelo/panorama'),
+  actor: (id) => api.get(`/modelo/actor/${id}`),
 }
 
 // Matriz API (mapa poder-legitimidad-influencia y priorización)

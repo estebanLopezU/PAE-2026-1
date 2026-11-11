@@ -9,6 +9,7 @@ import {
   MessageSquareHeart,
   ScrollText,
   FileBarChart,
+  BookOpen,
   LogOut,
   ExternalLink,
   Menu,
@@ -19,6 +20,7 @@ import AgentGDChat from '../chatbot/AgentGDChat'
 
 const NAV_ITEMS = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { to: '/modelo', label: 'Fundamentos', icon: BookOpen },
   { to: '/actores', label: 'Actores', icon: Users },
   { to: '/matriz', label: 'Matriz y Mapa', icon: Grid3X3 },
   { to: '/mitchell', label: 'Mitchell', icon: Grid3X3 },
