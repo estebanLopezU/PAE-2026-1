@@ -259,12 +259,26 @@ def clasificar_mitchell(v):
     frecuencia_nivel = NIVELES[
         valor_100_a_nivel(getattr(v, "frecuencia_intentos", 0))
     ]
-    expresion = recomendar_expresion(relevancia, frecuencia_nivel, niveles)
 
     atributos_presentes = [
         nombre for nombre in ("poder", "legitimidad", "urgencia") if niveles[nombre] > 0
     ]
     sin_percepcion = not atributos_presentes
+
+    if sin_percepcion:
+        # Sin valoracion del lider no hay recomendacion: sugerir una expresion
+        # seria inventar una percepcion que nadie registro.
+        expresion = {
+            "clave": None,
+            "nombre": "Sin recomendacion",
+            "descripcion": "El actor no tiene percepcion del lider registrada.",
+            "regla": "Se requiere valorar poder, legitimidad o urgencia.",
+            "confianza": 0,
+            "origen": "sin_percepcion",
+            "correlaciones": [],
+        }
+    else:
+        expresion = recomendar_expresion(relevancia, frecuencia_nivel, niveles)
 
     return {
         "tipo_mitchell": tipo,

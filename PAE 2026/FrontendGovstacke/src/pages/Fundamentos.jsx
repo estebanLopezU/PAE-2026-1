@@ -351,17 +351,19 @@ export default function Fundamentos({ publico = false }) {
                         <div
                           className="rounded-xl border p-4"
                           style={{
-                            borderColor: `${EXPR_COLORS[calculo.expresion_sugerida.clave]}55`,
-                            background: `${EXPR_COLORS[calculo.expresion_sugerida.clave]}12`,
+                            borderColor: `${EXPR_COLORS[calculo.expresion_sugerida.clave] || '#52525b'}55`,
+                            background: `${EXPR_COLORS[calculo.expresion_sugerida.clave] || '#52525b'}12`,
                           }}
                         >
                           <div className="flex items-center justify-between gap-2">
                             <p className="text-xs font-bold uppercase tracking-wider text-[#a1a1aa]">
                               Expresión sugerida
                             </p>
-                            <Chip color={EXPR_COLORS[calculo.expresion_sugerida.clave]}>
-                              Confianza {calculo.expresion_sugerida.confianza}%
-                            </Chip>
+                            {!calculo.sin_percepcion && (
+                              <Chip color={EXPR_COLORS[calculo.expresion_sugerida.clave]}>
+                                Confianza {calculo.expresion_sugerida.confianza}%
+                              </Chip>
+                            )}
                           </div>
                           <p className="mt-2 text-lg font-bold text-white">
                             {calculo.expresion_sugerida.nombre}

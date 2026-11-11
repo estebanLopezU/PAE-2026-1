@@ -123,6 +123,7 @@ class TestAplicacionPorActor:
         d = cliente.get("/api/v1/modelo/actor/2").json()
         assert d["modelo"]["sin_percepcion"] is True
         assert d["modelo"]["plu"] == "000"
+        assert d["modelo"]["expresion_sugerida"]["clave"] is None
 
     def test_el_panorama_cuenta_sin_percepcion(self, cliente):
         d = cliente.get("/api/v1/modelo/panorama").json()

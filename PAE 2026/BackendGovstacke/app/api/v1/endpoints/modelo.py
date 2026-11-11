@@ -250,11 +250,25 @@ def calcular(payload: CalculoPLU):
             }
         )
 
-    expresion = recomendar_expresion(
-        relevancia,
-        payload.frecuencia_intentos,
-        {"poder": payload.poder, "legitimidad": payload.legitimidad, "urgencia": payload.urgencia},
+    sin_percepcion = not any(
+        (payload.poder, payload.legitimidad, payload.urgencia)
     )
+    if sin_percepcion:
+        expresion = {
+            "clave": None,
+            "nombre": "Sin recomendacion",
+            "descripcion": "No hay atributos valorados; no se puede recomendar una expresion.",
+            "regla": "Valora al menos un atributo.",
+            "confianza": 0,
+            "origen": "sin_percepcion",
+            "correlaciones": [],
+        }
+    else:
+        expresion = recomendar_expresion(
+            relevancia,
+            payload.frecuencia_intentos,
+            {"poder": payload.poder, "legitimidad": payload.legitimidad, "urgencia": payload.urgencia},
+        )
 
     return {
         "plu": codigo,
@@ -273,6 +287,7 @@ def calcular(payload: CalculoPLU):
         "rango_etiqueta": RANGOS[rango]["etiqueta"],
         "pasos": pasos,
         "suma": round(total, 4),
+        "sin_percepcion": sin_percepcion,
         "expresion_sugerida": expresion,
     }
 

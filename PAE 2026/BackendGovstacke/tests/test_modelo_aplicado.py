@@ -49,6 +49,8 @@ class TestClasificacionAplicada:
         assert m["tipo_mitchell"] == "no_relevante"
         assert m["sin_percepcion"] is True
         assert m["relevancia_calculada"] == 0.0
+        assert m["expresion_sugerida"]["clave"] is None
+        assert m["expresion_sugerida"]["origen"] == "sin_percepcion"
 
     def test_actor_con_los_tres_atributos_es_definitivo(self):
         m = clasificar_mitchell(
