@@ -5,14 +5,34 @@ import { actorsApi } from '../services/api'
 import { useAuth } from '../contexts/AuthContext'
 
 const TIPOS = [
-  'ciudadania', 'organizacion', 'veeduria', 'concejo', 'servidor_publico',
-  'empresa', 'medio_comunicacion', 'universidad', 'entidad_control', 'cooperacion',
-  'entidad_publica',
+  { clave: 'ciudadania', label: 'Ciudadanía' },
+  { clave: 'organizaciones', label: 'Organizaciones sociales' },
+  { clave: 'veeduria', label: 'Veedurías' },
+  { clave: 'concejo_municipal', label: 'Concejo municipal' },
+  { clave: 'servidor_publico', label: 'Servidores públicos' },
+  { clave: 'empresa', label: 'Empresas / sector privado' },
+  { clave: 'medios', label: 'Medios de comunicación' },
+  { clave: 'universidad', label: 'Universidades' },
+  { clave: 'entidad_control', label: 'Entidades de control' },
+  { clave: 'cooperacion', label: 'Cooperación internacional' },
+  { clave: 'gobierno_local', label: 'Gobierno local' },
+  { clave: 'gobierno_departamental', label: 'Gobierno departamental' },
+  { clave: 'entidad_publica', label: 'Entidad pública (sincronizada)' },
+]
+
+// Las cuatro variables del modelo del doctorado se valoran en escala ordinal de
+// cuatro niveles. En la base se conserva el equivalente 0-100 para no perder la
+// granularidad historica ni romper los indices de priorizacion.
+const ORDINALES = [
+  { valor: 0, label: 'Nula' },
+  { valor: 25, label: 'Baja' },
+  { valor: 50, label: 'Media' },
+  { valor: 75, label: 'Alta' },
 ]
 
 const VARIABLES = [
-  { key: 'poder', label: 'Poder' },
-  { key: 'legitimidad', label: 'Legitimidad' },
+  { key: 'poder', label: 'Poder', ordinal: true },
+  { key: 'legitimidad', label: 'Legitimidad', ordinal: true },
   { key: 'influencia', label: 'Influencia' },
   { key: 'interes', label: 'Interés' },
   { key: 'dependencia', label: 'Dependencia' },
@@ -21,9 +41,51 @@ const VARIABLES = [
   { key: 'historial_participacion', label: 'Historial part.' },
   { key: 'riesgo_conflicto', label: 'Riesgo conflicto' },
   { key: 'canales_relacionamiento', label: 'Canales rel.' },
-  { key: 'urgencia', label: 'Urgencia' },
-  { key: 'frecuencia_intentos', label: 'Frecuencia intentos' },
+  { key: 'urgencia', label: 'Urgencia', ordinal: true },
+  { key: 'frecuencia_intentos', label: 'Frecuencia intentos', ordinal: true },
 ]
+
+const PAREJAS = [
+  { clave: 'pl', a: 'poder', b: 'legitimidad', label: 'Poder vs Legitimidad' },
+  { clave: 'pu', a: 'poder', b: 'urgencia', label: 'Poder vs Urgencia' },
+  { clave: 'lu', a: 'legitimidad', b: 'urgencia', label: 'Legitimidad vs Urgencia' },
+]
+
+const nivelDeValor = (valor) => {
+  const n = Number(valor) || 0
+  if (n >= 75) return 75
+  if (n >= 50) return 50
+  if (n >= 25) return 25
+  return 0
+}
+
+function VariableInput({ item, value, onChange }) {
+  if (item.ordinal) {
+    return (
+      <select
+        value={nivelDeValor(value)}
+        onChange={(e) => onChange(Number(e.target.value))}
+        className="mt-1 w-full rounded-lg border border-[#3f3f46] bg-black/40 px-2 py-1.5 text-xs text-white outline-none focus:border-[#ef4444]"
+      >
+        {ORDINALES.map((o) => (
+          <option key={o.valor} value={o.valor}>
+            {o.label}
+          </option>
+        ))}
+      </select>
+    )
+  }
+  return (
+    <input
+      type="range"
+      min="0"
+      max="100"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className="mt-1 w-full accent-[#ef4444]"
+    />
+  )
+}
 
 const PRIORIDAD_COLOR = { alta: '#ef4444', media: '#f97316', baja: '#a1a1aa' }
 export default function Actores() {
@@ -104,13 +166,39 @@ export default function Actores() {
   const startEditVars = (actor) => {
     const values = {}
     VARIABLES.forEach(({ key }) => { values[key] = actor.variables?.[key] ?? 0 })
-    setEditingVars({ actorId: actor.id, values })
+    const guardada = actor.variables?.ponderacion
+    const parejas = { pl: 5, pu: 5, lu: 5 }
+    if (guardada?.parejas?.length) {
+      PAREJAS.forEach(({ clave, a, b }) => {
+        const pareja = guardada.parejas.find((p) => p.a === a && p.b === b)
+        if (pareja) parejas[clave] = Number(pareja.puntos_a)
+      })
+    }
+    setEditingVars({
+      actorId: actor.id,
+      values,
+      usaPonderacion: Boolean(guardada?.parejas?.length),
+      parejas,
+    })
   }
 
   const saveVars = async () => {
     setSaving(true)
     try {
-      await actorsApi.updateVariables(editingVars.actorId, editingVars.values)
+      const payload = {}
+      VARIABLES.forEach(({ key }) => { payload[key] = Number(editingVars.values[key]) })
+      if (editingVars.usaPonderacion) {
+        payload.ponderacion = {
+          parejas: PAREJAS.map(({ clave, a, b }) => ({
+            a,
+            b,
+            puntos_a: Number(editingVars.parejas[clave]),
+          })),
+        }
+      } else {
+        payload.ponderacion = null
+      }
+      await actorsApi.updateVariables(editingVars.actorId, payload)
       setEditingVars(null)
       load()
     } catch {
@@ -161,7 +249,7 @@ export default function Actores() {
         >
           <option value="">Todos los tipos</option>
           {TIPOS.map((t) => (
-            <option key={t} value={t}>{t.replace('_', ' ')}</option>
+            <option key={t.clave} value={t.clave}>{t.label}</option>
           ))}
         </select>
       </GlassCard>
@@ -221,9 +309,21 @@ export default function Actores() {
                       </span>
                     </td>
                     <td className="px-5 py-4">
-                      <span className="rounded-full border border-[#f97316]/40 bg-[#f97316]/10 px-3 py-1 font-mono text-[9px] font-bold uppercase text-[#f97316]">
-                        {a.mitchell?.etiqueta || 'Sin clasificar'}
-                      </span>
+                      {a.mitchell?.sin_percepcion ? (
+                        <span className="rounded-full border border-[#3f3f46] bg-black/30 px-3 py-1 font-mono text-[9px] font-bold uppercase text-[#71717a]">
+                          Sin valoración del líder
+                        </span>
+                      ) : (
+                        <div>
+                          <span className="rounded-full border border-[#f97316]/40 bg-[#f97316]/10 px-3 py-1 font-mono text-[9px] font-bold uppercase text-[#f97316]">
+                            {a.mitchell?.etiqueta || 'Sin clasificar'}
+                          </span>
+                          <p className="mt-1 font-mono text-[10px] text-[#71717a]">
+                            PLU {a.mitchell?.plu} · {a.mitchell?.relevancia_calculada?.toFixed(2)} ·{' '}
+                            {a.mitchell?.rango_etiqueta}
+                          </p>
+                        </div>
+                      )}
                     </td>
                     <td className="px-5 py-4 font-mono text-sm text-[#f97316]">{a.indice_priorizacion}</td>
                     <td className="px-5 py-4 text-right">
@@ -266,22 +366,26 @@ export default function Actores() {
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <input required value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} placeholder="Nombre del actor *" className="rounded-lg border border-[#3f3f46] bg-black/40 px-3 py-2.5 text-sm text-white outline-none focus:border-[#ef4444]" />
                 <select value={form.tipo} onChange={(e) => setForm({ ...form, tipo: e.target.value })} className="rounded-lg border border-[#3f3f46] bg-black/40 px-3 py-2.5 text-sm text-white outline-none focus:border-[#ef4444]">
-                  {TIPOS.map((t) => <option key={t} value={t}>{t.replace('_', ' ')}</option>)}
+                  {TIPOS.map((t) => <option key={t.clave} value={t.clave}>{t.label}</option>)}
                 </select>
                 <input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="Correo electrónico" className="rounded-lg border border-[#3f3f46] bg-black/40 px-3 py-2.5 text-sm text-white outline-none focus:border-[#ef4444]" />
                 <input value={form.telefono} onChange={(e) => setForm({ ...form, telefono: e.target.value })} placeholder="Teléfono" className="rounded-lg border border-[#3f3f46] bg-black/40 px-3 py-2.5 text-sm text-white outline-none focus:border-[#ef4444]" />
                 <input value={form.descripcion} onChange={(e) => setForm({ ...form, descripcion: e.target.value })} placeholder="Descripción" className="rounded-lg border border-[#3f3f46] bg-black/40 px-3 py-2.5 text-sm text-white outline-none focus:border-[#ef4444]" />
               </div>
               <div>
-                <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.2em] text-[#a1a1aa]">Variables de análisis (0–100)</p>
+                <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.2em] text-[#a1a1aa]">Variables de análisis</p>
+                <p className="mb-3 text-[11px] text-[#71717a]">
+                  Poder, legitimidad, urgencia y frecuencia usan la escala ordinal del
+                  doctorado (nula, baja, media, alta). Las demás variables usan 0–100.
+                </p>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  {VARIABLES.map(({ key, label }) => (
-                    <label key={key} className="text-xs text-[#d4d4d8]">
-                      {label}: <span className="font-mono text-[#f97316]">{form[key]}</span>
-                      <input
-                        type="range" min="0" max="100" value={form[key]}
-                        onChange={(e) => setForm({ ...form, [key]: e.target.value })}
-                        className="mt-1 w-full accent-[#ef4444]"
+                  {VARIABLES.map((item) => (
+                    <label key={item.key} className="text-xs text-[#d4d4d8]">
+                      {item.label}: <span className="font-mono text-[#f97316]">{form[item.key]}</span>
+                      <VariableInput
+                        item={item}
+                        value={form[item.key]}
+                        onChange={(v) => setForm({ ...form, [item.key]: v })}
                       />
                     </label>
                   ))}
@@ -306,21 +410,74 @@ export default function Actores() {
               </button>
             </div>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              {VARIABLES.map(({ key, label }) => (
-                <label key={key} className="text-xs text-[#d4d4d8]">
-                  {label}: <span className="font-mono text-[#f97316]">{editingVars.values[key]}</span>
-                  <input
-                    type="range" min="0" max="100" value={editingVars.values[key]}
-                    onChange={(e) =>
+              {VARIABLES.map((item) => (
+                <label key={item.key} className="text-xs text-[#d4d4d8]">
+                  {item.label}: <span className="font-mono text-[#f97316]">{editingVars.values[item.key]}</span>
+                  <VariableInput
+                    item={item}
+                    value={editingVars.values[item.key]}
+                    onChange={(v) =>
                       setEditingVars({
                         ...editingVars,
-                        values: { ...editingVars.values, [key]: e.target.value },
+                        values: { ...editingVars.values, [item.key]: v },
                       })
                     }
-                    className="mt-1 w-full accent-[#ef4444]"
                   />
                 </label>
               ))}
+            </div>
+
+            <div className="mt-5 rounded-xl border border-[#3f3f46] bg-black/30 p-4">
+              <label className="flex items-start gap-3">
+                <input
+                  type="checkbox"
+                  checked={editingVars.usaPonderacion}
+                  onChange={(e) =>
+                    setEditingVars({ ...editingVars, usaPonderacion: e.target.checked })
+                  }
+                  className="mt-0.5 h-4 w-4 accent-[#ef4444]"
+                />
+                <span>
+                  <span className="block text-xs font-bold text-white">
+                    Ponderación por apareamiento
+                  </span>
+                  <span className="mt-1 block text-[11px] leading-relaxed text-[#a1a1aa]">
+                    Diez puntos por pareja, treinta en total. Si se deja desmarcada, la
+                    valoración usa los pesos publicados en el doctorado. La ponderación
+                    queda guardada junto con esta valoración.
+                  </span>
+                </span>
+              </label>
+              {editingVars.usaPonderacion && (
+                <div className="mt-4 space-y-3">
+                  {PAREJAS.map(({ clave, label }) => (
+                    <div key={clave}>
+                      <div className="flex items-center justify-between text-[11px] text-[#d4d4d8]">
+                        <span>{label}</span>
+                        <span className="font-mono text-[#f97316]">
+                          {editingVars.parejas[clave]} – {10 - editingVars.parejas[clave]}
+                        </span>
+                      </div>
+                      <input
+                        type="range"
+                        min="0"
+                        max="10"
+                        value={editingVars.parejas[clave]}
+                        onChange={(e) =>
+                          setEditingVars({
+                            ...editingVars,
+                            parejas: {
+                              ...editingVars.parejas,
+                              [clave]: Number(e.target.value),
+                            },
+                          })
+                        }
+                        className="mt-1 w-full accent-[#ef4444]"
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
             <button
               onClick={saveVars}
