@@ -49,7 +49,7 @@ Vercel (frontends, gratis)                Render (backends Docker, gratis)
 
 - **Frontends (3 proyectos Vercel)** → variables `VITE_API_BASE_URL`, `VITE_GOVSTAKE_URL`, `VITE_INTEROP_URL`.
 - **Backends (2 servicios Render Docker)** definidos en `render.yaml` (Blueprint `intergovstake`, branch `main`).
-- **Base de datos** en Neon (plan free, **sin expiración**), referenciada por `DATABASE_URL` en `render.yaml`.
+- **Base de datos** en Neon (plan free, **sin expiración**), referenciada por `DATABASE_URL` (declarada como `sync: false` en `render.yaml` para no versionar credenciales).
 
 ---
 
@@ -59,13 +59,16 @@ Vercel (frontends, gratis)                Render (backends Docker, gratis)
 
 1. https://dashboard.render.com → **New → Blueprint** → repo `estebanLopezU/PAE-2026-1`.
 2. Blueprint Name: `intergovstake` · Branch: `main` · **Blueprint Path: vacío** (el `render.yaml` está en la raíz).
-3. Render pedirá las variables marcadas `sync: false` (dos veces, una por servicio):
+3. Render pedirá las variables marcadas `sync: false` (una vez por servicio):
+   - `DATABASE_URL` = cadena de conexión de **Neon** (`postgresql://neondb_owner:<password>@<host>/<db>?sslmode=require`)
    - `ADMIN_PASSWORD` = contraseña del administrador
    - `ANALYST_PASSWORD` = contraseña del analista de cada plataforma
    - `OPENROUTER_API_KEY` = clave de OpenRouter (AgentGD)
 4. **Apply** → ~5 min de build por servicio.
 
-> ⚠️ El `render.yaml` **no** declara bases de datos: usa directamente las cadenas de conexión de **Neon** en `DATABASE_URL`. Las tablas y los datos semilla se crean solos en el primer arranque.
+> ⚠️ El `render.yaml` **no** declara bases de datos: usa directamente las cadenas de conexión de **Neon** en `DATABASE_URL`. Estas se configuran **manualmente en el panel de Render** (`sync: false`) y **no se versionan en git**, para evitar filtrar la contraseña de la base de datos. Las tablas y los datos semilla se crean solos en el primer arranque.
+>
+> 🔐 Si la contraseña de Neon estuvo expuesta previamente en `render.yaml`, **rotala** desde el panel de Neon (Settings → Reset password) y actualiza `DATABASE_URL` en Render.
 
 ### Paso 2 — Frontends en Vercel
 

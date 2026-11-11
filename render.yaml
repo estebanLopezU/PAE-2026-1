@@ -15,7 +15,7 @@ services:
     healthCheckPath: /api/health
     envVars:
       - key: DATABASE_URL
-        value: postgresql://neondb_owner:npg_8Pt3fnWIlQwS@ep-orange-snow-ae0t6sj0.c-2.us-east-2.aws.neon.tech/govstake360?sslmode=require
+        sync: false
       - key: CORS_ORIGINS
         value: '["http://localhost:3002","http://localhost:3000","http://localhost:5173","https://pae-govstake.vercel.app","https://pae-interop.vercel.app","https://pae-portal.vercel.app"]'
       - key: JWT_SECRET_KEY
@@ -51,7 +51,7 @@ services:
     healthCheckPath: /api/health
     envVars:
       - key: DATABASE_URL
-        value: postgresql://neondb_owner:npg_8Pt3fnWIlQwS@ep-orange-snow-ae0t6sj0.c-2.us-east-2.aws.neon.tech/xroad_colombia?sslmode=require
+        sync: false
       - key: CORS_ORIGINS
         value: '["http://localhost:3002","http://localhost:3000","http://localhost:5173","https://pae-govstake.vercel.app","https://pae-interop.vercel.app","https://pae-portal.vercel.app"]'
       - key: JWT_SECRET_KEY
