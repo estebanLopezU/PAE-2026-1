@@ -1,5 +1,7 @@
 from sqlalchemy.orm import selectinload
 
+import json
+
 from ....models import (
     Actor,
     calcular_indice_priorizacion,
@@ -23,6 +25,16 @@ def actor_query(db):
         selectinload(Actor.compromisos),
         selectinload(Actor.alertas),
     )
+
+
+def _ponderacion_serializable(crudo):
+    """Convierte la ponderacion guardada (JSON) en objeto para la API."""
+    if not crudo:
+        return None
+    try:
+        return json.loads(crudo) if isinstance(crudo, str) else dict(crudo)
+    except (ValueError, TypeError):
+        return None
 
 
 def actor_to_dict(actor):
@@ -68,6 +80,7 @@ def actor_to_dict(actor):
             "frecuencia_intentos": v.frecuencia_intentos,
             "evaluado_por": v.evaluado_por,
             "evaluado_en": v.evaluado_en,
+            "ponderacion": _ponderacion_serializable(v.ponderacion),
         } if v else None,
         "mitchell": clasificar_mitchell(v),
         "indice_priorizacion": indice,

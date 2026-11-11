@@ -1,18 +1,49 @@
 from typing import List, Optional
 from datetime import datetime, timezone
+import json
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from ....database import get_db
+from ....modelo import ponderar
 from ....models import Actor, ActorVariables
 from ....models import evaluar_alertas, Alerta
 from ....schemas import ActorCreate, ActorUpdate, ActorList
 from ....security import get_current_user, require_admin
+from ....tipos_actor import listar_tipos, normalizar_tipo
 from ._helpers import actor_query, actor_to_dict
 
 
 router = APIRouter()
+
+
+def _serializar_ponderacion(valor):
+    """Valida y serializa la ponderacion por apareamiento de una valoracion.
+
+    Acepta las tres parejas (10 puntos cada una) o unos pesos ya calculados.
+    Devuelve el JSON que se guarda junto a las variables del actor.
+    """
+    if valor is None:
+        return None
+    if not isinstance(valor, dict):
+        raise HTTPException(
+            status_code=400, detail="La ponderacion debe ser un objeto JSON."
+        )
+    try:
+        if valor.get("parejas"):
+            resultado = ponderar([dict(p) for p in valor["parejas"]])
+        else:
+            pesos = {
+                clave: float(valor["pesos"][clave])
+                for clave in ("poder", "legitimidad", "urgencia")
+            }
+            if abs(sum(pesos.values()) - 1.0) > 0.02:
+                raise ValueError("los pesos deben sumar 1")
+            resultado = {"origen": "usuario", "pesos": pesos}
+    except (TypeError, ValueError, KeyError, AttributeError) as exc:
+        raise HTTPException(status_code=400, detail=f"Ponderacion invalida: {exc}")
+    return json.dumps(resultado, ensure_ascii=False)
 
 
 @router.get("", response_model=ActorList)
@@ -26,7 +57,7 @@ def list_actors(
 ):
     query = actor_query(db)
     if tipo:
-        query = query.filter(Actor.tipo == tipo)
+        query = query.filter(Actor.tipo == normalizar_tipo(tipo))
     if buscar:
         like = f"%{buscar}%"
         query = query.filter(Actor.nombre.ilike(like))
@@ -38,6 +69,13 @@ def list_actors(
         "page": page,
         "page_size": page_size,
     }
+
+
+@router.get("/tipos")
+def tipos_de_actor(_=Depends(get_current_user)):
+    """Vocabulario canonico de tipos de actor con su protocolo asociado."""
+    items = listar_tipos()
+    return {"items": items, "total": len(items)}
 
 
 @router.get("/{actor_id}")
@@ -56,6 +94,8 @@ def create_actor(
 ):
     data = payload.model_dump(exclude_unset=True)
     variables = data.pop("variables", None)
+    if data.get("tipo"):
+        data["tipo"] = normalizar_tipo(data["tipo"])
 
     actor = Actor(**data)
     db.add(actor)
@@ -119,6 +159,11 @@ def update_actor_variables(
     for key in campos_validos:
         if key in payload:
             setattr(variables, key, float(payload[key]))
+
+    # Ponderacion por apareamiento con la que se valora este actor. Se guarda
+    # con la valoracion para que la relevancia sea reproducible en el futuro.
+    if "ponderacion" in payload:
+        variables.ponderacion = _serializar_ponderacion(payload["ponderacion"])
 
     variables.evaluado_por = current_user.get("email", "desconocido")
     variables.evaluado_en = datetime.now(timezone.utc)

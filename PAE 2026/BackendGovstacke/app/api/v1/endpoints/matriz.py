@@ -4,7 +4,8 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from ....database import get_db
-from ....models import Actor
+from ....modelo import ORDEN_EXPRESIONES, PESOS_TESIS, RANGOS, RANGOS_RELEVANCIA
+from ....models import Actor, MITCHELL_UMBRAL_NIVEL, MITCHELL_UMBRAL_PRESENCIA
 from ....security import get_current_user
 from ._helpers import actor_query, actor_to_dict
 
@@ -106,6 +107,8 @@ def resumen_mitchell(db: Session = Depends(get_db), _=Depends(get_current_user))
         "no_relevante": 0,
     }
     pendientes = 0
+    rangos = {clave: 0 for clave in RANGOS}
+    expresiones = {clave: 0 for clave in ORDEN_EXPRESIONES}
 
     for d in datos:
         m = d.get("mitchell", {})
@@ -113,12 +116,14 @@ def resumen_mitchell(db: Session = Depends(get_db), _=Depends(get_current_user))
         tipo = m.get("tipo_mitchell", "no_relevante")
         grupos[grupo] = grupos.get(grupo, 0) + 1
         tipos[tipo] = tipos.get(tipo, 0) + 1
-        v = d.get("variables") or {}
-        if (
-            (v.get("poder") or 0) <= 0
-            and (v.get("legitimidad") or 0) <= 0
-            and (v.get("urgencia") or 0) <= 0
-        ):
+        rango = m.get("rango", "nula")
+        rangos[rango] = rangos.get(rango, 0) + 1
+        clave_expresion = (m.get("expresion_sugerida") or {}).get("clave")
+        if clave_expresion in expresiones:
+            expresiones[clave_expresion] += 1
+        # Un actor esta pendiente cuando no tiene ningun atributo de Mitchell
+        # percibido por el lider, no solo cuando sus variables valen cero.
+        if m.get("sin_percepcion"):
             pendientes += 1
 
     return {
@@ -126,5 +131,12 @@ def resumen_mitchell(db: Session = Depends(get_db), _=Depends(get_current_user))
         "grupos": grupos,
         "tipos": tipos,
         "pendientes_evaluacion": pendientes,
-        "umbral": 60,
+        "sin_percepcion_del_lider": pendientes,
+        "por_rango": rangos,
+        "por_expresion": expresiones,
+        "umbral": MITCHELL_UMBRAL_PRESENCIA,
+        "umbral_nivel": MITCHELL_UMBRAL_NIVEL,
+        "escala": "ordinal 0-3 (nula, baja, media, alta)",
+        "pesos": dict(PESOS_TESIS),
+        "rangos": RANGOS_RELEVANCIA,
     }

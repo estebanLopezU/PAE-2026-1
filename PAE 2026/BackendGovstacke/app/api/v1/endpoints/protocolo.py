@@ -118,6 +118,36 @@ PROTOCOLOS.update({
         "nivel_incidencia": "Financiera / técnica",
         "indicadores_seguimiento": ["recursos movilizados", "proyectos aprobados", "alineación con ODS"],
     },
+    "gobierno_local": {
+        "nombre": "Gobiernos locales",
+        "objetivo": "Coordinar la gestión territorial y la articulación entre niveles de gobierno.",
+        "canales_recomendados": ["comités técnicos conjuntos", "planes de desarrollo", "mesas de articulación territorial"],
+        "frecuencia_sugerida": "Mensual, con sesiones extraordinarias ante hitos del plan",
+        "formato_participacion": "Coordinación interinstitucional y ejecución conjunta de proyectos",
+        "requisitos_habilitacion": "Competencia territorial y acto administrativo vigente",
+        "nivel_incidencia": "Decisional compartida",
+        "indicadores_seguimiento": ["proyectos articulados", "cumplimiento de metas del plan", "oportunidad de respuesta"],
+    },
+    "gobierno_departamental": {
+        "nombre": "Gobiernos departamentales",
+        "objetivo": "Alinear la gestión municipal con las prioridades y recursos departamentales.",
+        "canales_recomendados": ["consejos departamentales de política", "convenios interadministrativos", "mesas de planificación"],
+        "frecuencia_sugerida": "Bimestral y ante cada convocatoria de cofinanciación",
+        "formato_participacion": "Gestión de cofinanciación, asistencia técnica y seguimiento de convenios",
+        "requisitos_habilitacion": "Competencia departamental y disponibilidad presupuestal",
+        "nivel_incidencia": "Normativa / financiera",
+        "indicadores_seguimiento": ["convenios suscritos", "recursos cofinanciados", "proyectos departamentales ejecutados"],
+    },
+    "entidad_publica": {
+        "nombre": "Entidades públicas sincronizadas",
+        "objetivo": "Mantener actualizado el inventario de entidades del Estado con las que se interactúa.",
+        "canales_recomendados": ["correo institucional", "portal de datos abiertos", "ventanilla única"],
+        "frecuencia_sugerida": "Según calendario sectorial y actualización de datos abiertos",
+        "formato_participacion": "Intercambio de información, articulación sectorial y rendición de cuentas",
+        "requisitos_habilitacion": "Registro vigente en el portal de datos abiertos del Estado",
+        "nivel_incidencia": "Informativa / técnica",
+        "indicadores_seguimiento": ["datos actualizados", "solicitudes atendidas", "articulación sectorial"],
+    },
 })
 
 TIPOS_SIN_PROTOCOLO_MSG = "Tipo de actor sin protocolo definido. Tipos válidos: " + ", ".join(PROTOCOLOS.keys())
@@ -159,6 +189,33 @@ def protocolo_para_actor(actor_id: int, db: Session = Depends(get_db), _=Depends
     if d["nivel_prioridad"] == "alta":
         ajustes.append("Actor de prioridad ALTA: asignar responsable de relacionamiento dedicado.")
     base["ajustes_dinamicos"] = ajustes
+
+    # Expresion del liderazgo participativo sugerida por el modelo del doctorado.
+    m = d.get("mitchell") or {}
+    expresion = m.get("expresion_sugerida") or {}
+    base["expresion_liderazgo"] = {
+        "clave": expresion.get("clave"),
+        "nombre": expresion.get("nombre"),
+        "descripcion": expresion.get("descripcion"),
+        "practicas": expresion.get("practicas", []),
+        "confianza": expresion.get("confianza"),
+        "origen": expresion.get("origen"),
+        "regla": expresion.get("regla"),
+        "correlaciones": expresion.get("correlaciones", []),
+        "nota": (
+            "Recomendacion fundamentada en las correlaciones de la Hipotesis F "
+            "del doctorado. El lider puede sobrescribirla y el cambio queda "
+            "registrado."
+        ),
+    }
+    base["clasificacion_modelo"] = {
+        "plu": m.get("plu"),
+        "niveles": m.get("niveles"),
+        "relevancia_calculada": m.get("relevancia_calculada"),
+        "rango": m.get("rango"),
+        "rango_etiqueta": m.get("rango_etiqueta"),
+        "estado": m.get("estado"),
+    }
     base["actor"] = {"id": d["id"], "nombre": d["nombre"], "tipo": d["tipo"],
                      "nivel_prioridad": d["nivel_prioridad"],
                      "indice_priorizacion": d["indice_priorizacion"]}

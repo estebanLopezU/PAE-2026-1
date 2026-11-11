@@ -68,6 +68,7 @@ def _ensure_schema():
         ("actor_variables", "frecuencia_intentos", "ALTER TABLE actor_variables ADD COLUMN frecuencia_intentos FLOAT DEFAULT 0 NOT NULL"),
         ("actor_variables", "evaluado_por", "ALTER TABLE actor_variables ADD COLUMN evaluado_por VARCHAR(100)"),
         ("actor_variables", "evaluado_en", "ALTER TABLE actor_variables ADD COLUMN evaluado_en TIMESTAMP WITH TIME ZONE"),
+        ("actor_variables", "ponderacion", "ALTER TABLE actor_variables ADD COLUMN ponderacion TEXT"),
         ("actores", "fuente", "ALTER TABLE actores ADD COLUMN fuente VARCHAR(50) DEFAULT 'manual' NOT NULL"),
         ("actores", "entidad_origen_id", "ALTER TABLE actores ADD COLUMN entidad_origen_id INTEGER"),
         ("actores", "nit", "ALTER TABLE actores ADD COLUMN nit VARCHAR(20)"),

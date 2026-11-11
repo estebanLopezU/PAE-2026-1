@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, Float, String, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, Float, String, Text, ForeignKey, DateTime
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from ..database import Base
@@ -27,6 +27,11 @@ class ActorVariables(Base):
     # Trazabilidad de la evaluación: quién valoró al stakeholder y cuándo.
     evaluado_por = Column(String(100), nullable=True)
     evaluado_en = Column(DateTime(timezone=True), nullable=True)
+
+    # Ponderación usada en esta valoración (JSON): parejas, subtotales y pesos.
+    # Se guarda con la valoración para que la relevancia sea reproducible aunque
+    # la ponderación institucional cambie después.
+    ponderacion = Column(Text, nullable=True)
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
