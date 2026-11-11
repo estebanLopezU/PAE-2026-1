@@ -26,9 +26,9 @@ class ChatMessage(BaseModel):
 def _build_context(db: Session) -> str:
     """Genera un resumen del estado actual de la plataforma GOVStake."""
     from ....models import Actor, Alerta, Compromiso, Relacionamiento
-    from ._helpers import actor_to_dict
+    from ._helpers import actor_query, actor_to_dict
 
-    actores = db.query(Actor).filter(Actor.is_active == True).all()
+    actores = actor_query(db).filter(Actor.is_active == True).all()
     alertas = db.query(Alerta).all()
     compromisos = db.query(Compromiso).all()
     rel = db.query(Relacionamiento).all()

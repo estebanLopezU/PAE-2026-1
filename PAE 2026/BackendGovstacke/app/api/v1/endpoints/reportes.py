@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 from ....database import get_db
 from ....models import Actor
 from ....security import get_current_user
-from ._helpers import actor_to_dict
+from ._helpers import actor_query, actor_to_dict
 
 router = APIRouter()
 
@@ -98,7 +98,7 @@ def _generar_recomendaciones(filas):
 @router.get("/ejecutivo")
 def reporte_ejecutivo(db: Session = Depends(get_db), _=Depends(get_current_user)):
     """Reporte ejecutivo consolidado para la toma de decisiones."""
-    actores = db.query(Actor).filter(Actor.is_active == True).all()
+    actores = actor_query(db).filter(Actor.is_active == True).all()
     filas = [actor_to_dict(a) for a in actores]
     filas.sort(key=lambda x: x["indice_priorizacion"], reverse=True)
 
@@ -146,7 +146,7 @@ def reporte_ejecutivo(db: Session = Depends(get_db), _=Depends(get_current_user)
 @router.get("/actores")
 def reporte_por_actor(db: Session = Depends(get_db), _=Depends(get_current_user)):
     """Ficha-resumen por actor: variables clave, índices y alertas."""
-    actores = db.query(Actor).filter(Actor.is_active == True).all()
+    actores = actor_query(db).filter(Actor.is_active == True).all()
     items = []
     for a in actores:
         d = actor_to_dict(a)

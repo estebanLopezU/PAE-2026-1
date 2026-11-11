@@ -1,9 +1,28 @@
+from sqlalchemy.orm import selectinload
+
 from ....models import (
+    Actor,
     calcular_indice_priorizacion,
     calcular_indice_relacionamiento,
     nivel_prioridad,
     clasificar_mitchell,
 )
+
+
+def actor_query(db):
+    """Query de actores con las relaciones que usa ``actor_to_dict`` precargadas.
+
+    Sin eager loading, serializar N actores dispara N+1 queries: ``variables``,
+    ``compromisos`` y ``alertas`` se resuelven una a una por lazy loading.
+    Con la base de datos remota eso son cientos de viajes de ida y vuelta y
+    el dashboard tarda decenas de segundos. Con ``selectinload`` el coste es
+    de 3 consultas adicionales, independientemente del numero de actores.
+    """
+    return db.query(Actor).options(
+        selectinload(Actor.variables),
+        selectinload(Actor.compromisos),
+        selectinload(Actor.alertas),
+    )
 
 
 def actor_to_dict(actor):

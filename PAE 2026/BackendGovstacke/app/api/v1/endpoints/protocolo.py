@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 from ....database import get_db
 from ....models import Actor
 from ....security import get_current_user
-from ._helpers import actor_to_dict
+from ._helpers import actor_query, actor_to_dict
 
 router = APIRouter()
 
@@ -132,7 +132,7 @@ def listar_protocolos(_=Depends(get_current_user)):
 def protocolo_para_actor(actor_id: int, db: Session = Depends(get_db), _=Depends(get_current_user)):
     """Protocolo de participación personalizado para un actor específico,
     ajustado por sus variables (riesgo de conflicto, posición y prioridad)."""
-    actor = db.query(Actor).filter(Actor.id == actor_id).first()
+    actor = actor_query(db).filter(Actor.id == actor_id).first()
     if not actor:
         raise HTTPException(status_code=404, detail="Actor no encontrado")
     base = dict(PROTOCOLOS.get(actor.tipo, {}))

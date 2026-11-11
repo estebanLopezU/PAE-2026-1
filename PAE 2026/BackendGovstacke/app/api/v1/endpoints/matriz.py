@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from ....database import get_db
 from ....models import Actor
 from ....security import get_current_user
-from ._helpers import actor_to_dict
+from ._helpers import actor_query, actor_to_dict
 
 
 router = APIRouter()
@@ -15,7 +15,7 @@ router = APIRouter()
 @router.get("/priorizacion")
 def matriz_priorizacion(db: Session = Depends(get_db), _=Depends(get_current_user)):
     """Matriz de priorización ordenada por índice de priorización (poder-legitimidad-influencia-interés)."""
-    actores = db.query(Actor).filter(Actor.is_active == True).all()
+    actores = actor_query(db).filter(Actor.is_active == True).all()
     filas = [actor_to_dict(a) for a in actores]
     # Ordenar por índice de priorización descendente
     filas.sort(key=lambda x: x["indice_priorizacion"], reverse=True)
@@ -25,7 +25,7 @@ def matriz_priorizacion(db: Session = Depends(get_db), _=Depends(get_current_use
 @router.get("/mapa")
 def mapa_poder_legitimidad_influencia(db: Session = Depends(get_db), _=Depends(get_current_user)):
     """Datos para el mapa dinámico poder-legitimidad-influencia."""
-    actores = db.query(Actor).filter(Actor.is_active == True).all()
+    actores = actor_query(db).filter(Actor.is_active == True).all()
     puntos = []
     for a in actores:
         v = a.variables
@@ -50,7 +50,7 @@ def mapa_poder_legitimidad_influencia(db: Session = Depends(get_db), _=Depends(g
 @router.get("/resumen")
 def resumen_clasificacion(db: Session = Depends(get_db), _=Depends(get_current_user)):
     """Resumen por tipo de actor, prioridad y clasificación Mitchell."""
-    actores = db.query(Actor).filter(Actor.is_active == True).all()
+    actores = actor_query(db).filter(Actor.is_active == True).all()
     datos = [actor_to_dict(a) for a in actores]
 
     por_tipo = {}
@@ -75,7 +75,7 @@ def resumen_clasificacion(db: Session = Depends(get_db), _=Depends(get_current_u
 @router.get("/mitchell")
 def matriz_mitchell(db: Session = Depends(get_db), _=Depends(get_current_user)):
     """Matriz Mitchell ordenada por número de atributos y relevancia."""
-    actores = db.query(Actor).filter(Actor.is_active == True).all()
+    actores = actor_query(db).filter(Actor.is_active == True).all()
     filas = [actor_to_dict(a) for a in actores]
     filas.sort(
         key=lambda x: (
@@ -91,7 +91,7 @@ def matriz_mitchell(db: Session = Depends(get_db), _=Depends(get_current_user)):
 @router.get("/mitchell/resumen")
 def resumen_mitchell(db: Session = Depends(get_db), _=Depends(get_current_user)):
     """Resumen ejecutivo de la clasificación de Mitchell."""
-    actores = db.query(Actor).filter(Actor.is_active == True).all()
+    actores = actor_query(db).filter(Actor.is_active == True).all()
     datos = [actor_to_dict(a) for a in actores]
 
     grupos = {"latente": 0, "expectante": 0, "definitivo": 0, "no_relevante": 0}

@@ -9,7 +9,7 @@ from ....models import Actor, ActorVariables
 from ....models import evaluar_alertas, Alerta
 from ....schemas import ActorCreate, ActorUpdate, ActorList
 from ....security import get_current_user, require_admin
-from ._helpers import actor_to_dict
+from ._helpers import actor_query, actor_to_dict
 
 
 router = APIRouter()
@@ -24,7 +24,7 @@ def list_actors(
     db: Session = Depends(get_db),
     _=Depends(get_current_user),
 ):
-    query = db.query(Actor)
+    query = actor_query(db)
     if tipo:
         query = query.filter(Actor.tipo == tipo)
     if buscar:
@@ -42,7 +42,7 @@ def list_actors(
 
 @router.get("/{actor_id}")
 def get_actor(actor_id: int, db: Session = Depends(get_db), _=Depends(get_current_user)):
-    actor = db.query(Actor).filter(Actor.id == actor_id).first()
+    actor = actor_query(db).filter(Actor.id == actor_id).first()
     if not actor:
         raise HTTPException(status_code=404, detail="Actor no encontrado")
     return actor_to_dict(actor)
@@ -80,7 +80,7 @@ def update_actor(
     db: Session = Depends(get_db),
     _=Depends(require_admin),
 ):
-    actor = db.query(Actor).filter(Actor.id == actor_id).first()
+    actor = actor_query(db).filter(Actor.id == actor_id).first()
     if not actor:
         raise HTTPException(status_code=404, detail="Actor no encontrado")
 
@@ -101,7 +101,7 @@ def update_actor_variables(
     current_user=Depends(require_admin),
 ):
     """Actualiza las variables de análisis del actor y registra quién evaluó."""
-    actor = db.query(Actor).filter(Actor.id == actor_id).first()
+    actor = actor_query(db).filter(Actor.id == actor_id).first()
     if not actor:
         raise HTTPException(status_code=404, detail="Actor no encontrado")
 
@@ -130,7 +130,7 @@ def update_actor_variables(
 
 @router.delete("/{actor_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_actor(actor_id: int, db: Session = Depends(get_db), _=Depends(require_admin)):
-    actor = db.query(Actor).filter(Actor.id == actor_id).first()
+    actor = actor_query(db).filter(Actor.id == actor_id).first()
     if not actor:
         raise HTTPException(status_code=404, detail="Actor no encontrado")
     db.delete(actor)
@@ -145,7 +145,7 @@ def evaluar_alertas_actor(
     _=Depends(require_admin),
 ):
     """Evalúa automáticamente las reglas de alertas para un actor y las persiste."""
-    actor = db.query(Actor).filter(Actor.id == actor_id).first()
+    actor = actor_query(db).filter(Actor.id == actor_id).first()
     if not actor:
         raise HTTPException(status_code=404, detail="Actor no encontrado")
 

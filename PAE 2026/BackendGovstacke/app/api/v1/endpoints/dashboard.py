@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from ....database import get_db
 from ....models import Actor, Alerta, Compromiso, Relacionamiento
 from ....security import get_current_user
-from ._helpers import actor_to_dict
+from ._helpers import actor_query, actor_to_dict
 
 
 router = APIRouter()
@@ -13,7 +13,7 @@ router = APIRouter()
 @router.get("")
 def dashboard(db: Session = Depends(get_db), _=Depends(get_current_user)):
     """Tablero estratégico de apoyo a la toma de decisiones."""
-    actores = db.query(Actor).filter(Actor.is_active == True).all()
+    actores = actor_query(db).filter(Actor.is_active == True).all()
     actor_dicts = [actor_to_dict(a) for a in actores]
 
     alertas = db.query(Alerta).all()
