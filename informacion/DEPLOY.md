@@ -122,13 +122,39 @@ curl -X POST https://xroad-api.onrender.com/api/v1/auth/login `
 | Qué cambiaste | Cómo se publica |
 |---|---|
 | Backends (`BackendGovstacke`, `BackendInteroperabilidad`) o `render.yaml` | `git push` → **Render redespliega solo** (auto-deploy activo sobre `main`) |
-| Frontends (`PortalEntrada`, `FrontendGovstacke`, `FrontendInteroperabilidad`) | Hay que redesplegar (ver nota) |
+| Frontends (`PortalEntrada`, `FrontendGovstacke`, `FrontendInteroperabilidad`) | `git push` → **GitHub Actions** publica solo las carpetas que cambiaron |
 
-> ⚠️ **Estado actual de los 3 proyectos Vercel:** se publicaron con la CLI (`vercel deploy --prod`), así que **no están conectados a GitHub**; un `git push` **no** los actualiza.
-> **Para dejarlo automático (recomendado):** en Vercel → cada proyecto → **Settings → Git → Connect Git Repository** → repo `PAE-2026-1` → **Root Directory** = `PAE 2026/<carpeta del frontend>` → Production Branch `main`. Repetir en los 3 proyectos.
-> **Alternativa manual:** `vercel deploy --prod` desde la carpeta de cada frontend (recordando que `VITE_API_BASE_URL` / `VITE_*_URL` deben estar definidas en Production).
+### Despliegue automático de los frontends
+
+El workflow `.github/workflows/vercel-deploy.yml` se ejecuta en cada push a
+`main`. Detecta qué carpeta cambió y publica en Vercel únicamente esos
+proyectos, usando el token guardado en el secret `VERCEL_TOKEN`.
+
+- GOVStake 360 → `PAE 2026/FrontendGovstacke`
+- Interoperabilidad → `PAE 2026/FrontendInteroperabilidad`
+- Portal de entrada → `PAE 2026/PortalEntrada`
+
+Si cambias algo compartido y quieres publicar los tres, entra en **Actions →
+Desplegar frontends en Vercel → Run workflow** (con `forzar` activo).
+
+> **Por qué Actions y no la integración Git de Vercel:** la cuenta de Vercel no
+> tiene la conexión de login con GitHub, así que Vercel no puede leer el repo
+> directamente. El workflow usa `VERCEL_TOKEN` y los IDs de proyecto, que ya
+> están configurados. No hace falta volver a tocar el panel.
 >
-> También conviene replicar las variables `VITE_*` en el entorno **Preview** si se conecta Git, para que las ramas de vista previa funcionen.
+> Si algún día conectas Vercel a GitHub, recuerda poner el **Root Directory** de
+> cada proyecto en `PAE 2026/<carpeta del frontend>` y replicar las variables
+> `VITE_*` en el entorno **Preview**.
+
+### Despliegue manual (si hiciera falta)
+
+```powershell
+cd "PAE 2026\FrontendGovstacke"
+vercel --prod
+```
+
+Repetir en `FrontendInteroperabilidad` y `PortalEntrada`. Las variables
+`VITE_API_BASE_URL` / `VITE_*_URL` ya están definidas en Production.
 
 ---
 

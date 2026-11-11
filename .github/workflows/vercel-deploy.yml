@@ -1,0 +1,120 @@
+name: Desplegar frontends en Vercel
+
+# Despliegue automatico de los tres frontends con Vercel CLI.
+#
+# Se usa GitHub Actions en lugar de la integracion Git de Vercel porque la
+# cuenta de Vercel no tiene la conexion de login con GitHub. Con este flujo
+# cada push a main publica solo los frontends cuyas carpetas cambiaron, y el
+# boton "Run workflow" permite publicar los tres.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      forzar:
+        description: Publicar los tres frontends aunque no hayan cambiado
+        type: boolean
+        default: true
+
+concurrency:
+  group: vercel-frontends
+  cancel-in-progress: false
+
+jobs:
+  detectar:
+    name: Detectar cambios
+    runs-on: ubuntu-latest
+    outputs:
+      govstake: ${{ steps.cambios.outputs.govstake }}
+      interop: ${{ steps.cambios.outputs.interop }}
+      portal: ${{ steps.cambios.outputs.portal }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Filtrar por carpeta de frontend
+        id: cambios
+        if: github.event_name == 'push'
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            govstake:
+              - 'PAE 2026/FrontendGovstacke/**'
+            interop:
+              - 'PAE 2026/FrontendInteroperabilidad/**'
+            portal:
+              - 'PAE 2026/PortalEntrada/**'
+
+  govstake:
+    name: GOVStake 360
+    needs: detectar
+    if: github.event_name == 'workflow_dispatch' || needs.detectar.outputs.govstake == 'true'
+    runs-on: ubuntu-latest
+    env:
+      VERCEL_ORG_ID: team_yiJt0rhEWGJC0fDkHyQNkHUz
+      VERCEL_PROJECT_ID: prj_qonz7NYMZDySSqGITRiMmly0rcqt
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Instalar Vercel CLI
+        run: npm install --global vercel@59
+      - name: Traer configuracion de produccion
+        working-directory: 'PAE 2026/FrontendGovstacke'
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+      - name: Construir
+        working-directory: 'PAE 2026/FrontendGovstacke'
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+      - name: Desplegar
+        working-directory: 'PAE 2026/FrontendGovstacke'
+        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+
+  interop:
+    name: Interoperabilidad X-Road
+    needs: detectar
+    if: github.event_name == 'workflow_dispatch' || needs.detectar.outputs.interop == 'true'
+    runs-on: ubuntu-latest
+    env:
+      VERCEL_ORG_ID: team_yiJt0rhEWGJC0fDkHyQNkHUz
+      VERCEL_PROJECT_ID: prj_6pA1M2KSPKIB4R0ZqFszlrSdy0yS
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Instalar Vercel CLI
+        run: npm install --global vercel@59
+      - name: Traer configuracion de produccion
+        working-directory: 'PAE 2026/FrontendInteroperabilidad'
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+      - name: Construir
+        working-directory: 'PAE 2026/FrontendInteroperabilidad'
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+      - name: Desplegar
+        working-directory: 'PAE 2026/FrontendInteroperabilidad'
+        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+
+  portal:
+    name: Portal de entrada
+    needs: detectar
+    if: github.event_name == 'workflow_dispatch' || needs.detectar.outputs.portal == 'true'
+    runs-on: ubuntu-latest
+    env:
+      VERCEL_ORG_ID: team_yiJt0rhEWGJC0fDkHyQNkHUz
+      VERCEL_PROJECT_ID: prj_lX3DqXzr9uvUcNET8DIExme3B0Ub
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Instalar Vercel CLI
+        run: npm install --global vercel@59
+      - name: Traer configuracion de produccion
+        working-directory: 'PAE 2026/PortalEntrada'
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+      - name: Construir
+        working-directory: 'PAE 2026/PortalEntrada'
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+      - name: Desplegar
+        working-directory: 'PAE 2026/PortalEntrada'
+        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
