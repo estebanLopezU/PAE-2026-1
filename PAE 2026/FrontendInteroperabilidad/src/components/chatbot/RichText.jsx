@@ -1,5 +1,15 @@
 // Render ligero de markdown para las respuestas de AgentGD.
 // Evita una dependencia nueva: cubre negrita, codigo, listas, titulos y tablas.
+// Defensa: el modelo nunca debe devolver HTML. Si lo hace, se descartan las
+// etiquetas y cualquier referencia a javascript: para que no llegue al DOM.
+
+export function sanitizar(texto) {
+  return String(texto ?? '')
+    .replace(/<\s*[a-zA-Z/!][^>]*>/g, '') // etiquetas HTML sueltas
+    .replace(/javascript\s*:/gi, '') // esquemas peligrosos
+    .replace(/on[a-z]{2,}\s*=\s*"[^"]*"/gi, '') // handlers en linea
+    .trim()
+}
 
 function Inline({ text }) {
   const partes = String(text).split(/(\*\*[^*]+\*\*|`[^`]+`)/g)
@@ -53,7 +63,7 @@ function Tabla({ filas }) {
 }
 
 export default function RichText({ texto = '' }) {
-  const lineas = String(texto).replace(/\r/g, '').split('\n')
+  const lineas = sanitizar(texto).replace(/\r/g, '').split('\n')
   const bloques = []
   let lista = null
   let tabla = null
