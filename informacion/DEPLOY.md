@@ -66,6 +66,27 @@ Vercel (frontends, gratis)                Render (backends Docker, gratis)
    - `OPENROUTER_API_KEY` = clave de OpenRouter (AgentGD)
 4. **Apply** → ~5 min de build por servicio.
 
+#### Variables opcionales de AgentGD
+
+Todas tienen valor por defecto en `app/config.py`; solo se declaran en Render si se quiere
+cambiar el comportamiento sin tocar código:
+
+| Variable | Por defecto | Para qué sirve |
+|---|---|---|
+| `OPENROUTER_MODEL` | `nvidia/nemotron-3.5-lightning:free` | Modelo de texto |
+| `OPENROUTER_VISION_MODEL` | `nvidia/nemotron-3.5-super-vl:free` | Modelo que lee imágenes |
+| `OPENROUTER_FALLBACK_MODELS` | `google/gemma-4-31b-it:free,...` | Cadena de respaldo si el primero falla o da 429 |
+| `AGENTGD_TOOLS` | `true` | Activa las herramientas de consulta (function calling) |
+| `AGENTGD_IMAGES` | `true` | Activa la lectura de imágenes |
+| `AGENTGD_MAX_CALLS` | `2` | Llamadas al modelo por pregunta (cuida el cupo gratuito) |
+| `AGENTGD_MAX_TOKENS` | `900` | Tope de tokens de la respuesta |
+| `AGENTGD_MAX_HISTORY` | `8` | Turnos de conversación que viajan al modelo |
+| `AGENTGD_REQUESTS_PER_MINUTE` | `6` | Preguntas por minuto por usuario |
+
+> 💡 El plan gratuito de OpenRouter limita a **50 peticiones al día** por clave sin saldo. Una
+> pregunta compleja consume hasta **2** (una para pedir herramientas y otra para redactar).
+> Si el cupo se agota, AgentGD responde con un aviso y los respaldos configurados.
+
 > ⚠️ El `render.yaml` **no** declara bases de datos: usa directamente las cadenas de conexión de **Neon** en `DATABASE_URL`. Estas se configuran **manualmente en el panel de Render** (`sync: false`) y **no se versionan en git**, para evitar filtrar la contraseña de la base de datos. Las tablas y los datos semilla se crean solos en el primer arranque.
 >
 > 🔐 Si la contraseña de Neon estuvo expuesta previamente en `render.yaml`, **rotala** desde el panel de Neon (Settings → Reset password) y actualiza `DATABASE_URL` en Render.

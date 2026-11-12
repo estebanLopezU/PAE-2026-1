@@ -1,15 +1,67 @@
 # Plan de evolución de AgentGD
 
 > Asistente IA de GOVStake 360 e Interoperabilidad X-Road.
-> Estado: propuesta para aprobación. Autor: equipo PAE 2026-1.
+> Autor: equipo PAE 2026-1.
+> **Estado: fases 0 a 3 implementadas** (skills, visión y guía de dashboards). Las fases 4 y 5
+> (conjunto dorado de 80 preguntas y servidor MCP) quedan como trabajo futuro.
+
+## Estado de implementación
+
+Lo que ya está en el repositorio:
+
+| Pieza | GOVStake 360 | Interoperabilidad |
+|---|---|---|
+| Núcleo del agente | `BackendGovstacke/app/agentgd/` | `BackendInteroperabilidad/app/agentgd/` |
+| Herramientas | 12 (actores, fichas, priorización, compromisos, alertas, Mitchell, comparación, teoría, navegación) | 10 (entidades, fichas, servicios, madurez, brechas, relaciones, comparación, marco MinTIC, navegación) |
+| Visión | `nvidia/nemotron-3.5-super-vl:free` | igual |
+| Guía de dashboards | contexto de página + chips de acción + guía paso a paso | igual |
+| Límites | 2 llamadas por pregunta · 6 preguntas/minuto por usuario | igual |
+| Pruebas | `tests/test_agentgd.py` (11 pruebas) | `tests/test_agentgd.py` (7 pruebas) |
+
+Contrato del endpoint (compatible con el anterior):
+
+```json
+POST /api/v1/agentgd/chat
+{
+  "message": "¿Por qué la Contraloría es prioridad alta?",
+  "history": [{"role": "user", "content": "..."}],
+  "page": "/matriz",
+  "image": "data:image/jpeg;base64,..."
+}
+```
+
+```json
+{
+  "response": "…",
+  "ok": true,
+  "acciones": [{"etiqueta": "Ver matriz", "ruta": "/matriz"}],
+  "trazabilidad": ["explicar_priorizacion"],
+  "uso": {"tokens_entrada": 2100, "tokens_salida": 340, "llamadas": 2, "modelo": "…"},
+  "vision": false
+}
+```
+
+Endpoints nuevos: `GET /agentgd/capacidades` (herramientas, visión y guía por página) y
+`GET /agentgd/diagnostico` (solo administradores).
+
+Decisiones de implementación que difieren del plan original:
+
+- **Dos llamadas, no tres.** Se prohíben herramientas en la segunda llamada para forzar la
+  redacción. Así una pregunta consume como máximo dos peticiones a OpenRouter.
+- **Guía sin spotlight.** El tour se entrega como pasos en el chat y chips de navegación, sin
+  inyectar selectores ni modificar el DOM de los dashboards. Menos riesgo y mismo valor de guía.
+- **Sin RAG ni fine-tuning.** El conocimiento cabe en el prompt; las cifras salen de herramientas.
+- **MCP fuera de alcance.** OpenRouter no aloja servidores MCP. Queda como trabajo futuro exponer
+  un servidor MCP de solo lectura en el backend.
 
 ---
 
-## 1. Diagnóstico del estado actual
+## 1. Diagnóstico del estado actual (punto de partida)
 
-AgentGD hoy es un **chat con un resumen de la base de datos en el prompt**. Funciona para
-preguntas simples ("¿cuántos actores hay?"), pero no para preguntas complejas, no lee imágenes,
-no consulta datos a demanda y no sabe en qué pantalla está el usuario.
+AgentGD, antes de esta implementación, era un **chat con un resumen de la base de datos en el
+prompt**. Funcionaba para preguntas simples ("¿cuántos actores hay?"), pero no para preguntas
+complejas, no leía imágenes, no consultaba datos a demanda y no sabía en qué pantalla estaba el
+usuario.
 
 | Pieza | Situación actual | Limitación |
 |---|---|---|

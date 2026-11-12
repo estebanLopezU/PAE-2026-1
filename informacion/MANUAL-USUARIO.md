@@ -554,7 +554,13 @@ docker exec -i xroad-postgres psql -U postgres -d xroad_colombia < respaldo_xroa
 
 > **⚠️ Importante:** Las contraseñas se gestionan en los archivos `.env` de cada backend (no versionados en git) y se almacenan **hasheadas con bcrypt** en la base de datos. Tras 5 intentos fallidos la cuenta se bloquea 15 minutos y todo acceso queda registrado en la tabla de auditoría. Cámbialas antes de usar el sistema en producción.
 
-> 🤖 **AgentGD:** en ambos dashboards encontrarás la nube flotante del chatbot de IA (esquina inferior derecha); puedes arrastrarla por toda la pantalla y preguntarle sobre los datos del dashboard.
+> 🤖 **AgentGD:** en ambos dashboards encontrarás la nube flotante del chatbot de IA (esquina inferior derecha). Puedes arrastrarla por toda la pantalla y preguntarle sobre los datos en vivo. Además:
+> - **Responde preguntas complejas** consultando la base de datos (actores, fichas, compromisos, alertas, entidades, servicios, madurez, brechas) en lugar de inventar cifras.
+> - **Lee imágenes:** adjunta o pega una captura del tablero con el botón del clip y pídele que la explique.
+> - **Te guía:** conoce la pantalla en la que estás, sugiere preguntas y muestra botones como *Ver matriz* o *Ver evaluación de madurez* que te llevan sin recargar. El botón de brújula inicia una guía paso a paso.
+> - **Es transparente:** debajo de cada respuesta indica qué consultas usó.
+>
+> La imagen se envía una sola vez y no se guarda. No adjuntes documentos con datos personales.
 
 ---
 

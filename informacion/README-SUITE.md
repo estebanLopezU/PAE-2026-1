@@ -113,7 +113,14 @@ docker-compose down
 
 ## 🤖 AgentGD (Chatbot IA)
 
-Chatbot basado en **OpenRouter** (modelo gratuito) disponible en ambos dashboards como nube flotante arrastrable. Analiza el dashboard y responde usando el contexto real de la base de datos de cada plataforma (entidades X-Road / actores GOVStake). La API key se configura en los `.env` de los backends (`OPENROUTER_API_KEY`, `OPENROUTER_MODEL`).
+Asistente basado en **OpenRouter** disponible en ambos dashboards como nube flotante arrastrable. No es un chat con un resumen fijo: usa **herramientas de consulta** (function calling) para leer la base en vivo, **lee imágenes** con un modelo multimodal y **guía al usuario** por la pantalla actual.
+
+*   **GOVStake 360:** 12 herramientas (actores, fichas, priorización PLU, compromisos, alertas, Mitchell, comparación, teoría del doctorado, navegación).
+*   **Interoperabilidad:** 10 herramientas (entidades, servicios, madurez MinTIC, brechas, relaciones, marco, navegación).
+*   **Límites:** 2 llamadas al modelo por pregunta y 6 preguntas por minuto por usuario, para cuidar el cupo gratuito.
+*   **Privacidad:** no se envían correos ni teléfonos al modelo; las imágenes no se almacenan.
+
+Configuración en los `.env` de los backends: `OPENROUTER_API_KEY`, `OPENROUTER_MODEL`, `OPENROUTER_VISION_MODEL`, `OPENROUTER_FALLBACK_MODELS`, `AGENTGD_MAX_CALLS`, `AGENTGD_REQUESTS_PER_MINUTE`. Detalle en `informacion/PLAN_AGENTGD.md`.
 
 ---
 
