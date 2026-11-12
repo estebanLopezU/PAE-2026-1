@@ -28,8 +28,21 @@ class Settings(BaseSettings):
     # OpenRouter (AgentGD IA)
     OPENROUTER_API_KEY: str = ""
     OPENROUTER_MODEL: str = "nvidia/nemotron-3.5-lightning:free"
+    OPENROUTER_VISION_MODEL: str = "nvidia/nemotron-3.5-super-vl:free"
+    OPENROUTER_FALLBACK_MODELS: str = (
+        "google/gemma-4-31b-it:free,nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free"
+    )
     OPENROUTER_BASE_URL: str = "https://openrouter.ai/api/v1"
     OSR_REFERER: str = "http://localhost:3002"
+
+    # AgentGD: limites del agente. Dos llamadas por pregunta mantienen el
+    # consumo dentro del cupo gratuito de OpenRouter.
+    AGENTGD_TOOLS: bool = True
+    AGENTGD_IMAGES: bool = True
+    AGENTGD_MAX_CALLS: int = 2
+    AGENTGD_MAX_TOKENS: int = 900
+    AGENTGD_MAX_HISTORY: int = 8
+    AGENTGD_REQUESTS_PER_MINUTE: int = 6
 
     # Sincronización de entidades públicas desde el backend de interoperabilidad
     INTEROP_API_URL: str = "http://localhost:8000/api/v1"
