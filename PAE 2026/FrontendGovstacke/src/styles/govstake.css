@@ -39,3 +39,32 @@
     @apply border border-slate-200/10 bg-slate-900/75 shadow-lg shadow-black/30 backdrop-blur-xl;
   }
 }
+
+/* Entrada suave de las tarjetas de análisis. Se usa con animation-delay
+   escalonado para que el contenido aparezca en cascada. */
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-rise {
+  animation: rise-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-rise {
+    animation: none;
+  }
+
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -3,22 +3,7 @@ import { Plus, Search, RefreshCw, AlertTriangle, Trash2, Save, X } from 'lucide-
 import GlassCard from '../components/common/GlassCard'
 import { actorsApi } from '../services/api'
 import { useAuth } from '../contexts/AuthContext'
-
-const TIPOS = [
-  { clave: 'ciudadania', label: 'Ciudadanía' },
-  { clave: 'organizaciones', label: 'Organizaciones sociales' },
-  { clave: 'veeduria', label: 'Veedurías' },
-  { clave: 'concejo_municipal', label: 'Concejo municipal' },
-  { clave: 'servidor_publico', label: 'Servidores públicos' },
-  { clave: 'empresa', label: 'Empresas / sector privado' },
-  { clave: 'medios', label: 'Medios de comunicación' },
-  { clave: 'universidad', label: 'Universidades' },
-  { clave: 'entidad_control', label: 'Entidades de control' },
-  { clave: 'cooperacion', label: 'Cooperación internacional' },
-  { clave: 'gobierno_local', label: 'Gobierno local' },
-  { clave: 'gobierno_departamental', label: 'Gobierno departamental' },
-  { clave: 'entidad_publica', label: 'Entidad pública (sincronizada)' },
-]
+import { TIPOS_ACTOR as TIPOS } from '../constants/actores'
 
 // Las cuatro variables del modelo del doctorado se valoran en escala ordinal de
 // cuatro niveles. En la base se conserva el equivalente 0-100 para no perder la
