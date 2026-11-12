@@ -5,6 +5,7 @@
 
 export function sanitizar(texto) {
   return String(texto ?? '')
+    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '') // control invisibles
     .replace(/<\s*[a-zA-Z/!][^>]*>/g, '') // etiquetas HTML sueltas
     .replace(/javascript\s*:/gi, '') // esquemas peligrosos
     .replace(/on[a-z]{2,}\s*=\s*"[^"]*"/gi, '') // handlers en linea

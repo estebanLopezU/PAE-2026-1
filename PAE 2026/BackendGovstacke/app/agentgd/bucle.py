@@ -14,6 +14,7 @@ una sola pregunta.
 """
 
 import json
+import re
 from typing import Any, Dict, List, Optional
 
 from ..config import get_settings
@@ -75,6 +76,15 @@ def _texto_final(mensaje: Dict[str, Any]) -> str:
     if isinstance(contenido, str):
         return contenido.strip()
     return ""
+
+
+# Caracteres de control invisibles que algunos modelos devuelven con las tildes.
+_CONTROL = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]")
+
+
+def _limpiar(texto: str) -> str:
+    """Quita caracteres de control de la respuesta final."""
+    return _CONTROL.sub("", texto or "")
 
 
 def _resumen_de_respaldo(usadas: List[str], resultados: List[Dict[str, Any]]) -> str:
@@ -211,7 +221,7 @@ def responder(
     usadas = list(dict.fromkeys(usadas))
 
     return {
-        "response": respuesta,
+        "response": _limpiar(respuesta),
         "ok": True,
         "acciones": acciones,
         "trazabilidad": usadas,
