@@ -500,6 +500,11 @@ _ID_ENTIDAD = {
     "nombre": {"type": "string", "description": "Nombre, sigla o NIT; admite coincidencia parcial."},
 }
 
+# Los destinos validos salen del mapa de navegacion: una sola fuente de verdad.
+from .navegacion import DESTINOS as _DESTINOS_RUTAS  # noqa: E402
+
+_DESTINOS_VALIDOS = sorted(_DESTINOS_RUTAS)
+
 ESQUEMAS: List[Dict[str, Any]] = [
     _herramienta(
         "resumen_interop",
@@ -567,15 +572,11 @@ ESQUEMAS: List[Dict[str, Any]] = [
     ),
     _herramienta(
         "navegar",
-        "Devuelve la pantalla donde el usuario puede continuar.",
+        "Devuelve la pantalla de la plataforma donde el usuario puede continuar. Usala cuando la respuesta termine en una accion concreta.",
         {
             "destino": {
                 "type": "string",
-                "enum": [
-                    "dashboard", "inicio", "entidades", "matriz", "servicios",
-                    "mapa", "evaluacion", "madurez", "reportes", "analisis",
-                    "analisis_ia", "brechas",
-                ],
+                "enum": _DESTINOS_VALIDOS,
             }
         },
         ["destino"],

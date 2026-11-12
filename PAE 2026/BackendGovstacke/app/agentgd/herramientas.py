@@ -692,6 +692,11 @@ def _herramienta(nombre: str, descripcion: str, propiedades: Dict[str, Any], req
 
 _PRIORIDADES = ["prioridad_alta", "prioridad_media", "prioridad_baja", "monitoreo"]
 
+# Los destinos validos salen del mapa de navegacion: una sola fuente de verdad.
+from .navegacion import DESTINOS as _DESTINOS_RUTAS  # noqa: E402
+
+_DESTINOS_VALIDOS = sorted(_DESTINOS_RUTAS)
+
 ESQUEMAS: List[Dict[str, Any]] = [
     _herramienta(
         "resumen_ejecutivo",
@@ -800,11 +805,7 @@ ESQUEMAS: List[Dict[str, Any]] = [
         {
             "destino": {
                 "type": "string",
-                "enum": [
-                    "dashboard", "modelo", "fundamentos", "actores", "matriz",
-                    "mitchell", "compromisos", "relacionamientos", "alertas",
-                    "protocolo", "reportes", "que_es",
-                ],
+                "enum": _DESTINOS_VALIDOS,
             }
         },
         ["destino"],
